@@ -2,6 +2,7 @@ var express = require('express');
 var app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const mongoose = require("mongoose");
 
 const swaggerOptions = {
     definition: {
@@ -44,3 +45,8 @@ app.get('/', function (req, res) {
 app.listen(3000, function () {
     console.log('Server running on port ', 3000);
 });
+
+
+mongoose.connect("mongodb+srv://carlottacazzolli:hgXcj0RNjICvIiyo@walkaware.ihu6bna.mongodb.net/?retryWrites=true&w=majority&appName=WalkAware")
+.then(()=> {console.log("Connected to DB");})
+.catch((error)=> {console.log("Connection to DB failed: "+ error +"\n")});
