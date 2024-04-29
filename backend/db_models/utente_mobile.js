@@ -2,28 +2,24 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-module.exports = mongoose.model("utente_mobile", new Schema({
-    id: Number, 
-    nome: String, 
-    eta: Number, 
-    email: String, 
-    password: String,
-    punti: Number, 
-    buoni:{
-        id: Number,
+const utenteMobileSchema = new Schema({
+    nome: String,
+    eta: Number,
+    email: { type: String, required: true, unique: true }, // Email obbligatoria e unica
+    password: { type: String, required: true }, // Password obbligatoria
+    punti: Number,
+    buoni: [{
         id_premio: Number,
-        data_riscatto: Schema.Types.Date, 
-        validita: Schema.Types.Date, 
+        data_riscatto: { type: Date, default: Date.now },
+        validita: Date,
         usato: Boolean
-    }, 
-    segnalazioni:{
-        id: Number, 
-        luogo: GeolocationCoordinates, 
-        foto: File, 
-        tipo: ["strada", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche"],
-        urgenza: ["bassa", "medio-bassa", "medio-alta", "alta"],
-        status: ["aperta", "presa_in_carico", "conclusa"]
-    }
+    }],
+    segnalazioni: [{
+        tipo: { type: String, enum: ["strada", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche"] },
+        urgenza: { type: String, enum: ["bassa", "medio-bassa", "medio-alta", "alta"] },
+        status: { type: String, enum: ["aperta", "presa_in_carico", "conclusa"] }
+    }]
+});
 
-}))
+module.exports = mongoose.model("UtenteMobile", utenteMobileSchema);
 
