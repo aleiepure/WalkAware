@@ -1,6 +1,6 @@
 PODS:
   - Flutter (1.0.0)
-  - location (0.0.1):
+  - geolocator_apple (1.2.0):
     - Flutter
   - mapbox_maps_flutter (1.1.0):
     - Flutter
@@ -19,7 +19,7 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - location (from `.symlinks/plugins/location/ios`)
+  - geolocator_apple (from `.symlinks/plugins/geolocator_apple/ios`)
   - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
@@ -33,8 +33,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  location:
-    :path: ".symlinks/plugins/location/ios"
+  geolocator_apple:
+    :path: ".symlinks/plugins/geolocator_apple/ios"
   mapbox_maps_flutter:
     :path: ".symlinks/plugins/mapbox_maps_flutter/ios"
   shared_preferences_foundation:
@@ -42,7 +42,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  location: d5cf8598915965547c3f36761ae9cc4f4e87d22e
+  geolocator_apple: 6cbaf322953988e009e5ecb481f07efece75c450
   mapbox_maps_flutter: 0425c56f1f51fe8c46069a9e03f1027e3ade35d7
   MapboxCommon: e6d0d15f1e34278e21bae28bdc548d378757b51e
   MapboxCoreMaps: 0e3eab0bd5787e833d48261fa1d01f356d6c4ad8

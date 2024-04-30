@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mapbox_search/mapbox_search.dart';
 import './views/home_page.dart';
 
 void main() {
@@ -14,11 +15,11 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-
   @override
   void initState() {
     super.initState();
     MapboxOptions.setAccessToken(const String.fromEnvironment("PUBLIC_ACCESS_TOKEN"));
+    MapBoxSearch.init(const String.fromEnvironment("PUBLIC_ACCESS_TOKEN"));
   }
 
   @override

@@ -1,7 +1,20 @@
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
 
-import 'package:mobile/widgets/map.dart';
-// import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart' as geolocator;
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:mapbox_search/mapbox_search.dart';
+
+enum TrackingMode { none, gps, compass }
+
+class AnnotationClickListener extends OnPointAnnotationClickListener {
+  @override
+  void onPointAnnotationClick(PointAnnotation annotation) {
+    print("onAnnotationClick, id: ${annotation.id}");
+  }
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,19 +24,645 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  MapboxMap? _mapboxMap;
+  PointAnnotation? _pointAnnotation;
+  PointAnnotationManager? _pointAnnotationManager;
+
+  Timer? _timer;
+  TrackingMode _trackingMode = TrackingMode.gps;
+  Position _position = Position(0, 0);
+  late double _bearing;
+
+  bool _alertLocationServicesShown = false;
+  bool _alertLocationPermissionShown = false;
+
+  final CameraOptions _initialPosition = CameraOptions(
+    center: Point(
+      coordinates: Position(
+        11.125916,
+        46.068460,
+      ),
+    ).toJson(),
+    zoom: 12.0,
+  );
+
+  final SearchBoxAPI _searchBoxAPI = SearchBoxAPI(limit: 8);
+  final SearchController _searchController = SearchController();
+  final TextEditingController _searchTextEditingController = TextEditingController();
+
+  /// Track user position with GPS
+  ///
+  /// This method sets the tracking mode to GPS and moves the camera to the user's position.
+  void _trackWithPosition() {
+    _trackingMode = TrackingMode.gps;
+
+    _mapboxMap?.setCamera(CameraOptions(
+      zoom: 16,
+    ));
+
+    _updateCamera();
+  }
+
+  /// Track user position with compass
+  ///
+  /// This method sets the tracking mode to compass and moves the camera to the user's position.
+  void _trackWithCompass() {
+    _trackingMode = TrackingMode.compass;
+
+    _mapboxMap?.setCamera(CameraOptions(
+      zoom: 16,
+    ));
+
+    _updateCamera();
+  }
+
+  /// Disable tracking
+  ///
+  /// This method disables tracking mode.
+  void _disableTracking() {
+    _trackingMode = TrackingMode.none;
+  }
+
+  /// Move map ornaments
+  ///
+  /// This method moves the compass and attribution based on the visibility of the bottom sheet.
+  void _moveMapOrnaments({required bool bottomSheetVisible}) {
+    if (bottomSheetVisible) {
+      _mapboxMap?.logo.updateSettings(LogoSettings(
+        marginBottom: 190,
+        marginLeft: 20,
+        marginTop: 30,
+        marginRight: 30,
+      ));
+
+      _mapboxMap?.attribution.updateSettings(AttributionSettings(
+        marginBottom: 190,
+        marginLeft: 110,
+        marginTop: 40,
+        marginRight: 0,
+      ));
+
+      _mapboxMap?.compass.updateSettings(CompassSettings(
+        enabled: true,
+        position: OrnamentPosition.BOTTOM_RIGHT,
+        marginBottom: 190,
+        marginLeft: 10,
+        marginTop: 10,
+        marginRight: 10,
+      ));
+    } else {
+      _mapboxMap?.logo.updateSettings(LogoSettings(
+        marginBottom: 10,
+        marginLeft: 20,
+        marginTop: 30,
+        marginRight: 30,
+      ));
+
+      _mapboxMap?.attribution.updateSettings(AttributionSettings(
+        marginBottom: 10,
+        marginLeft: 110,
+        marginTop: 40,
+        marginRight: 0,
+      ));
+
+      _mapboxMap?.compass.updateSettings(CompassSettings(
+        enabled: true,
+        position: OrnamentPosition.BOTTOM_RIGHT,
+        marginBottom: 10,
+        marginLeft: 10,
+        marginTop: 10,
+        marginRight: 10,
+      ));
+    }
+  }
+
+  /// Show location service disabled dialog
+  ///
+  /// This method shows a dialog to the user when location services are disabled.
+  void _showLocationServiceDisabledDialog() {
+    if (_alertLocationServicesShown) {
+      return;
+    }
+
+    showDialog(
+      barrierDismissible: false,
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => PopScope(
+        onPopInvoked: (didPop) => _alertLocationServicesShown = false,
+        child: AlertDialog(
+          icon: Icon(Icons.location_off, size: 48, color: Theme.of(context).colorScheme.secondary),
+          title: const Text('Posizione disabilitata'),
+          content: const Text('Per usare WalkAware Trento, abilita la posizione sul tuo dispositivo.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Ops! Fammi sistemare'),
+              onPressed: () {
+                geolocator.Geolocator.openLocationSettings();
+                Navigator.of(context).pop();
+                _alertLocationServicesShown = false;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    _alertLocationServicesShown = true;
+  }
+
+  /// Show location permission denied dialog
+  ///
+  /// This method shows a dialog to the user when location permissions are denied.
+  void _showLocationPermissionDeniedDialog() {
+    if (_alertLocationPermissionShown) {
+      return;
+    }
+
+    showDialog(
+      barrierDismissible: false,
+      useRootNavigator: false,
+      context: context,
+      builder: (context) => PopScope(
+        onPopInvoked: (didPop) => _alertLocationServicesShown = false,
+        child: AlertDialog(
+          icon: Icon(Icons.location_disabled, size: 48, color: Theme.of(context).colorScheme.secondary),
+          title: const Text('Permesso di accesso alla posizione rifiutato'),
+          content: const Text('Per usare WalkAware Trento, consenti il permesso per usare la posizione.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Alle impostazioni!'),
+              onPressed: () {
+                geolocator.Geolocator.openAppSettings();
+                Navigator.of(context).pop();
+                _alertLocationPermissionShown = false;
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+    _alertLocationPermissionShown = true;
+  }
+
+  /// Update user position and bearing
+  ///
+  /// This method updates the user's position and bearing on the map. Also takes care of permissions and location services.
+  Future<void> _updateUserPositionAndBearing() async {
+    // Handle permissions access
+    bool serviceEnabled;
+    geolocator.LocationPermission permission;
+
+    // Test if location services are enabled
+    serviceEnabled = await geolocator.Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _showLocationServiceDisabledDialog();
+      return;
+    }
+
+    // Check location permissions
+    permission = await geolocator.Geolocator.checkPermission();
+    if (permission == geolocator.LocationPermission.denied) {
+      permission = await geolocator.Geolocator.requestPermission();
+      if (permission == geolocator.LocationPermission.denied) {
+        _showLocationPermissionDeniedDialog();
+        return;
+      }
+      _showLocationPermissionDeniedDialog();
+      return;
+    }
+
+    // Get user position
+    Layer? layer;
+    if (Platform.isAndroid) {
+      layer = await _mapboxMap?.style.getLayer("mapbox-location-indicator-layer");
+    } else {
+      layer = await _mapboxMap?.style.getLayer("puck");
+    }
+
+    var location = (layer as LocationIndicatorLayer).location;
+    _bearing = layer.bearing!;
+    _position = Position(location![1]!, location[0]!);
+
+    // Move camera to user position
+    _updateCamera();
+  }
+
+  /// Update camera
+  ///
+  /// This method updates the camera position based on the tracking mode.
+  void _updateCamera() {
+    switch (_trackingMode) {
+      case TrackingMode.none:
+        return;
+      case TrackingMode.gps:
+        _mapboxMap?.easeTo(
+            CameraOptions(
+              center: Point(coordinates: _position).toJson(),
+              zoom: 17.0,
+            ),
+            MapAnimationOptions(duration: 1000));
+        break;
+      case TrackingMode.compass:
+        _mapboxMap?.easeTo(
+            CameraOptions(
+              center: Point(coordinates: _position).toJson(),
+              bearing: _bearing,
+            ),
+            MapAnimationOptions(duration: 1000));
+        break;
+    }
+  }
+
+  /// Map created callback
+  ///
+  /// This method is called when the map is created. It initializes the map and sets up the map's settings.
+  void _onMapCreated(MapboxMap mapboxMap) async {
+    _mapboxMap = mapboxMap;
+
+    // Enable location component
+    mapboxMap.location.updateSettings(LocationComponentSettings(
+      enabled: true,
+      puckBearingEnabled: true,
+    ));
+    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateUserPositionAndBearing());
+
+    // Disable scale bar
+    _mapboxMap?.scaleBar.updateSettings(ScaleBarSettings(
+      enabled: false,
+    ));
+
+    // Move compass and attribution
+    _moveMapOrnaments(bottomSheetVisible: false);
+
+    // Create point annotation manager
+    mapboxMap.annotations.createPointAnnotationManager().then((value) async {
+      _pointAnnotationManager = value;
+      _pointAnnotationManager?.addOnPointAnnotationClickListener(AnnotationClickListener());
+    });
+  }
+
+  /// Map scroll callback
+  ///
+  /// This method is called when the map is scrolled. It disables tracking mode.
+  void _onMapScroll(ScreenCoordinate screenCoordinate) {
+    _trackingMode = TrackingMode.none;
+    // TODO: Implement tracking mode button
+  }
+
+  /// Search suggestion selected callback
+  ///
+  /// This method is called when a search suggestion is selected. It moves the camera to the selected place and shows a bottom sheet with place details.
+  void _onSearchSuggestionSelected(String name, String address, String mapboxId) async {
+    // Set search text to selected suggestion
+    _searchTextEditingController.text = name;
+
+    // Retrieve place details
+    ApiResponse<RetrieveResonse> searchedPlace = await _searchBoxAPI.getPlace(mapboxId);
+
+    // Handle failures: show snackbar with error message and return
+    if (searchedPlace.failure is FailureResponse) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('${searchedPlace.failure?.error}: ${searchedPlace.failure?.message ?? 'Result retrieval failed'}'),
+        backgroundColor: Theme.of(context).colorScheme.error,
+        duration: const Duration(seconds: 2),
+      ));
+      return;
+    }
+
+    // Remove previous marker
+    if (_pointAnnotation != null) {
+      _pointAnnotationManager?.delete(_pointAnnotation!);
+    }
+
+    // Add marker on map
+    Position position = Position(searchedPlace.success?.features.first.geometry.coordinates.long as num,
+        searchedPlace.success?.features.first.geometry.coordinates.lat as num);
+    final ByteData bytes = await rootBundle.load('assets/marker.png');
+    final Uint8List list = bytes.buffer.asUint8List();
+
+    _pointAnnotationManager
+        ?.create(PointAnnotationOptions(
+          geometry: Point(
+            coordinates: position,
+          ).toJson(),
+          iconSize: 0.2,
+          iconOffset: [0, 0],
+          symbolSortKey: 10,
+          image: list,
+        ))
+        .then((value) => _pointAnnotation = value);
+
+    // Move camera to searched place and disable tracking
+    _mapboxMap?.easeTo(
+      CameraOptions(
+        center: Point(coordinates: position).toJson(),
+      ),
+      MapAnimationOptions(),
+    );
+    _disableTracking();
+
+    // Show bottom sheet with place details
+    _scaffoldKey.currentState?.showBottomSheet(
+      enableDrag: false,
+      (context) => _locationInfoBottomSheet(name, address),
+    );
+
+    // Move compass and attribution up
+    _moveMapOrnaments(bottomSheetVisible: true);
+  }
+
+  /// Location info bottom sheet
+  /// 
+  /// This method returns the bottom sheet with place details.
+  Widget _locationInfoBottomSheet(String name, String address) {
+    return Container(
+      height: 180,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Expanded(
+                  flex: 2,
+                  child: _locationInfoBottomSheetLocationInfo(name, address),
+                ),
+                _locationInfoBottomSheetCloseButton(),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _locationInfoBottomSheetDirectionsButton(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Location info bottom sheet close button
+  /// 
+  /// This method returns the close button for the bottom sheet.
+  Widget _locationInfoBottomSheetCloseButton() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.secondary,
+            width: 1,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            // Delete marker
+            if (_pointAnnotation != null) {
+              _pointAnnotationManager?.delete(_pointAnnotation!);
+            }
+
+            // Clear search text
+            _searchTextEditingController.clear();
+
+            // Move map ornaments back down
+           _moveMapOrnaments(bottomSheetVisible: false);
+
+            // Close bottom sheet
+            Navigator.of(context).pop();
+            FocusScope.of(context).unfocus();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Location info bottom sheet location info
+  /// 
+  /// This method returns the location info for the bottom sheet.
+  Widget _locationInfoBottomSheetLocationInfo(String name, String address) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              style: Theme.of(context).textTheme.titleLarge,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              maxLines: 2,
+              name,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              style: Theme.of(context).textTheme.titleSmall,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              maxLines: 2,
+              address,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Location info bottom sheet directions button
+  /// 
+  /// This method returns the directions button for the bottom sheet.
+  Widget _locationInfoBottomSheetDirectionsButton() {
+    return FilledButton(
+      onPressed: _onLocationInfoBottomSheetDirectionsButtonTap,
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(Icons.directions_walk),
+          Text('Come ci arrivo?'),
+        ],
+      ),
+    );
+  }
+
+  /// Location info bottom sheet directions button tap callback
+  /// 
+  /// This method is called when the directions button is tapped.
+  void _onLocationInfoBottomSheetDirectionsButtonTap() {
+    // TODO: Implement directions
+    print('Directions button tapped!');
+  }
+
+  /// Search widget builder
+  /// 
+  /// This method returns the search widget.
+  Widget _searchWidgetBuilder(BuildContext context, SearchController controller) {
+    return SearchBar(
+      controller: _searchTextEditingController,
+      leading: const Icon(Icons.search),
+      hintText: 'Dove andiamo oggi?',
+      onTap: () {
+        _searchController.openView();
+      },
+    );
+  }
+
+  /// Search widget suggestions builder
+  /// 
+  /// This method returns the search widget suggestions.
+  FutureOr<Iterable<Widget>> _searchWidgetSuggestionsBuilder(BuildContext context, SearchController controller) async {
+    final keyword = controller.value.text;
+
+    // Empty search query
+    if (keyword.isEmpty) {
+      return <Widget>[
+        ListTile(
+          title: const Text('Stazione di Trento'),
+          subtitle: const Text('via Dogana, 3, 38122 Trento, TN'),
+          leading: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: const BorderRadius.all(Radius.circular(25)),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.location_on,
+              ),
+            ),
+          ),
+          iconColor: Theme.of(context).colorScheme.secondary,
+          onTap: () {
+            _onSearchSuggestionSelected(
+                'Stazione di Trento', 'via Dogana, 3, 38122 Trento, TN', 'dXJuOm1ieHBvaTo1ZWNhNzBhMy1kNTg2LTQ3YzItOTg1ZC1lMGU4NTM5ZjAxMmU');
+            controller.closeView(null);
+            FocusScope.of(context).unfocus();
+          },
+        ),
+        ListTile(
+          title: const Text('Polo Scientifico e Tecnologico Fabio Ferrari'),
+          subtitle: const Text('via Sommarive, 18, 38123 Povo, TN'),
+          leading: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.secondaryContainer,
+              borderRadius: const BorderRadius.all(Radius.circular(25)),
+            ),
+            child: const Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Icon(
+                Icons.location_on,
+              ),
+            ),
+          ),
+          iconColor: Theme.of(context).colorScheme.secondary,
+          onTap: () {
+            _onSearchSuggestionSelected('Polo Scientifico e Tecnologico Fabio Ferrari', 'via Sommarive, 18, 38123 Povo, TN',
+                'dXJuOm1ieHBvaTozYTViNWUzNC1hMWVmLTQ1OWEtYTliZS03MzM3NzgwNmUwZDY');
+            controller.closeView(null);
+            FocusScope.of(context).unfocus();
+          },
+        ),
+      ];
+    }
+
+    return await _searchBoxAPI.getSuggestions(keyword, proximity: Proximity.LocationIp()).then((result) {
+      // Search API returned error
+      if (result.failure is FailureResponse) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${result.failure?.error}: ${result.failure?.message ?? 'Search failed'}'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+          duration: const Duration(seconds: 2),
+        ));
+        return <Widget>[];
+      }
+
+      // Style suggestions as ListTile
+      return result.success!.suggestions
+          .map((suggestion) {
+            return ListTile(
+                title: Text(suggestion.namePreferred ?? suggestion.name),
+                subtitle: Text(suggestion.fullAddress ?? suggestion.address ?? ''),
+                leading: Container(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.secondaryContainer,
+                    borderRadius: const BorderRadius.all(Radius.circular(25)),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Icon(
+                      Icons.location_on,
+                    ),
+                  ),
+                ),
+                iconColor: Theme.of(context).colorScheme.secondary,
+                onTap: () {
+                  _onSearchSuggestionSelected(
+                      suggestion.namePreferred ?? suggestion.name, suggestion.fullAddress ?? suggestion.address ?? '', suggestion.mapboxId);
+                  controller.closeView(null);
+                  FocusScope.of(context).unfocus();
+                });
+          })
+          .where((suggestionTile) {
+            Text subtitle = (suggestionTile.subtitle as Text);
+            return subtitle.data!.isNotEmpty;
+          })
+          .cast<ListTile>()
+          .toList();
+    });
+  }
+
+  /// Init state
   @override
   void initState() {
     super.initState();
   }
 
+  /// Build
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
+    return Scaffold(
+      key: _scaffoldKey,
       body: Center(
         child: Stack(
           children: <Widget>[
-            MapBoxWidget(),
+            MapWidget(
+              onMapCreated: _onMapCreated,
+              styleUri: MapboxStyles.MAPBOX_STREETS,
+              textureView: true,
+              cameraOptions: _initialPosition,
+              onScrollListener: _onMapScroll,
+            ),
+            SafeArea(
+              child: Column(
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: SearchAnchor(
+                      searchController: _searchController,
+                      viewHintText: 'Dove andiamo oggi?',
+                      isFullScreen: true,
+                      builder: _searchWidgetBuilder,
+                      suggestionsBuilder: _searchWidgetSuggestionsBuilder,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
