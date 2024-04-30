@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/src/widgets/visibility.dart' as visibility;
 import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
@@ -56,10 +57,13 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method sets the tracking mode to GPS and moves the camera to the user's position.
   void _trackWithPosition() {
-    _trackingMode = TrackingMode.gps;
+    setState(() {
+      _trackingMode = TrackingMode.gps;
+    });
 
     _mapboxMap?.setCamera(CameraOptions(
       zoom: 16,
+      bearing: 0,
     ));
 
     _updateCamera();
@@ -69,7 +73,9 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method sets the tracking mode to compass and moves the camera to the user's position.
   void _trackWithCompass() {
-    _trackingMode = TrackingMode.compass;
+    setState(() {
+      _trackingMode = TrackingMode.compass;
+    });
 
     _mapboxMap?.setCamera(CameraOptions(
       zoom: 16,
@@ -82,7 +88,9 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method disables tracking mode.
   void _disableTracking() {
-    _trackingMode = TrackingMode.none;
+    setState(() {
+      _trackingMode = TrackingMode.none;
+    });
   }
 
   /// Move map ornaments
@@ -114,26 +122,22 @@ class _HomePageState extends State<HomePage> {
       ));
     } else {
       _mapboxMap?.logo.updateSettings(LogoSettings(
+        position: OrnamentPosition.BOTTOM_LEFT,
+        marginLeft: MediaQuery.of(context).size.width / 2 - 55,
         marginBottom: 10,
-        marginLeft: 20,
-        marginTop: 30,
-        marginRight: 30,
       ));
 
       _mapboxMap?.attribution.updateSettings(AttributionSettings(
+        position: OrnamentPosition.BOTTOM_LEFT,
+        marginLeft: MediaQuery.of(context).size.width / 2 + 35,
         marginBottom: 10,
-        marginLeft: 110,
-        marginTop: 40,
-        marginRight: 0,
       ));
 
       _mapboxMap?.compass.updateSettings(CompassSettings(
         enabled: true,
         position: OrnamentPosition.BOTTOM_RIGHT,
-        marginBottom: 10,
-        marginLeft: 10,
-        marginTop: 10,
-        marginRight: 10,
+        marginRight: 25,
+        marginBottom: 160,
       ));
     }
   }
@@ -257,7 +261,7 @@ class _HomePageState extends State<HomePage> {
       case TrackingMode.none:
         return;
       case TrackingMode.gps:
-        _mapboxMap?.easeTo(
+        _mapboxMap?.flyTo(
             CameraOptions(
               center: Point(coordinates: _position).toJson(),
               zoom: 17.0,
@@ -265,7 +269,7 @@ class _HomePageState extends State<HomePage> {
             MapAnimationOptions(duration: 1000));
         break;
       case TrackingMode.compass:
-        _mapboxMap?.easeTo(
+        _mapboxMap?.flyTo(
             CameraOptions(
               center: Point(coordinates: _position).toJson(),
               bearing: _bearing,
@@ -307,7 +311,9 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method is called when the map is scrolled. It disables tracking mode.
   void _onMapScroll(ScreenCoordinate screenCoordinate) {
-    _trackingMode = TrackingMode.none;
+    setState(() {
+      _trackingMode = TrackingMode.none;
+    });
     // TODO: Implement tracking mode button
   }
 
@@ -355,7 +361,7 @@ class _HomePageState extends State<HomePage> {
         .then((value) => _pointAnnotation = value);
 
     // Move camera to searched place and disable tracking
-    _mapboxMap?.easeTo(
+    _mapboxMap?.flyTo(
       CameraOptions(
         center: Point(coordinates: position).toJson(),
       ),
@@ -374,7 +380,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Location info bottom sheet
-  /// 
+  ///
   /// This method returns the bottom sheet with place details.
   Widget _locationInfoBottomSheet(String name, String address) {
     return Container(
@@ -413,7 +419,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Location info bottom sheet close button
-  /// 
+  ///
   /// This method returns the close button for the bottom sheet.
   Widget _locationInfoBottomSheetCloseButton() {
     return Padding(
@@ -438,7 +444,7 @@ class _HomePageState extends State<HomePage> {
             _searchTextEditingController.clear();
 
             // Move map ornaments back down
-           _moveMapOrnaments(bottomSheetVisible: false);
+            _moveMapOrnaments(bottomSheetVisible: false);
 
             // Close bottom sheet
             Navigator.of(context).pop();
@@ -450,7 +456,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Location info bottom sheet location info
-  /// 
+  ///
   /// This method returns the location info for the bottom sheet.
   Widget _locationInfoBottomSheetLocationInfo(String name, String address) {
     return Padding(
@@ -485,23 +491,18 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Location info bottom sheet directions button
-  /// 
+  ///
   /// This method returns the directions button for the bottom sheet.
   Widget _locationInfoBottomSheetDirectionsButton() {
-    return FilledButton(
+    return FilledButton.icon(
       onPressed: _onLocationInfoBottomSheetDirectionsButtonTap,
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Icon(Icons.directions_walk),
-          Text('Come ci arrivo?'),
-        ],
-      ),
+      icon: const Icon(Icons.directions_walk),
+      label: const Text('Come ci arrivo?'),
     );
   }
 
   /// Location info bottom sheet directions button tap callback
-  /// 
+  ///
   /// This method is called when the directions button is tapped.
   void _onLocationInfoBottomSheetDirectionsButtonTap() {
     // TODO: Implement directions
@@ -509,7 +510,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Search widget builder
-  /// 
+  ///
   /// This method returns the search widget.
   Widget _searchWidgetBuilder(BuildContext context, SearchController controller) {
     return SearchBar(
@@ -523,7 +524,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Search widget suggestions builder
-  /// 
+  ///
   /// This method returns the search widget suggestions.
   FutureOr<Iterable<Widget>> _searchWidgetSuggestionsBuilder(BuildContext context, SearchController controller) async {
     final keyword = controller.value.text;
@@ -626,6 +627,98 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  /// Account button
+  ///
+  /// This method returns the account button.
+  Widget _accountButton() {
+    return ElevatedButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+          ),
+        ),
+        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+        backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+        iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+      ),
+      child: const Icon(Icons.person),
+      onPressed: () {},
+    );
+  }
+
+  /// Tracking button
+  ///
+  /// This method returns the tracking button.
+  Widget _trackingButton() {
+    return ElevatedButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all(
+          const CircleBorder(),
+        ),
+        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+      ),
+      child: Icon(
+        _trackingMode == TrackingMode.none ? Icons.location_searching : (_trackingMode == TrackingMode.gps ? Icons.gps_fixed : Icons.explore),
+      ),
+      onPressed: () {
+        switch (_trackingMode) {
+          case TrackingMode.none:
+            _trackWithPosition();
+            break;
+          case TrackingMode.gps:
+            _trackWithCompass();
+            break;
+          case TrackingMode.compass:
+            _trackWithPosition();
+            break;
+        }
+      },
+    );
+  }
+
+  /// Points button
+  ///
+  /// This method returns the points button.
+  Widget _pointsButton() {
+    return ElevatedButton.icon(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+          ),
+        ),
+        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+        backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+        iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+        foregroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+      ),
+      icon: const Icon(Icons.local_activity),
+      label: const Text('1234'),
+      onPressed: () {},
+    );
+  }
+
+  /// Issue button
+  ///
+  /// This method returns the issue button.
+  Widget _issueButton() {
+    return ElevatedButton(
+      style: ButtonStyle(
+        shape: MaterialStateProperty.all(
+          RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18.0),
+          ),
+        ),
+        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+        backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+        iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+      ),
+      child: const Icon(Icons.report),
+      onPressed: () {},
+    );
+  }
+
   /// Init state
   @override
   void initState() {
@@ -658,6 +751,34 @@ class _HomePageState extends State<HomePage> {
                       isFullScreen: true,
                       builder: _searchWidgetBuilder,
                       suggestionsBuilder: _searchWidgetSuggestionsBuilder,
+                    ),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              _accountButton(),
+                              _trackingButton(),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: <Widget>[
+                              _pointsButton(),
+                              _issueButton(),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
