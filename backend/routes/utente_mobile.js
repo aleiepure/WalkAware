@@ -22,15 +22,21 @@ router.post('', async (req, res) => {
 	if (!isValidEmail(req.body.email)) {
 		return res.status(400).json({ error: 'The "email" field must be a non-empty string in email format' });
 	}
-
-	// Hash password
-	const salt = bcrypt.genSaltSync(10);
-	const hashedPassword = bcrypt.hashSync(req.body.password, salt);
+	// Validate name field
+	if (typeof req.body.nome != 'string'){
+		return res.status(400).json({ error: 'The "name" field must be a non-empty string in email format' });
+	}
+	// Validate eta field
+	if (typeof req.body.eta != 'number'){
+		return res.status(400).json({ error: 'The "età" field must be a non-empty string in email format' });
+	}
 
 	// Create new user
 	const newUser = new UtenteMobile({
 		email: req.body.email,
-		password: hashedPassword
+		password: req.body.password,
+		nome: req.body.nome,
+		eta: req.body.eta
 	});
 	await newUser.save();
 
@@ -49,7 +55,7 @@ router.post('/login', async (req, res) => {
 	}
 
 	// Check password
-	if (!bcrypt.compareSync(req.body.password, user.password)) {
+	if (req.body.password == user.password) {
 		return res.status(401).json({ error: 'Authentication failed. Incorrect password.' });
 	}
 
