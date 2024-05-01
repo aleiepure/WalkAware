@@ -21,7 +21,7 @@ class AccountPage extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: Text(
                 style: Theme.of(context).textTheme.titleLarge,
-                'Ciao!',
+                'Ciao Sconosciuto!',
               ),
             ),
             Padding(
@@ -39,7 +39,7 @@ class AccountPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   FilledButton.icon(
-                    onPressed: () => Navigator.pushReplacement<void, void>(
+                    onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
                         builder: (BuildContext context) => const RegisterPage(),

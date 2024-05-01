@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:io';
 
@@ -26,7 +28,7 @@ class _HomePageState extends State<HomePage> {
   PointAnnotation? _pointAnnotation;
   PointAnnotationManager? _pointAnnotationManager;
 
-  Timer? _timer;
+  Timer? _timer; // ignore: unused_field
   TrackingMode _trackingMode = TrackingMode.gps;
   Position _position = Position(0, 0);
   late double _bearing;
@@ -523,7 +525,6 @@ class _HomePageState extends State<HomePage> {
     // Obtain route information
     var (source, _) = await _getUserPositionAndBearing();
     await requestMapboxWalkRoute(source, destination).then((response) {
-      print(response);
       duration = response['routes'][0]['duration'];
       distance = response['routes'][0]['distance'];
       geometry = response['routes'][0]['geometry'];
@@ -531,8 +532,6 @@ class _HomePageState extends State<HomePage> {
       for (var coordinate in response['routes'][0]['geometry']['coordinates']) {
         coordinates.add(Point(coordinates: Position(coordinate[0], coordinate[1])).toJson());
       }
-      print(coordinates.runtimeType);
-      print(coordinates);
     });
 
     // Draw route on map
@@ -658,7 +657,7 @@ class _HomePageState extends State<HomePage> {
       durationString += '${hours}h ';
     }
     if (minutes > 0 || hours == 0) {
-      durationString += '${minutes} min';
+      durationString += '$minutes min';
     }
 
     // Format distance

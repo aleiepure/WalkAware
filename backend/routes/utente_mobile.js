@@ -24,11 +24,15 @@ router.post('', async (req, res) => {
 	}
 	// Validate name field
 	if (typeof req.body.nome != 'string'){
-		return res.status(400).json({ error: 'The "name" field must be a non-empty string in email format' });
+		return res.status(400).json({ error: 'The "nome" field must be a non-empty string' });
 	}
 	// Validate eta field
-	if (typeof req.body.eta != 'number'){
-		return res.status(400).json({ error: 'The "età" field must be a non-empty string in email format' });
+	if (typeof req.body.eta != 'number' && req.body.eta > 18){
+		return res.status(400).json({ error: 'The "eta" field must be a number greater than 18' });
+	}
+	// Validate password field
+	if (typeof req.body.password != 'string'){
+		return res.status(400).json({ error: 'The "password" field must be a non-empty string' });
 	}
 
 	// Create new user

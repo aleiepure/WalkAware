@@ -1,9 +1,16 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:io';
+
+import 'package:android_intent_plus/android_intent.dart';
+import 'package:android_intent_plus/flag.dart';
+import 'package:crypt/crypt.dart';
 import 'package:date_field/date_field.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/widgets.dart';
-import 'package:intl/intl.dart';
+import 'package:mobile/requests/backend_requests.dart';
+import 'package:mobile/views/account_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -26,16 +33,91 @@ class _RegisterPageState extends State<RegisterPage> {
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  void _onRegisterButtonPressed() {
+  /// Show a dialog to the user to confirm the email address
+  ///
+  /// The dialog will inform the user that they need to check their email to confirm their account.
+  void _showEmailConfirmationDialog() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: Icon(Icons.alternate_email, size: 48, color: Theme.of(context).colorScheme.secondary),
+        title: const Text('Conferma la tua email'),
+        content:
+            const Text('Dobbiamo essere sicuri che sei proprio tu. Segui le istruzioni nella mail che hai ricevuto per confermare il tuo account.'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: _onShowEmailConfirmationDialogButtonPressed,
+            child: const Text('Corro a controllare!'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Email confirmation dialog button tap callback
+  ///
+  /// The method will close the bottom sheet, open the email app and navigate to the login page.
+  void _onShowEmailConfirmationDialogButtonPressed() {
+    // Open the email app 
+    if (Platform.isAndroid) {
+      AndroidIntent intent = const AndroidIntent(
+        action: 'android.intent.action.MAIN',
+        category: 'android.intent.category.APP_EMAIL',
+        flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+      );
+      intent.launch();
+    } else if (Platform.isIOS) {
+      launchUrl(Uri.parse('message://'));
+    }
+
+    // Close the dialog
+    Navigator.of(context).pop();
+
+    // Redirect to the login page
+    Navigator.pushReplacement<void, void>(
+      context,
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => const AccountPage(), // TODO: change this to the login page
+      ),
+    );
+  }
+
+  /// Register button tap callback
+  /// 
+  /// The method will validate the form and send the registration request to the backend.
+  void _onRegisterButtonPressed() async {
     if (_formKey.currentState!.validate()) {
+      
+      // Get validated form data
       final String name = _nameController.text;
       final String email = _emailController.text;
       final String password = _passwordController.text;
+      final int age = DateTime.now().difference(_bDayDate!).inDays ~/ 365;
 
-      // TODO: Implement registration logic
+      // Hash the password before sending it to the backend
+      Crypt passwordHash = Crypt.sha512(password);
+
+      // Send the registration request to the backend
+      Response<dynamic> response = await backendRequestUserRegistration(name, email, passwordHash, age);
+
+      // Handle response
+      if (response.statusCode == 201) {
+        _showEmailConfirmationDialog();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            response.statusCode == 201 ? 'Registrazione avvenuta con successo' : 'Errore durante la registrazione',
+          ),
+          backgroundColor: response.statusCode == 201 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
+        ),
+      );
     }
   }
 
+  /// Build
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -119,6 +201,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       if (value.length < 10) {
                         return 'Almeno 10 caratteri';
                       }
+                      return null;
                     },
                   ),
                 ),
@@ -188,7 +271,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   onChanged: (value) => setState(() => _isTermsAccepted = value!),
                   subtitle: !_isTermsAccepted
                       ? Padding(
-                          padding: EdgeInsets.fromLTRB(12.0, 0, 0, 0),
+                          padding: const EdgeInsets.fromLTRB(12.0, 0, 0, 0),
                           child: Text(
                             'Campo obbligatorio',
                             style: TextStyle(
