@@ -1,7 +1,6 @@
 // Import required modules
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
 const UtenteMobile = require('../db_models/utente_mobile.js');
 require('dotenv').config();
 
@@ -14,7 +13,6 @@ router.post('', async (req, res) => {
 	// Check if user already exists
 	const existingUser = await UtenteMobile.findOne({ email: req.body.email });
 	if (existingUser) {
-		console.log('A mobile user with the same email already exists.');
 		return res.status(400).json({ error: 'A mobile user with the same email already exists.' });
 	}
 
