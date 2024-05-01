@@ -1,87 +1,78 @@
+// Import required modules
 const express = require('express');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const UtenteMobile = require('../db_models/utente_mobile.js');
 require('dotenv').config();
+
+// Create router
 const router = express.Router();
-const UtenteMobile = require('../db_models/utente_mobile.js'); // get our mongoose model
-const jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 
 
+// Route to create a new mobile user
 router.post('', async (req, res) => {
-
-	utenteMobile = new UtenteMobile({
-        email: req.body.email,
-        password: req.body.password
-    });
-
-	
-	const utenteEsistente = await UtenteMobile.findOne({ email: utenteMobile.email });
-	if (utenteEsistente) {
-		console.log('Esiste già un utente mobile con la stessa email.');
-		res.status(400).json({ error: 'Esiste già un utente mobile con la stessa email.' });
-    	return;
+	// Check if user already exists
+	const existingUser = await UtenteMobile.findOne({ email: req.body.email });
+	if (existingUser) {
+		console.log('A mobile user with the same email already exists.');
+		return res.status(400).json({ error: 'A mobile user with the same email already exists.' });
 	}
-    
-    if (!utenteMobile.email || typeof utenteMobile.email != 'string' || !checkIfEmailInString(utenteMobile.email)) {
-        res.status(400).json({ error: 'The field "email" must be a non-empty string, in email format' });
-        return;
-    }
-	utenteMobile = await utenteMobile.save();
-	
-    res.location("/api/v1/utente/mobile/" + utenteMobile.id).status(201).send();
-	
+
+	// Validate email format
+	if (!isValidEmail(req.body.email)) {
+		return res.status(400).json({ error: 'The "email" field must be a non-empty string in email format' });
+	}
+
+	// Hash password
+	const salt = bcrypt.genSaltSync(10);
+	const hashedPassword = bcrypt.hashSync(req.body.password, salt);
+
+	// Create new user
+	const newUser = new UtenteMobile({
+		email: req.body.email,
+		password: hashedPassword
+	});
+	await newUser.save();
+
+	// Response
+	return res.status(201).send();
 });
 
-
+// Route for user login
 router.post('/login', async (req, res) => {
+	// Find user by email
+	const user = await UtenteMobile.findOne({ email: req.body.email });
 
-	// find the user
-	let utenteMobile = await UtenteMobile.findOne({
-		email: req.body.email
-	}).exec();
+	// User not found
+	if (!user) {
+		return res.status(401).json({ error: 'Authentication failed. User not found.' });
+	}
 
-	// user not found
-	if (!utenteMobile) {
-		res.json({ success: false, message: 'Authentication failed. User not found.' });
-		return;
+	// Check password
+	if (!bcrypt.compareSync(req.body.password, user.password)) {
+		return res.status(401).json({ error: 'Authentication failed. Incorrect password.' });
 	}
-	
-	// check if password matches
-	if (utenteMobile.password != req.body.password) {
-		res.json({ success: false, message: 'Authentication failed. Wrong password.' });
-	}
-	
-	// if user is found and password is right create a token
-	var payload = {
-		email: utenteMobile.email,
-		id: utenteMobile._id
-		// other data encrypted in the token	
-	}
-	var options = {
-		expiresIn: 86400 // expires in 24 hours
-	}
-	var token = jwt.sign(payload, process.env.SUPER_SECRET, options);
-	
 
-	res.json({
+	// Create JWT token
+	const payload = { email: user.email, id: user._id };
+	const options = { expiresIn: '1y' }; // 1 year in seconds
+	const token = jwt.sign(payload, process.env.SUPER_SECRET, options);
+
+	// Response
+	return res.json({
 		success: true,
 		message: 'Enjoy your token!',
 		token: token,
-		email: utenteMobile.email,
-		id: utenteMobile._id,
-		self: "api/v1/utente/mobile/login" + utenteMobile._id
+		email: user.email,
+		id: user._id,
+		self: `/api/v1/utente/mobile/login/${user._id}`
 	});
-
 });
 
-
-function checkIfEmailInString(text) {
-    // eslint-disable-next-line
-    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(text);
+// Function to check email format
+function isValidEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
 }
-
-
-
-
-
 
 module.exports = router;

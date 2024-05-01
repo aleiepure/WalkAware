@@ -1,0 +1,77 @@
+openapi: '3.0.2'
+info:
+  title: WalkAware Trento API
+  version: '1.0'
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Localhost
+paths:
+  /utente/mobile:
+    post:
+      summary: Create a new mobile user.
+      description: Endpoint to create a user from a mobile app.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteMobileInput'
+      responses:
+        '201':
+          description: User created. Link in Location header.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link to the newly created mobile user.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /utente/mobile/login:
+    post: 
+      summary: Mobile user login
+      description: Endpoint for mobile user login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteMobileInput'
+      responses:
+        '200':
+          description: Successful login.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link to the logged-in user.
+        '401':
+          description: Invalid Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    UtenteMobileInput:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+      required:
+        - password
+        - email
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
