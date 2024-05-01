@@ -5,6 +5,7 @@ const swaggerUi = require('swagger-ui-express');
 const YAML = require('yamljs');
 
 const utenteMobile = require('./routes/utente_mobile.js');
+const utenteWeb = require('./routes/utente_web.js');
 const mongoose = require("mongoose");
 require('dotenv').config();
 
@@ -37,6 +38,7 @@ app.get('/', function (req, res) {
 });
 
 app.use('/api/v1/utente/mobile', utenteMobile);
+app.use('/api/v1/utente/web', utenteWeb);
 
 // db connection
 mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=WalkAware`)
