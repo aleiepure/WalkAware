@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:mobile/views/account_page.dart';
 import './views/home_page.dart';
 
 void main() {
@@ -30,7 +31,9 @@ class _AppState extends State<App> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      // TODO: Restore real homepage
+      // home: const HomePage(),
+      home: const AccountPage(),
     );
   }
 }
