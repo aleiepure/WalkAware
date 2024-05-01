@@ -3,19 +3,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/src/widgets/visibility.dart' as visibility;
 import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:mobile/requests/mapbox_requests.dart';
 
 enum TrackingMode { none, gps, compass }
-
-class AnnotationClickListener extends OnPointAnnotationClickListener {
-  @override
-  void onPointAnnotationClick(PointAnnotation annotation) {
-    print("onAnnotationClick, id: ${annotation.id}");
-  }
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -28,6 +21,8 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   MapboxMap? _mapboxMap;
+  PolylineAnnotation? _polylineAnnotation;
+  PolylineAnnotationManager? _polylineAnnotationManager;
   PointAnnotation? _pointAnnotation;
   PointAnnotationManager? _pointAnnotationManager;
 
@@ -96,17 +91,20 @@ class _HomePageState extends State<HomePage> {
   /// Move map ornaments
   ///
   /// This method moves the compass and attribution based on the visibility of the bottom sheet.
-  void _moveMapOrnaments({required bool bottomSheetVisible}) {
-    if (bottomSheetVisible) {
+  /// Setting both [largeBottomSheetVisible] and [shortBottomSheetVisible] to true is and error.
+  void _moveMapOrnaments({bool largeBottomSheetVisible = false}) {
+    if (largeBottomSheetVisible) {
+      int largeHeight = 180;
+
       _mapboxMap?.logo.updateSettings(LogoSettings(
-        marginBottom: 190,
+        marginBottom: largeHeight + 10,
         marginLeft: 20,
         marginTop: 30,
         marginRight: 30,
       ));
 
       _mapboxMap?.attribution.updateSettings(AttributionSettings(
-        marginBottom: 190,
+        marginBottom: largeHeight + 10,
         marginLeft: 110,
         marginTop: 40,
         marginRight: 0,
@@ -115,31 +113,33 @@ class _HomePageState extends State<HomePage> {
       _mapboxMap?.compass.updateSettings(CompassSettings(
         enabled: true,
         position: OrnamentPosition.BOTTOM_RIGHT,
-        marginBottom: 190,
+        marginBottom: largeHeight + 10,
         marginLeft: 10,
         marginTop: 10,
         marginRight: 10,
       ));
-    } else {
-      _mapboxMap?.logo.updateSettings(LogoSettings(
-        position: OrnamentPosition.BOTTOM_LEFT,
-        marginLeft: MediaQuery.of(context).size.width / 2 - 55,
-        marginBottom: 10,
-      ));
 
-      _mapboxMap?.attribution.updateSettings(AttributionSettings(
-        position: OrnamentPosition.BOTTOM_LEFT,
-        marginLeft: MediaQuery.of(context).size.width / 2 + 35,
-        marginBottom: 10,
-      ));
-
-      _mapboxMap?.compass.updateSettings(CompassSettings(
-        enabled: true,
-        position: OrnamentPosition.BOTTOM_RIGHT,
-        marginRight: 25,
-        marginBottom: 160,
-      ));
+      return;
     }
+
+    _mapboxMap?.logo.updateSettings(LogoSettings(
+      position: OrnamentPosition.BOTTOM_LEFT,
+      marginLeft: MediaQuery.of(context).size.width / 2 - 55,
+      marginBottom: 10,
+    ));
+
+    _mapboxMap?.attribution.updateSettings(AttributionSettings(
+      position: OrnamentPosition.BOTTOM_LEFT,
+      marginLeft: MediaQuery.of(context).size.width / 2 + 35,
+      marginBottom: 10,
+    ));
+
+    _mapboxMap?.compass.updateSettings(CompassSettings(
+      enabled: true,
+      position: OrnamentPosition.BOTTOM_RIGHT,
+      marginRight: 25,
+      marginBottom: 160,
+    ));
   }
 
   /// Show location service disabled dialog
@@ -238,6 +238,17 @@ class _HomePageState extends State<HomePage> {
     }
 
     // Get user position
+    await _getUserPositionAndBearing().then((userLocation) {
+      var (position, bearing) = userLocation;
+      _bearing = bearing;
+      _position = position;
+    });
+
+    // Move camera to user position
+    _updateCamera();
+  }
+
+  Future<(Position, double)> _getUserPositionAndBearing() async {
     Layer? layer;
     if (Platform.isAndroid) {
       layer = await _mapboxMap?.style.getLayer("mapbox-location-indicator-layer");
@@ -246,11 +257,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     var location = (layer as LocationIndicatorLayer).location;
-    _bearing = layer.bearing!;
-    _position = Position(location![1]!, location[0]!);
-
-    // Move camera to user position
-    _updateCamera();
+    return (Position(location![1]!, location[0]!), layer.bearing!);
   }
 
   /// Update camera
@@ -297,13 +304,16 @@ class _HomePageState extends State<HomePage> {
       enabled: false,
     ));
 
-    // Move compass and attribution
-    _moveMapOrnaments(bottomSheetVisible: false);
+    // Move ornaments down
+    _moveMapOrnaments();
+
+    mapboxMap.annotations.createPolylineAnnotationManager().then((value) {
+      _polylineAnnotationManager = value;
+    });
 
     // Create point annotation manager
     mapboxMap.annotations.createPointAnnotationManager().then((value) async {
       _pointAnnotationManager = value;
-      _pointAnnotationManager?.addOnPointAnnotationClickListener(AnnotationClickListener());
     });
   }
 
@@ -314,7 +324,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _trackingMode = TrackingMode.none;
     });
-    // TODO: Implement tracking mode button
   }
 
   /// Search suggestion selected callback
@@ -372,17 +381,17 @@ class _HomePageState extends State<HomePage> {
     // Show bottom sheet with place details
     _scaffoldKey.currentState?.showBottomSheet(
       enableDrag: false,
-      (context) => _locationInfoBottomSheet(name, address),
+      (context) => _locationInfoBottomSheet(name, address, position),
     );
 
     // Move compass and attribution up
-    _moveMapOrnaments(bottomSheetVisible: true);
+    _moveMapOrnaments(largeBottomSheetVisible: true);
   }
 
   /// Location info bottom sheet
   ///
   /// This method returns the bottom sheet with place details.
-  Widget _locationInfoBottomSheet(String name, String address) {
+  Widget _locationInfoBottomSheet(String name, String address, Position destination) {
     return Container(
       height: 180,
       decoration: const BoxDecoration(
@@ -411,7 +420,7 @@ class _HomePageState extends State<HomePage> {
           const Spacer(),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: _locationInfoBottomSheetDirectionsButton(),
+            child: _locationInfoBottomSheetDirectionsButton(name, address, destination),
           ),
         ],
       ),
@@ -444,11 +453,10 @@ class _HomePageState extends State<HomePage> {
             _searchTextEditingController.clear();
 
             // Move map ornaments back down
-            _moveMapOrnaments(bottomSheetVisible: false);
+            _moveMapOrnaments();
 
             // Close bottom sheet
             Navigator.of(context).pop();
-            FocusScope.of(context).unfocus();
           },
         ),
       ),
@@ -493,20 +501,414 @@ class _HomePageState extends State<HomePage> {
   /// Location info bottom sheet directions button
   ///
   /// This method returns the directions button for the bottom sheet.
-  Widget _locationInfoBottomSheetDirectionsButton() {
-    return FilledButton.icon(
-      onPressed: _onLocationInfoBottomSheetDirectionsButtonTap,
-      icon: const Icon(Icons.directions_walk),
-      label: const Text('Come ci arrivo?'),
+  Widget _locationInfoBottomSheetDirectionsButton(String name, String address, Position destination) {
+    return Focus(
+      child: FilledButton.icon(
+        onPressed: () => _onLocationInfoBottomSheetDirectionsButtonPressed(name, address, destination),
+        icon: const Icon(Icons.directions_walk),
+        label: const Text('Come ci arrivo?'),
+      ),
     );
   }
 
   /// Location info bottom sheet directions button tap callback
   ///
   /// This method is called when the directions button is tapped.
-  void _onLocationInfoBottomSheetDirectionsButtonTap() {
-    // TODO: Implement directions
-    print('Directions button tapped!');
+  void _onLocationInfoBottomSheetDirectionsButtonPressed(String name, String address, Position destination) async {
+    Map<String?, Object?> geometry = {};
+    List<Map<String?, Object?>?> coordinates = [];
+    double duration = 0;
+    double distance = 0;
+
+    // Obtain route information
+    var (source, _) = await _getUserPositionAndBearing();
+    await requestMapboxWalkRoute(source, destination).then((response) {
+      print(response);
+      duration = response['routes'][0]['duration'];
+      distance = response['routes'][0]['distance'];
+      geometry = response['routes'][0]['geometry'];
+
+      for (var coordinate in response['routes'][0]['geometry']['coordinates']) {
+        coordinates.add(Point(coordinates: Position(coordinate[0], coordinate[1])).toJson());
+      }
+      print(coordinates.runtimeType);
+      print(coordinates);
+    });
+
+    // Draw route on map
+    if (_polylineAnnotation != null) {
+      _polylineAnnotationManager?.delete(_polylineAnnotation!);
+    }
+    _polylineAnnotationManager
+        ?.create(PolylineAnnotationOptions(
+          geometry: geometry,
+          lineColor: Colors.green.value,
+          lineWidth: 5,
+        ))
+        .then((value) => _polylineAnnotation = value);
+
+    // Move camera to fit route
+    await _mapboxMap
+        ?.cameraForCoordinates(coordinates, MbxEdgeInsets(top: 50, left: 50, bottom: 50, right: 50), null, null)
+        .then((cameraOptions) => _mapboxMap?.flyTo(cameraOptions, MapAnimationOptions(duration: 1000)));
+
+    // Close search bottom sheet
+    Navigator.of(context).pop();
+
+    // Show route details bottom sheet
+    _scaffoldKey.currentState?.showBottomSheet(
+      enableDrag: false,
+      (context) => _routeInfoBottomSheet(name, address, duration, distance),
+    );
+
+    // Move ornaments up
+    _moveMapOrnaments(largeBottomSheetVisible: true);
+  }
+
+  /// Route info bottom sheet
+  ///
+  /// This method returns the bottom sheet with route details.
+  Widget _routeInfoBottomSheet(String name, String address, double duration, double distance) {
+    return Container(
+      height: 180,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Expanded(
+                  flex: 2,
+                  child: _routeInfoBottomSheetRouteInfo(duration, distance),
+                ),
+                _routeInfoBottomSheetCloseButton(),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: _routeInfoBottomSheetNavigateButton(name, address),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Route info bottom sheet close button
+  ///
+  /// This method returns the close button for the route details bottom sheet.
+  Widget _routeInfoBottomSheetCloseButton() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.secondary,
+            width: 1,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            // Delete route
+            if (_polylineAnnotation != null) {
+              _polylineAnnotationManager?.delete(_polylineAnnotation!);
+            }
+
+            // Delete marker
+            if (_pointAnnotation != null) {
+              _pointAnnotationManager?.delete(_pointAnnotation!);
+            }
+
+            // Move map ornaments back down
+            _moveMapOrnaments();
+
+            // Close bottom sheet
+            Navigator.of(context).pop();
+
+            // Clear search text
+            _searchTextEditingController.clear();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Route info bottom sheet route info
+  ///
+  /// This method returns the route info for the route details bottom sheet.
+  Widget _routeInfoBottomSheetRouteInfo(double duration, double distance) {
+    // Format duration
+    int hours = (duration / 3600).floor();
+    int minutes = (duration % 3600 / 60).floor();
+    String durationString = '';
+
+    if (hours > 0) {
+      durationString += '${hours}h ';
+    }
+    if (minutes > 0 || hours == 0) {
+      durationString += '${minutes} min';
+    }
+
+    // Format distance
+    String distanceString = '';
+    if (distance < 1000) {
+      distanceString = '(${distance.toStringAsFixed(0)} m)';
+    } else {
+      double kilometers = distance / 1000;
+      if (kilometers == kilometers.floor()) {
+        distanceString = '(${kilometers.toInt()} km)';
+      } else {
+        distanceString = '(${kilometers.toStringAsFixed(1)} km)';
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              children: [
+                Text(
+                  style: Theme.of(context).textTheme.titleLarge!.copyWith(color: Colors.green),
+                  overflow: TextOverflow.ellipsis,
+                  durationString,
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    style: Theme.of(context).textTheme.titleLarge,
+                    overflow: TextOverflow.ellipsis,
+                    distanceString,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              style: Theme.of(context).textTheme.titleSmall,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              maxLines: 2,
+              'Ca. ${(distance / 0.75).ceil()} passi',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Route info bottom sheet directions button
+  ///
+  /// This method returns the directions button for the route details bottom sheet.
+  Widget _routeInfoBottomSheetNavigateButton(String name, String address) {
+    return FilledButton.icon(
+      onPressed: () => _onRouteInfoBottomSheetNavigateButtonPressed(name, address),
+      icon: const Icon(Icons.navigation),
+      label: const Text('Partiamo!'),
+    );
+  }
+
+  /// Route info bottom sheet directions button tap callback
+  ///
+  /// This method is called when the navigate button is tapped.
+  void _onRouteInfoBottomSheetNavigateButtonPressed(String name, String address) {
+    // Close bottom sheet
+    Navigator.of(context).pop();
+
+    // Show navigation bottom sheet
+    _scaffoldKey.currentState?.showBottomSheet(
+      enableDrag: false,
+      (context) => _navigationBottomSheet(name, address),
+    );
+
+    // Move map ornaments up
+    _moveMapOrnaments(largeBottomSheetVisible: true);
+
+    // Set tracking mode to compass
+    _trackWithCompass();
+  }
+
+  /// Navigation bottom sheet
+  ///
+  /// This method returns the bottom sheet with navigation controls.
+  Widget _navigationBottomSheet(String name, String address) {
+    return Container(
+      height: 180,
+      decoration: const BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          SizedBox(
+            width: double.infinity,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                Expanded(
+                  flex: 2,
+                  child: _navigationBottomSheetInfo(name, address),
+                ),
+                _navigationBottomSheetCloseButton(),
+              ],
+            ),
+          ),
+          const Spacer(),
+          _navigationBottomSheetNavigationControls(),
+        ],
+      ),
+    );
+  }
+
+  /// Navigation bottom sheet close button
+  ///
+  /// This method returns the close button for the navigation bottom sheet.
+  Widget _navigationBottomSheetCloseButton() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).colorScheme.secondary,
+            width: 1,
+          ),
+          shape: BoxShape.circle,
+        ),
+        child: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            // Move map ornaments back down
+            _moveMapOrnaments();
+
+            // Close bottom sheet
+            Navigator.of(context).pop();
+
+            // Delete route
+            if (_polylineAnnotation != null) {
+              _polylineAnnotationManager?.delete(_polylineAnnotation!);
+            }
+
+            // Delete marker
+            if (_pointAnnotation != null) {
+              _pointAnnotationManager?.delete(_pointAnnotation!);
+            }
+
+            // Clear search text
+            _searchTextEditingController.clear();
+          },
+        ),
+      ),
+    );
+  }
+
+  /// Navigation bottom sheet info
+  ///
+  /// This method returns the info for the navigation bottom sheet.
+  Widget _navigationBottomSheetInfo(String name, String address) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 16.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              style: Theme.of(context).textTheme.titleLarge,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              maxLines: 2,
+              'Verso $name',
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Text(
+              style: Theme.of(context).textTheme.titleSmall,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
+              maxLines: 2,
+              address,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Navigation bottom sheet navigation controls
+  ///
+  /// This method returns the navigation controls for the navigation bottom sheet.
+  Widget _navigationBottomSheetNavigationControls() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: <Widget>[
+          FilledButton.icon(
+            onPressed: _onNavigationBottomSheetNavigationControlsArrivedPressed,
+            icon: const Icon(Icons.flag),
+            label: const Text('Arrivato'),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: FilledButton.icon(
+              onPressed: () => _trackWithCompass(),
+              icon: const Icon(Icons.gps_fixed),
+              label: const Text('Centra'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Navigation bottom sheet navigation controls arrived button tap callback
+  ///
+  /// This method is called when the arrived button is tapped.
+  void _onNavigationBottomSheetNavigationControlsArrivedPressed() {
+    // Move map ornaments back down
+    _moveMapOrnaments();
+
+    // Delete route
+    if (_polylineAnnotation != null) {
+      _polylineAnnotationManager?.delete(_polylineAnnotation!);
+    }
+
+    // Delete marker
+    if (_pointAnnotation != null) {
+      _pointAnnotationManager?.delete(_pointAnnotation!);
+    }
+
+    // Move camera to user position
+    _trackWithPosition();
+
+    // Close bottom sheet
+    Navigator.of(context).pop();
+
+    // Clear search text
+    _searchTextEditingController.clear();
   }
 
   /// Search widget builder

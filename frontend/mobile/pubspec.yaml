@@ -40,6 +40,7 @@ dependencies:
   mapbox_search: ^4.2.2
   modal_bottom_sheet: ^3.0.0
   geolocator: ^11.0.0
+  dio: ^5.4.3+1
 
 dev_dependencies:
   flutter_test:
