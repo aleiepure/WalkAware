@@ -2,7 +2,9 @@ var express = require('express');
 var app = express();
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsDoc = require('swagger-jsdoc');
+const utenteMobile = require('./routes/utente_mobile.js');
 const mongoose = require("mongoose");
+require('dotenv').config();
 
 const swaggerOptions = {
     definition: {
@@ -41,12 +43,16 @@ app.get('/', function (req, res) {
     res.send('Hello World!');
 });
 
+app.use('/api/v1/utente/mobile', utenteMobile);
+
+
+mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=WalkAware`)
+.then(()=> {console.log("Connected to DB");})
+.catch((error)=> {console.log("Connection to DB failed: "+ error +"\n")});
+
 // Run the application on port 3000
 app.listen(3000, function () {
     console.log('Server running on port ', 3000);
 });
 
 
-mongoose.connect("mongodb+srv://carlottacazzolli:hgXcj0RNjICvIiyo@walkaware.ihu6bna.mongodb.net/?retryWrites=true&w=majority&appName=WalkAware")
-.then(()=> {console.log("Connected to DB");})
-.catch((error)=> {console.log("Connection to DB failed: "+ error +"\n")});
