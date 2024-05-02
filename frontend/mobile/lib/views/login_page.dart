@@ -1,4 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:crypt/crypt.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mobile/requests/backend_requests.dart';
+import 'package:mobile/views/home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,12 +22,14 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isPasswordVisible = false;
   bool _showError = false;
+  String _errorMessage = '';
+
+  late SharedPreferences _prefs;
 
   /// On login button pressed
   ///
   /// Validates the form and sends a request to the backend to login the user.
-  void _onLoginButtonPressed() {
-    
+  void _onLoginButtonPressed() async {
     // Hide error message
     setState(() {
       _showError = false;
@@ -28,8 +37,57 @@ class _LoginPageState extends State<LoginPage> {
 
     // Validate form
     if (_formKey.currentState!.validate()) {
-      // TODO: Implement login logic here
+      // Get validated form data
+      final String email = _emailController.text;
+      final String password = _passwordController.text;
+
+      // Hash the password before sending it to the backend
+      Crypt passwordHash = Crypt.sha512(password, salt: '');
+
+      // Send the login request to the backend
+      Response<dynamic> response = await backendRequestUserLogin(email, passwordHash);
+
+      // Wrong email
+      if (response.statusCode == 401 && response.data['error'] == 'Authentication failed. User not found.') {
+        setState(() {
+          _showError = true;
+          _errorMessage = 'Indirizzo email non riconosciuto';
+        });
+        return;
+      }
+
+      // Wrong password
+      if (response.statusCode == 401 && response.data['error'] == 'Authentication failed. Incorrect password.') {
+        setState(() {
+          _showError = true;
+          _errorMessage = 'Password errata';
+        });
+        return;
+      }
+
+      // Correct login
+      if (response.statusCode == 200) {
+        // Save user info
+        await _prefs.setString('userId', response.data['userId']);
+        await _prefs.setString('userToken', response.data['token']);
+        await _prefs.setString('userEmail', response.data['email']);
+        await _prefs.setString('userName', response.data['name']);
+
+        // Redirect to the home page
+        Navigator.pushReplacement<void, void>(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => const HomePage(),
+          ),
+        );
+      }
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    SharedPreferences.getInstance().then((prefs) => _prefs = prefs);
   }
 
   /// Build
@@ -108,7 +166,7 @@ class _LoginPageState extends State<LoginPage> {
                   child: ListTile(
                     title: Text(
                       style: Theme.of(context).textTheme.labelSmall!.copyWith(color: Theme.of(context).colorScheme.error),
-                      'Email o password non validi',
+                      _errorMessage,
                     ),
                   ),
                 ),

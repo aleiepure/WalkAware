@@ -98,7 +98,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final int age = DateTime.now().difference(_bDayDate!).inDays ~/ 365;
 
       // Hash the password before sending it to the backend
-      Crypt passwordHash = Crypt.sha512(password);
+      Crypt passwordHash = Crypt.sha512(password, salt: '');
 
       // Send the registration request to the backend
       Response<dynamic> response = await backendRequestUserRegistration(name, email, passwordHash, age);
