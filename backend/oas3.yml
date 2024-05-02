@@ -15,7 +15,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UtenteMobileInput'
+              $ref: '#/components/schemas/UtenteMobileRegistrazione'
       responses:
         '201':
           description: User created. Link in Location header.
@@ -40,7 +40,57 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UtenteMobileInput'
+              $ref: '#/components/schemas/UtenteLogin'
+      responses:
+        '200':
+          description: Successful login.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link to the logged-in user.
+        '401':
+          description: Invalid Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /utente/web:
+    post:
+      summary: Create a new web user.
+      description: Endpoint to create a user from a web app.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteWebRegistrazione'
+      responses:
+        '201':
+          description: User created. Link in Location header.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link to the newly created web user.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /utente/web/login:
+    post: 
+      summary: Web user login
+      description: Endpoint for web user login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UtenteLogin'
       responses:
         '200':
           description: Successful login.
@@ -58,7 +108,25 @@ paths:
 
 components:
   schemas:
-    UtenteMobileInput:
+    UtenteMobileRegistrazione:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        nome:
+          type: string
+        eta:
+          type: string
+      required:
+        - password
+        - email
+        - nome
+        - eta
+
+    UtenteLogin:
       type: object
       properties:
         email:
@@ -69,6 +137,24 @@ components:
       required:
         - password
         - email
+
+    UtenteWebRegistrazione:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        nome:
+          type: string
+      required:
+        - password
+        - email
+        - nome
+
+
+
 
     Error:
       type: object

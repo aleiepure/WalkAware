@@ -1,7 +1,7 @@
 // Import required modules
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const UtenteMobile = require('../db_models/utente_mobile.js');
+const UtenteWeb = require('../db_models/utente_web.js');
 require('dotenv').config();
 
 // Create router
@@ -11,9 +11,9 @@ const router = express.Router();
 // Route to create a new mobile user
 router.post('', async (req, res) => {
 	// Check if user already exists
-	const existingUser = await UtenteMobile.findOne({ email: req.body.email });
+	const existingUser = await UtenteWeb.findOne({ email: req.body.email });
 	if (existingUser) {
-		return res.status(400).json({ error: 'A mobile user with the same email already exists.' });
+		return res.status(400).json({ error: 'A web user with the same email already exists.' });
 	}
 
 	// Validate email format
@@ -22,23 +22,14 @@ router.post('', async (req, res) => {
 	}
 	// Validate name field
 	if (typeof req.body.nome != 'string'){
-		return res.status(400).json({ error: 'The "nome" field must be a non-empty string' });
-	}
-	// Validate eta field
-	if (typeof req.body.eta != 'number' && req.body.eta > 18){
-		return res.status(400).json({ error: 'The "eta" field must be a number greater than 18' });
-	}
-	// Validate password field
-	if (typeof req.body.password != 'string'){
-		return res.status(400).json({ error: 'The "password" field must be a non-empty string' });
+		return res.status(400).json({ error: 'The "nome" field must be a non-empty string in email format' });
 	}
 
 	// Create new user
-	const newUser = new UtenteMobile({
+	const newUser = new UtenteWeb({
 		email: req.body.email,
 		password: req.body.password,
-		nome: req.body.nome,
-		eta: req.body.eta
+		nome: req.body.nome
 	});
 	await newUser.save();
 
@@ -49,7 +40,7 @@ router.post('', async (req, res) => {
 // Route for user login
 router.post('/login', async (req, res) => {
 	// Find user by email
-	const user = await UtenteMobile.findOne({ email: req.body.email });
+	const user = await UtenteWeb.findOne({ email: req.body.email });
 
 	// User not found
 	if (!user) {
@@ -57,7 +48,7 @@ router.post('/login', async (req, res) => {
 	}
 
 	// Check password
-	if (req.body.password == user.password) {
+	if (req.body.password != user.password) {
 		return res.status(401).json({ error: 'Authentication failed. Incorrect password.' });
 	}
 
@@ -73,7 +64,7 @@ router.post('/login', async (req, res) => {
 		token: token,
 		email: user.email,
 		id: user._id,
-		self: `/api/v1/utente/mobile/login/${user._id}`
+		self: `/api/v1/utente/web/login/${user._id}`
 	});
 });
 
@@ -82,28 +73,5 @@ function isValidEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
-
-router.post('/:id/segnalazioni', async(req, res)=>{
-	let user = await UtenteMobile.findById(req.params.id).exec();
-	if (!user){
-		return res.status(404).json({error: "User does not exist"});
-	}
-
-	let newSegnalazione = {
-    	luogo: req.body.luogo,
-    	foto: req.body.foto,
-    	tipo: req.body.tipo,
-    	urgenza: req.body.urgenza,
-    	status: req.body.status
-	}
-
-	user.segnalazioni.push(newSegnalazione);
-	await user.save()
-
-	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send();
-
-
-});
-
 
 module.exports = router;
