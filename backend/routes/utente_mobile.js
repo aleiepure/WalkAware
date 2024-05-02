@@ -36,6 +36,7 @@ router.post('', async (req, res) => {
 
 	// Response
 	return res.status(201).send();
+	//return res.location("/api/v1/utente/mobile/" + newUser._id).status(201).send();
 });
 
 // Route for user login
@@ -74,5 +75,28 @@ function isValidEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
 }
+
+router.post('/:id/segnalazioni', async(req, res)=>{
+	let user = await UtenteMobile.findById(req.params.id).exec();
+	if (!user){
+		return res.status(404).json({error: "User does not exist"});
+	}
+
+	let newSegnalazione = {
+    	luogo: req.body.luogo,
+    	foto: req.body.foto,
+    	tipo: req.body.tipo,
+    	urgenza: req.body.urgenza,
+    	status: req.body.status
+	}
+
+	user.segnalazioni.push(newSegnalazione);
+	await user.save()
+
+	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send();
+
+
+});
+
 
 module.exports = router;
