@@ -83,4 +83,27 @@ function isValidEmail(email) {
     return re.test(email);
 }
 
+router.post('/:id/segnalazioni', async(req, res)=>{
+	let user = await UtenteMobile.findById(req.params.id).exec();
+	if (!user){
+		return res.status(404).json({error: "User does not exist"});
+	}
+
+	let newSegnalazione = {
+    	luogo: req.body.luogo,
+    	foto: req.body.foto,
+    	tipo: req.body.tipo,
+    	urgenza: req.body.urgenza,
+    	status: req.body.status
+	}
+
+	user.segnalazioni.push(newSegnalazione);
+	await user.save()
+
+	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send();
+
+
+});
+
+
 module.exports = router;
