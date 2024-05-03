@@ -2,6 +2,9 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const UtenteMobile = require('../db_models/utente_mobile.js');
+const segnalazioni = require("../db_models/segnalazione.js");
+var AWS = require('aws-sdk');
+
 require('dotenv').config();
 
 // Create router
@@ -83,27 +86,51 @@ function isValidEmail(email) {
     return re.test(email);
 }
 
+
+
 router.post('/:id/segnalazioni', async(req, res)=>{
 	let user = await UtenteMobile.findById(req.params.id).exec();
 	if (!user){
 		return res.status(404).json({error: "User does not exist"});
 	}
 
+	if (req.body != ""){
+		return res.status(404).json({error: "User does not exist"});
+	}
+
+
 	let newSegnalazione = {
     	luogo: req.body.luogo,
-    	foto: req.body.foto,
+    	foto: req.body.foto, 
     	tipo: req.body.tipo,
     	urgenza: req.body.urgenza,
     	status: req.body.status
 	}
 
 	user.segnalazioni.push(newSegnalazione);
-	await user.save()
+	let updatedUser = await user.save();
+	//let lastSegnalazione = updatedUser.findById(req.params.id);
+	console.log("UPDDATED USER" + updatedUser);
+	let segnalazioneId = updatedUser.segnalazioni[updatedUser.segnalazioni.length -1]._id;
+	console.log("SEGNALAZIONE ID:" + segnalazioneId);
 
-	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send();
+	
+	let lastSegnalazione = new segnalazioni({
+		id: segnalazioneId,
+		luogo: req.body.luogo,
+    	foto: req.body.foto, 
+    	tipo: req.body.tipo,
+    	urgenza: req.body.urgenza,
+    	status: req.body.status
+	});
 
+	lastSegnalazione.save()
+	
+	return res.location("/api/v1/utente/mobile/" + updatedUser._id + "/segnalazioni/" + segnalazioneId).status(201).send();
 
 });
+
+
 
 
 module.exports = router;

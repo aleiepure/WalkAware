@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 const Schema = mongoose.Schema
 
-module.exports("premio", new Schema({
+module.exports= mongoose.model("premio", new Schema({
     nome: String, 
     valore: Number, 
     tipo: ["percentuale", "contante", "omaggio", "quantità"], 
