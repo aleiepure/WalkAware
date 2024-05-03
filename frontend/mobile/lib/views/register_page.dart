@@ -10,7 +10,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/requests/backend_requests.dart';
-import 'package:mobile/views/account_page.dart';
+import 'package:mobile/views/login_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -32,6 +32,8 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isTermsAccepted = true;
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  String baseUrl = const String.fromEnvironment('BACKEND_BASE_URL');
 
   /// Show a dialog to the user to confirm the email address
   ///
@@ -78,7 +80,7 @@ class _RegisterPageState extends State<RegisterPage> {
     Navigator.pushReplacement<void, void>(
       context,
       MaterialPageRoute<void>(
-        builder: (BuildContext context) => const AccountPage(), // TODO: change this to the login page
+        builder: (BuildContext context) => const LoginPage(),
       ),
     );
   }
@@ -96,7 +98,7 @@ class _RegisterPageState extends State<RegisterPage> {
       final int age = DateTime.now().difference(_bDayDate!).inDays ~/ 365;
 
       // Hash the password before sending it to the backend
-      Crypt passwordHash = Crypt.sha512(password);
+      Crypt passwordHash = Crypt.sha512(password, salt: '');
 
       // Send the registration request to the backend
       Response<dynamic> response = await backendRequestUserRegistration(name, email, passwordHash, age);
@@ -138,7 +140,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Text(
                     style: Theme.of(context).textTheme.titleLarge,
-                    'Registrati',
+                    'Piacere di conoscerti!',
                   ),
                 ),
                 Padding(
@@ -261,8 +263,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           text: 'termini e condizioni d\'uso',
                           style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Theme.of(context).colorScheme.primary),
                           recognizer: TapGestureRecognizer()
-                            // TODO: change this URL to a real one
-                            ..onTap = () => launchUrl(Uri.parse('https://example.com/terms')),
+                            ..onTap = () => launchUrl(Uri.parse('$baseUrl/terms_conds.html')),
                         ),
                       ],
                     ),

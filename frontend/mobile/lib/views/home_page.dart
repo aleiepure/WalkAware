@@ -9,6 +9,9 @@ import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:mobile/requests/mapbox_requests.dart';
+import 'package:mobile/views/account_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/src/widgets/visibility.dart' as visibility;
 
 enum TrackingMode { none, gps, compass }
 
@@ -49,6 +52,8 @@ class _HomePageState extends State<HomePage> {
   final SearchBoxAPI _searchBoxAPI = SearchBoxAPI(limit: 8);
   final SearchController _searchController = SearchController();
   final TextEditingController _searchTextEditingController = TextEditingController();
+
+  bool _isUserLogged = false;
 
   /// Track user position with GPS
   ///
@@ -1033,19 +1038,35 @@ class _HomePageState extends State<HomePage> {
   /// This method returns the account button.
   Widget _accountButton() {
     return ElevatedButton(
-      style: ButtonStyle(
-        shape: MaterialStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18.0),
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18.0),
+            ),
           ),
+          padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+          iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
-        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
-        backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
-        iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
-      ),
-      child: const Icon(Icons.person),
-      onPressed: () {},
-    );
+        child: Icon(_isUserLogged ? Icons.account_circle : Icons.person_off),
+        onPressed: () {
+          if (_isUserLogged) {
+            // TODO: Navigate to account info page
+            // Navigator.push(
+            //   context,
+            //   MaterialPageRoute<void>(
+            //     builder: (BuildContext context) => const AccountInfoPage(),
+            //   ),
+            // );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const AccountPage(),
+              ),
+            );
+          }
+        });
   }
 
   /// Tracking button
@@ -1082,21 +1103,24 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method returns the points button.
   Widget _pointsButton() {
-    return ElevatedButton.icon(
-      style: ButtonStyle(
-        shape: MaterialStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18.0),
+    return visibility.Visibility(
+      visible: _isUserLogged,
+      child: ElevatedButton.icon(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18.0),
+            ),
           ),
+          padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+          iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+          foregroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
-        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
-        backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
-        iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
-        foregroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+        icon: const Icon(Icons.local_activity),
+        label: const Text('1234'),
+        onPressed: () {},
       ),
-      icon: const Icon(Icons.local_activity),
-      label: const Text('1234'),
-      onPressed: () {},
     );
   }
 
@@ -1104,19 +1128,22 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method returns the issue button.
   Widget _issueButton() {
-    return ElevatedButton(
-      style: ButtonStyle(
-        shape: MaterialStateProperty.all(
-          RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18.0),
+    return visibility.Visibility(
+      visible: _isUserLogged,
+      child: ElevatedButton(
+        style: ButtonStyle(
+          shape: MaterialStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18.0),
+            ),
           ),
+          padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+          iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
-        padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
-        backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
-        iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
+        child: const Icon(Icons.report),
+        onPressed: () {},
       ),
-      child: const Icon(Icons.report),
-      onPressed: () {},
     );
   }
 
@@ -1124,6 +1151,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    SharedPreferences.getInstance().then((prefValue) => setState(() {
+          String username = prefValue.getString('userName') ?? "";
+          if (username.isNotEmpty) {
+            _isUserLogged = true;
+          } else {
+            _isUserLogged = false;
+          }
+        }));
   }
 
   /// Build

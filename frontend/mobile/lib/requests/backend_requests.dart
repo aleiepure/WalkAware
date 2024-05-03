@@ -1,5 +1,6 @@
 import "package:crypt/crypt.dart";
 import "package:dio/dio.dart";
+import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "package:mobile/exceptions/dio_exceptions.dart";
 
@@ -25,9 +26,45 @@ Future backendRequestUserRegistration(String name, String email, Crypt passwordH
       },
     );
     return response;
-  } catch (e) {
-    final errorMessage = DioExceptions.fromDioError(e as DioException).toString();
+  } on DioException catch (e) {
+    
+    if (e.type == DioExceptionType.badResponse) {
+      return e.response;
+    }
+    
+    final errorMessage = DioExceptions.fromDioException(e).toString();
     debugPrint(errorMessage);
-    return Response(requestOptions: RequestOptions(), statusCode: 418);
+    
+    return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
+  }
+}
+
+/// Sends a request to the backend to login a user.
+/// 
+/// Sends a POST request to the backend (URL from the BACKEND_BASE_URL environment
+/// variable) to login a user with the given [email] and [passwordHash].
+/// Returns the response from the backend containing the user's JWT token. If an 
+/// error occurs, logs the error and returns a response with status code 418 (I'm 
+/// a teapot) to indicate that its not a backend issue.
+Future backendRequestUserLogin(String email, Crypt passwordHash) async {
+  try {
+    final response = await Dio().post(
+      '$baseUrl/api/v1/utente/mobile/login',
+      data: {
+        'email': email,
+        'password': passwordHash.toString(),
+      },
+    );
+    return response;
+  } on DioException catch (e) {
+    
+    if (e.type == DioExceptionType.badResponse) {
+      return e.response;
+    }
+    
+    final errorMessage = DioExceptions.fromDioException(e).toString();
+    debugPrint(errorMessage);
+    
+    return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
   }
 }

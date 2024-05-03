@@ -31,9 +31,7 @@ class _AppState extends State<App> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         useMaterial3: true,
       ),
-      // TODO: Restore real homepage
-      // home: const HomePage(),
-      home: const AccountPage(),
+      home: const HomePage(),
     );
   }
 }

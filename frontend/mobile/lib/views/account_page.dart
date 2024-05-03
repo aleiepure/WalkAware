@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile/views/login_page.dart';
 import 'package:mobile/views/register_page.dart';
 
 class AccountPage extends StatelessWidget {
@@ -49,7 +50,12 @@ class AccountPage extends StatelessWidget {
                     label: const Text('Registrati'),
                   ),
                   FilledButton.icon(
-                    onPressed: () {},
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (BuildContext context) => const LoginPage(),
+                      ),
+                    ),
                     icon: const Icon(Icons.login),
                     label: const Text('Accedi'),
                   ),
