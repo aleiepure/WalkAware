@@ -5,10 +5,11 @@ const swaggerUi = require('swagger-ui-express');
 const yaml = require('yamljs');
 const morgan = require('morgan');
 
-const utenteMobile = require('./routes/utente_mobile.js');
-const utenteWeb = require('./routes/utente_web.js');
-const mongoose = require("mongoose");
 require('dotenv').config();
+const mongoose = require("mongoose");
+const utenteMobile = require("./routes/utente_mobile.js");
+const utenteWeb = require("./routes/utente_web.js")
+
 
 // load YAML
 const swaggerDocument = yaml.load('./oas3.yml');
@@ -22,31 +23,24 @@ app.use(express.urlencoded());
 
 // cors settings
 app.use(cors());
-
-// Serving static files
-app.use(express.static('public'));
-
 // Logging middleware
 app.use(morgan('dev'));
-
-// Handling GET requests
-console.log(swaggerDocument);
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
-    explorer: true
-}));
 
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
 app.use('/api/v1/utente/web', utenteWeb);
+
+
+
 
 // db connection
 mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=WalkAware`)
 .then(()=> {console.log("Connected to DB");})
 .catch((error)=> {console.log("Connection to DB failed: "+ error +"\n")});
 
-// Run the application on port 3000
-app.listen(3000, function () {
-    console.log('Server running on port ', 3000);
+// Run the application on port 8080
+app.listen(8080, function () {
+    console.log('Server running on port ', 8080);
 });
 
 
