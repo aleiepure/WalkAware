@@ -5,10 +5,13 @@ const swaggerUi = require('swagger-ui-express');
 const yaml = require('yamljs');
 const morgan = require('morgan');
 
+const utenteMobile = require('./routes/utente_mobile.js');
+const utenteWeb = require('./routes/utente_web.js');
+const segnalazioni = require('./routes/segnalazioni.js')
 require('dotenv').config();
 const mongoose = require("mongoose");
-const utenteMobile = require("./routes/utente_mobile.js");
-const utenteWeb = require("./routes/utente_web.js")
+
+
 
 
 // load YAML
@@ -29,9 +32,7 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
 app.use('/api/v1/utente/web', utenteWeb);
-
-
-
+app.use('/api/v1/segnalazioni', segnalazioni)
 
 // db connection
 mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=WalkAware`)

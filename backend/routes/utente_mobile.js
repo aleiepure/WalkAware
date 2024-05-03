@@ -2,6 +2,8 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const utenteMobile = require('../db_models/utente_mobile.js');
+const Segnalazioni = require('../db_models/segnalazione.js');
+const Immagine = require("../db_models/immagine.js")
 require('dotenv').config();
 
 // Create router
@@ -108,19 +110,56 @@ router.post('/:id/segnalazioni', async (req, res) => {
 		return res.status(404).json({ error: "User does not exist" });
 	}
 
-	let newSegnalazione = {
+
+	let newSegnalazione = new Segnalazioni( {
 		luogo: req.body.luogo,
 		foto: req.body.foto,
 		tipo: req.body.tipo,
 		urgenza: req.body.urgenza,
 		status: req.body.status
-	}
+	})
 
 	user.segnalazioni.push(newSegnalazione);
 	await user.save()
+	
+	let segnalazioneID = newSegnalazione._id;
+	//let segnalazioneID2 = user.segnalazioni[user.segnalazioni.length-1]._id
 
-	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send();
+	console.log("1: "+ segnalazioneID)
+
+	let lastSegnalazione = new Segnalazioni({
+		id:  segnalazioneID,
+		luogo: req.body.luogo,
+		foto: req.body.foto,
+		tipo: req.body.tipo,
+		urgenza: req.body.urgenza,
+		status: req.body.status
+	})
+
+	await lastSegnalazione.save()
+	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + segnalazioneID).status(201).send();
 
 });
+
+router.get("/:id/segnalazioni/", async (req, res)=>{
+	let user = await utenteMobile.findById(req.params.id).exec();
+	if (!user) {
+		return res.status(404).json({ error: "User does not exist" });
+	}
+
+	res.status(200).json(user.segnalazioni)
+
+});
+
+
+
+
+
+
+
+
+
+
+
 
 module.exports = router;
