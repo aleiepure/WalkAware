@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
 
 const segnalazioneSchema = new mongoose.Schema({
+    id: { type: String, required: true},
     luogo: { type: String, required: true }, // Formato "latitudine,longitudine"
     urlFoto: { type: String, required: true },
     tipo: { type: String, enum: ["strada", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche"] },

@@ -1,87 +1,116 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
-const UtenteWeb = require('../models/utente_web.js');
+const utenteWebModel = require('../models/utente_web.js');
 
 require('dotenv').config();
 
-// Create router
 const router = express.Router();
 
-
-// Route to create a new web user
+/**  
+ * Web user registration
+ * 
+ * POST /api/v1/utente/web
+ * 		Required fields: nome, email, password
+ * 		Optional fields: supporto_tecnico
+ * 
+ * Response:
+ * 		Headers: Location /api/v1/utente/web/{id}
+*/
 router.post('', async (req, res) => {
-	console.log(req.body);
-	// Check if user already exists
-	const existingUser = await UtenteWeb.findOne({ email: req.body.email });
-	if (existingUser) {
-		return res.status(400).json({ error: 'A web user with the same email already exists.' });
-	}
 
-	// Validate email format
-	if (!isValidEmail(req.body.email)) {
-		return res.status(400).json({ error: 'The "email" field must be a non-empty string in email format' });
+	// Validate email field
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
+		console.error("The 'email' field must be a non-empty string in email format.");
+		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
-
-	// Validate password field
-	if (typeof req.body.password != 'string'){
-		return res.status(400).json({ error: 'The "password" field must be a non-empty string' });
-	}
-	
 	// Validate name field
-	if (typeof req.body.nome != 'string'){
-		return res.status(400).json({ error: 'The "nome" field must be a non-empty string in email format' });
+	if (typeof req.body.nome !== 'string') {
+		console.error("The 'nome' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
+	}
+	// Validate password field
+	if (typeof req.body.password !== 'string') {
+		console.error("The 'password' field must be a non-empty string");
+		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
+	}
+	// Validate supporto_tecnico field
+	if (req.body.supporto_tecnico && typeof req.body.supporto_tecnico !== 'boolean') {
+		console.error("The optional 'supporto_tecnico' field must be a boolean");
+		return res.status(400).json({ success: false, error: "The optional 'supporto_tecnico' field must be a boolean." });
+	}
+
+	// Check if user already exists
+	const existingUser = await utenteWebModel.findOne({ email: req.body.email });
+	if (existingUser) {
+		console.error('A web user with the same email already exists.');
+		return res.status(400).json({ success: false, error: 'A web user with the same email already exists.' });
 	}
 
 	// Create new user
-	const newUser = new UtenteWeb({
+	const user = new utenteWebModel({
 		email: req.body.email,
 		password: req.body.password,
-		nome: req.body.nome
+		nome: req.body.nome,
+		supporto_tecnico: req.body.supporto_tecnico || false,
 	});
-	await newUser.save();
+	await user.save();
 
 	// Response
-	return res.location("/api/v1/utente/web/" + newUser._id).status(201).send();
+	return res.location("/api/v1/utente/web/" + user._id).status(201).send({ success: true });
 });
 
-// Route for user login
+/**  
+ * Web user login
+ * 
+ * POST /api/v1/utente/web/login
+ * 		Required fields: email, password
+*/
 router.post('/login', async (req, res) => {
 
-	console.log(req.body);
-	// Find user by email
-	const user = await UtenteWeb.findOne({ email: req.body.email });
-
-	// User not found
-	if (!user) {
-		return res.status(401).json({ error: 'Authentication failed. User not found.' });
+	// Validate email field
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
+		console.error("The 'email' field must be a non-empty string in email format.");
+		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
+	}
+	// Validate password field
+	if (typeof req.body.password !== 'string') {
+		console.error("The 'password' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
 	}
 
+	// User not found
+	const user = await utenteWebModel.findOne({ email: req.body.email });
+	if (!user) {
+		console.error('Authentication failed. User not found.');
+		return res.status(401).json({ success: false, error: 'Authentication failed. User not found.' });
+	}
 	// Check password
 	if (req.body.password != user.password) {
-		return res.status(401).json({ error: 'Authentication failed. Incorrect password.' });
+		return res.status(401).json({ success: false, error: 'Authentication failed. Incorrect password.' });
 	}
 
 	// Create JWT token
-	const payload = { email: user.email, id: user._id };
-	const options = { expiresIn: '1y' }; // 1 year in seconds
+	const payload = { userId: user._id, email: user.email };
+	const options = { expiresIn: '1y' };
 	const token = jwt.sign(payload, process.env.SUPER_SECRET, options);
 
 	// Response
 	return res.json({
 		success: true,
-		message: 'Enjoy your token!',
+		message: 'Authentication successful.',
 		token: token,
+		self: `/api/v1/utente/web/${user._id}`,
 		email: user.email,
-		id: user._id,
-		self: `/api/v1/utente/web/login/${user._id}`
+		userId: user._id,
+		name: user.nome,
 	});
 });
 
 // Function to check email format
-function isValidEmail(email) {
-    const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email);
+function _isValidEmail(email) {
+	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(email);
 }
 
 module.exports = router;
