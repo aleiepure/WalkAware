@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobile/views/login_page.dart';
-import 'package:mobile/views/register_page.dart';
+import 'package:mobile/pages/login_page.dart';
+import 'package:mobile/pages/register_page.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -39,7 +39,7 @@ class AccountPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  FilledButton.icon(
+                  ElevatedButton.icon(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -48,8 +48,15 @@ class AccountPage extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.person_add),
                     label: const Text('Registrati'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
                   ),
-                  FilledButton.icon(
+                  ElevatedButton.icon(
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute<void>(
@@ -58,6 +65,13 @@ class AccountPage extends StatelessWidget {
                     ),
                     icon: const Icon(Icons.login),
                     label: const Text('Accedi'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                    ),
                   ),
                 ],
               ),

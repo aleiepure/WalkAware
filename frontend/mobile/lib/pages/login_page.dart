@@ -4,7 +4,7 @@ import 'package:crypt/crypt.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile/requests/backend_requests.dart';
-import 'package:mobile/views/home_page.dart';
+import 'package:mobile/pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -72,6 +72,7 @@ class _LoginPageState extends State<LoginPage> {
         await _prefs.setString('userToken', response.data['token']);
         await _prefs.setString('userEmail', response.data['email']);
         await _prefs.setString('userName', response.data['name']);
+        await _prefs.setInt('userPoints', response.data['points']);
 
         // Redirect to the home page
         Navigator.pushReplacement<void, void>(

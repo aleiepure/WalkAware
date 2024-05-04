@@ -3,15 +3,20 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:material_symbols_icons/symbols.dart';
+import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:mobile/requests/backend_requests.dart';
 import 'package:mobile/requests/mapbox_requests.dart';
-import 'package:mobile/views/account_page.dart';
+import 'package:mobile/pages/account_page.dart';
+import 'package:pedometer/pedometer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/src/widgets/visibility.dart' as visibility;
+import 'package:flutter/src/widgets/visibility.dart' as visibility; // ignore: implementation_imports
 
 enum TrackingMode { none, gps, compass }
 
@@ -37,7 +42,6 @@ class _HomePageState extends State<HomePage> {
   late double _bearing;
 
   bool _alertLocationServicesShown = false;
-  bool _alertLocationPermissionShown = false;
 
   final CameraOptions _initialPosition = CameraOptions(
     center: Point(
@@ -54,6 +58,9 @@ class _HomePageState extends State<HomePage> {
   final TextEditingController _searchTextEditingController = TextEditingController();
 
   bool _isUserLogged = false;
+
+  late Stream<StepCount> _stepCountStream;
+  int _points = 0;
 
   /// Track user position with GPS
   ///
@@ -183,64 +190,14 @@ class _HomePageState extends State<HomePage> {
     _alertLocationServicesShown = true;
   }
 
-  /// Show location permission denied dialog
-  ///
-  /// This method shows a dialog to the user when location permissions are denied.
-  void _showLocationPermissionDeniedDialog() {
-    if (_alertLocationPermissionShown) {
-      return;
-    }
-
-    showDialog(
-      barrierDismissible: false,
-      useRootNavigator: false,
-      context: context,
-      builder: (context) => PopScope(
-        onPopInvoked: (didPop) => _alertLocationServicesShown = false,
-        child: AlertDialog(
-          icon: Icon(Icons.location_disabled, size: 48, color: Theme.of(context).colorScheme.secondary),
-          title: const Text('Permesso di accesso alla posizione rifiutato'),
-          content: const Text('Per usare WalkAware Trento, consenti il permesso per usare la posizione.'),
-          actions: <Widget>[
-            TextButton(
-              child: const Text('Alle impostazioni!'),
-              onPressed: () {
-                geolocator.Geolocator.openAppSettings();
-                Navigator.of(context).pop();
-                _alertLocationPermissionShown = false;
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-    _alertLocationPermissionShown = true;
-  }
-
   /// Update user position and bearing
   ///
   /// This method updates the user's position and bearing on the map. Also takes care of permissions and location services.
   Future<void> _updateUserPositionAndBearing() async {
-    // Handle permissions access
-    bool serviceEnabled;
-    geolocator.LocationPermission permission;
-
     // Test if location services are enabled
-    serviceEnabled = await geolocator.Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await geolocator.Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       _showLocationServiceDisabledDialog();
-      return;
-    }
-
-    // Check location permissions
-    permission = await geolocator.Geolocator.checkPermission();
-    if (permission == geolocator.LocationPermission.denied) {
-      permission = await geolocator.Geolocator.requestPermission();
-      if (permission == geolocator.LocationPermission.denied) {
-        _showLocationPermissionDeniedDialog();
-        return;
-      }
-      _showLocationPermissionDeniedDialog();
       return;
     }
 
@@ -1049,15 +1006,22 @@ class _HomePageState extends State<HomePage> {
           iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
         child: Icon(_isUserLogged ? Icons.account_circle : Icons.person_off),
-        onPressed: () {
+        onPressed: () async {
           if (_isUserLogged) {
-            // TODO: Navigate to account info page
+            // TODO: Navigate to account info page instead of logging out
             // Navigator.push(
             //   context,
             //   MaterialPageRoute<void>(
             //     builder: (BuildContext context) => const AccountInfoPage(),
             //   ),
             // );
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            prefs.remove('userId');
+            prefs.remove('userToken');
+            prefs.remove('userEmail');
+            prefs.remove('userName');
+            prefs.remove('userPoints');
+            setState(() => _isUserLogged = false);
           } else {
             Navigator.push(
               context,
@@ -1117,8 +1081,8 @@ class _HomePageState extends State<HomePage> {
           iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
           foregroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
-        icon: const Icon(Icons.local_activity),
-        label: const Text('1234'),
+        icon: const Icon(Symbols.local_activity),
+        label: Text(_points.toString()),
         onPressed: () {},
       ),
     );
@@ -1147,18 +1111,75 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  /// step count stream callback
+  ///
+  /// This method listens to the step count stream and updates the user points.
+  void _onStepCount(StepCount event) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Bail if user is not logged
+    if (prefs.getString('userId') == null || prefs.getString('userToken') == null) {
+      return;
+    }
+
+    // Calculate new points amount
+    int previousPoints = prefs.getInt('userPoints') ?? 0;
+    int currentPoints = (event.steps / 2000).floor() - previousPoints;
+
+    // Bail if the points didn't change
+    if (currentPoints == 0) {
+      return;
+    }
+
+    // Save user points
+    prefs.setInt('userPoints', previousPoints + currentPoints);
+    setState(() => _points = previousPoints + currentPoints);
+    await backendRequestUpdateUserPoints(prefs.getString('userId')!, prefs.getString('userToken')!, previousPoints + currentPoints);
+  }
+
   /// Init state
   @override
   void initState() {
     super.initState();
-    SharedPreferences.getInstance().then((prefValue) => setState(() {
-          String username = prefValue.getString('userName') ?? "";
-          if (username.isNotEmpty) {
-            _isUserLogged = true;
-          } else {
-            _isUserLogged = false;
-          }
-        }));
+
+    // Connect to the pedometer
+    _stepCountStream = Pedometer.stepCountStream;
+    _stepCountStream.listen(_onStepCount);
+
+    // Check if user is logged
+    SharedPreferences.getInstance().then((prefs) {
+      String userToken = prefs.getString('userToken') ?? '';
+
+      // No token, user not logged
+      if (userToken.isEmpty) {
+        prefs.remove('userId');
+        prefs.remove('userToken');
+        prefs.remove('userEmail');
+        prefs.remove('userName');
+        prefs.remove('userPoints');
+        setState(() => _isUserLogged = false);
+        return;
+      }
+
+      // Verify the token
+      try {
+        JWT.verify(userToken, SecretKey(const String.fromEnvironment('JWT_SECRET')));
+        setState(() {
+          _isUserLogged = true;
+          _points = prefs.getInt('userPoints')!;
+        });
+      } on JWTExpiredException {
+        // Token expired, user not logged
+        prefs.remove('userId');
+        prefs.remove('userToken');
+        prefs.remove('userEmail');
+        prefs.remove('userName');
+        prefs.remove('userPoints');
+        setState(() => _isUserLogged = false);
+      } on JWTException catch (ex) {
+        debugPrint(ex.message);
+      }
+    });
   }
 
   /// Build

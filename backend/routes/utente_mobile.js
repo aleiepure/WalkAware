@@ -1,42 +1,51 @@
 // Import required modules
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const utenteMobile = require('../db_models/utente_mobile.js');
+
+const utenteMobile = require('../models/utente_mobile.js');
+
 require('dotenv').config();
 
 // Create router
 const router = express.Router();
 
-
-// Route to create a new mobile user
+/**  
+ * Mobile user registration
+ * 
+ * POST /api/v1/utente/mobile
+ * 		Required fields: email, password, nome, eta
+ * 
+ * Response:
+ * 		Headers: Location /api/v1/utente/mobile/{id}
+*/
 router.post('', async (req, res) => {
 
 	// Validate email format
 	if (!isValidEmail(req.body.email)) {
 		console.error('The "email" field must be a non-empty string in email format');
-		return res.status(400).json({ error: 'The "email" field must be a non-empty string in email format' });
+		return res.status(400).json({ success: false, error: 'The "email" field must be a non-empty string in email format' });
 	}
 	// Validate name field
 	if (typeof req.body.nome != 'string') {
 		console.error('The "nome" field must be a non-empty string');
-		return res.status(400).json({ error: 'The "nome" field must be a non-empty string' });
+		return res.status(400).json({ success: false, error: 'The "nome" field must be a non-empty string' });
 	}
 	// Validate eta field
 	if (typeof req.body.eta != 'number' && req.body.eta > 18) {
 		console.error('The "eta" field must be a number greater than 18');
-		return res.status(400).json({ error: 'The "eta" field must be a number greater than 18' });
+		return res.status(400).json({ success: false, error: 'The "eta" field must be a number greater than 18' });
 	}
 	// Validate password field
 	if (typeof req.body.password != 'string') {
 		console.error('The "password" field must be a non-empty string');
-		return res.status(400).json({ error: 'The "password" field must be a non-empty string' });
+		return res.status(400).json({ success: false, error: 'The "password" field must be a non-empty string' });
 	}
 
 	// Check if user already exists
 	const existingUser = await utenteMobile.findOne({ email: req.body.email });
 	if (existingUser) {
 		console.error('A mobile user with the same email already exists.');
-		return res.status(400).json({ error: 'A mobile user with the same email already exists.' });
+		return res.status(400).json({ success: false, error: 'A mobile user with the same email already exists.' });
 	}
 
 	// Create new user
@@ -49,10 +58,15 @@ router.post('', async (req, res) => {
 	await newUser.save();
 
 	// Response
-	return res.location("/api/v1/utente/mobile/" + newUser._id).status(201).send();
+	return res.status(201).location("/api/v1/utente/mobile/" + newUser._id).send({ success: true });
 });
 
-// Route for user login
+/**  
+ * Mobile user login
+ * 
+ * POST /api/v1/utente/login
+ * 		Required fields: email, password
+*/
 router.post('/login', async (req, res) => {
 
 	// Validate email format
@@ -81,31 +95,44 @@ router.post('/login', async (req, res) => {
 	}
 
 	// Create JWT token
-	const payload = { userId: user._id, email: user.email, password: user.password};
+	const payload = { userId: user._id, email: user.email, password: user.password };
 	const options = { expiresIn: '1y' };
 	const token = jwt.sign(payload, process.env.SUPER_SECRET, options);
 
 	// Response
+	console.log({
+		success: true,
+		message: 'Authentication successful.',
+		token: token,
+		email: user.email,
+		userId: user._id,
+		name: user.nome,
+		points: user.punti
+	});
 	return res.json({
 		success: true,
 		message: 'Authentication successful.',
 		token: token,
 		email: user.email,
 		userId: user._id,
-		name: user.nome
+		name: user.nome,
+		points: user.punti
 	});
 });
 
-// Function to check email format
-function isValidEmail(email) {
-	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-	return re.test(email);
-}
-
+/**  
+ * Add new segnalazione
+ * 
+ * POST /api/v1/utente/mobile/{id}/segnalazioni
+ * 		Required fields: luogo, foto, tipo, urgenza, status
+ * 
+ * Response: 201 Created
+ * 		Headers: Location /api/v1/utente/mobile/{id}/segnalazioni/{id}
+*/
 router.post('/:id/segnalazioni', async (req, res) => {
 	let user = await utenteMobile.findById(req.params.id).exec();
 	if (!user) {
-		return res.status(404).json({ error: "User does not exist" });
+		return res.status(404).json({ success: false, error: "User does not exist" });
 	}
 
 	let newSegnalazione = {
@@ -119,8 +146,57 @@ router.post('/:id/segnalazioni', async (req, res) => {
 	user.segnalazioni.push(newSegnalazione);
 	await user.save()
 
-	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send();
-
+	return res.location("/api/v1/utente/mobile/" + user._id + "/segnalazioni/" + newSegnalazione._id).status(201).send({ success: true });
 });
+
+/**
+ * Update mobile user's points
+ * 
+ * PUT /api/v1/utente/mobile/{id}/punti
+ * 		Required fields: punti
+ */
+router.put('/:id/punti', async (req, res) => {
+
+	// Validate punti field
+	if (typeof req.body.punti != 'number') {
+		console.error('The "punti" field must be a number');
+		return res.status(400).json({ success: false, error: 'The "punti" field must be a number' });
+	}
+
+	// User not found
+	const user = await utenteMobile.findById(req.params.id);
+	if (!user) {
+		console.error('User not found with the specified ID.');
+		return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+	}
+
+	user.punti = req.body.punti;
+	await user.save();
+
+	return res.send({ success: true, punti: user.punti });
+});
+
+/**
+ * Get mobile user's points
+ * 
+ * GET /api/v1/utente/mobile/{id}/punti
+ */
+router.get('/:id/punti', async (req, res) => {
+
+	// User not found
+	const user = await utenteMobile.findOne({ id: res.params.id });
+	if (!user) {
+		console.error('User not found with the specified ID.');
+		return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+	}
+
+	return res.send({ success: true, punti: user.punti });
+});
+
+// Check if a given email is in a valid format
+function isValidEmail(email) {
+	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+	return re.test(email);
+}
 
 module.exports = router;

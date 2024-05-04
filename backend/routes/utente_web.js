@@ -1,7 +1,8 @@
-// Import required modules
 const express = require('express');
 const jwt = require('jsonwebtoken');
-const UtenteWeb = require('../db_models/utente_web.js');
+
+const UtenteWeb = require('../models/utente_web.js');
+
 require('dotenv').config();
 
 // Create router
