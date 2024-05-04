@@ -9,8 +9,9 @@ require('dotenv').config();
 const router = express.Router();
 
 
-// Route to create a new mobile user
+// Route to create a new web user
 router.post('', async (req, res) => {
+	console.log(req.body);
 	// Check if user already exists
 	const existingUser = await UtenteWeb.findOne({ email: req.body.email });
 	if (existingUser) {
@@ -21,6 +22,12 @@ router.post('', async (req, res) => {
 	if (!isValidEmail(req.body.email)) {
 		return res.status(400).json({ error: 'The "email" field must be a non-empty string in email format' });
 	}
+
+	// Validate password field
+	if (typeof req.body.password != 'string'){
+		return res.status(400).json({ error: 'The "password" field must be a non-empty string' });
+	}
+	
 	// Validate name field
 	if (typeof req.body.nome != 'string'){
 		return res.status(400).json({ error: 'The "nome" field must be a non-empty string in email format' });
@@ -35,11 +42,13 @@ router.post('', async (req, res) => {
 	await newUser.save();
 
 	// Response
-	return res.location("/api/v1/utente/mobile/" + newUser._id).status(201).send();
+	return res.location("/api/v1/utente/web/" + newUser._id).status(201).send();
 });
 
 // Route for user login
 router.post('/login', async (req, res) => {
+
+	console.log(req.body);
 	// Find user by email
 	const user = await UtenteWeb.findOne({ email: req.body.email });
 

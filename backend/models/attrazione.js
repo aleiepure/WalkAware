@@ -1,7 +1,7 @@
 const mongoose = require("mongoose")
 const Schema = mongoose.Schema
 
-module.exports("attrazione", new Schema({
+module.exports= mongoose.model("attrazione", new Schema({
     nome: String, 
     descrizione: String, 
     data_inizio: Schema.Types.Date, 
