@@ -1,6 +1,7 @@
 const mongoose = require("mongoose")
-const Schema = mongoose.Schema
 
-module.exports= mongoose.model("immagine", new Schema({
-    foto: String
-}));
+const immagineSchema = new mongoose.Schema({
+    foto: { type: String, required: true }
+});
+
+module.exports = mongoose.model("immagine", immagineSchema);

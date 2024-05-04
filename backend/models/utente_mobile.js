@@ -3,16 +3,17 @@ const mongoose = require("mongoose");
 const buonoSchema = new mongoose.Schema({
     id_premio: { type: String },
     data_riscatto: { type: Date, default: Date.now },
-    validita: Date,
-    usato: Boolean
+    validita: { type: Date },
+    usato: { type: Boolean, default: false },
 });
 
 const segnalazioneSchema = new mongoose.Schema({
-    luogo: Number,
-    foto: String,  //TODO: verify how to actually store an image
+    luogo: { type: String, required: true }, // Formato "latitudine,longitudine"
+    foto: { type: String },  //TODO: verify how to actually store an image
     tipo: { type: String, enum: ["strada", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche"] },
     urgenza: { type: String, enum: ["bassa", "medio-bassa", "medio-alta", "alta"] },
-    status: { type: String, enum: ["aperta", "presa_in_carico", "conclusa"] }
+    status: { type: String, enum: ["aperta", "presa_in_carico", "conclusa"] },
+    data: { type: Date, default: Date.now }
 });
 
 const utenteMobileSchema = new mongoose.Schema({
