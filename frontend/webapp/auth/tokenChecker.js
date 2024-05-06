@@ -9,9 +9,11 @@ const tokenChecker = function(req, res, next) {
   }
 
   const cookie = req.cookies;
+  // console.log('cookie:', cookie);
 
 	// if there is no token
 	if (!cookie.token) {
+    console.error('Authentication: No token found, redirecting to login');
 		return res.redirect('/');
 	}
 
@@ -19,11 +21,13 @@ const tokenChecker = function(req, res, next) {
   jwt.verify(cookie.token, process.env.SUPER_SECRET, (err, decoded) => {
     if (err) {
       // The token is invalid or expired
+      console.error('Authentication: Error verifying token:', err.message, ', redirecting to login');
       res.redirect('/');
     } else {
       // The token is valid, decoded contains the decoded payload
       if (decoded.userId !== cookie.userId || decoded.email !== cookie.email) {
         // The token does not match the specified user
+        console.error('Authentication: Token does not match the specified user, redirecting to login');
         return res.redirect('/');
       } else {
         // The token is valid and matches the specified user
@@ -43,7 +47,7 @@ function verifyToken(cookie) {
       }
       // Verify token
       const decoded = jwt.verify(cookie.token, process.env.SUPER_SECRET);
-      if (decoded.userId !== cookie.id || decoded.email !== cookie.email) {
+      if (decoded.userId !== cookie.userId || decoded.email !== cookie.email) {
           return false;
       }
       // verified

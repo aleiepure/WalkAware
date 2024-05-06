@@ -3,8 +3,8 @@
 import 'package:crypt/crypt.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/requests/backend_requests.dart';
-import 'package:mobile/pages/home_page.dart';
+import '../requests/backend_requests.dart';
+import '../pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -46,6 +46,8 @@ class _LoginPageState extends State<LoginPage> {
 
       // Send the login request to the backend
       Response<dynamic> response = await backendRequestUserLogin(email, passwordHash);
+
+      // TODO: handle response never came
 
       // Wrong email
       if (response.statusCode == 401 && response.data['error'] == 'Authentication failed. User not found.') {

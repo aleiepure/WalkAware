@@ -48,7 +48,7 @@ router.post('', async (req, res) => {
 	}
 
 	// Create new user
-	const user = new utenteMobileModel({
+	const user = new utenteMobileModel.utenteMobileModel({
 		email: req.body.email,
 		password: req.body.password,
 		nome: req.body.nome,

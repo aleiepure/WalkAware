@@ -9,8 +9,8 @@ import 'package:date_field/date_field.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile/requests/backend_requests.dart';
-import 'package:mobile/pages/login_page.dart';
+import '../requests/backend_requests.dart';
+import '../pages/login_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class RegisterPage extends StatefulWidget {

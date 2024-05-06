@@ -6,7 +6,7 @@ const cookieParser = require("cookie-parser")
 require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
-const { tokenChecker, verifyToken }  = require("./auth/tokenChecker.js");
+const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
 // creating app 
@@ -14,8 +14,8 @@ var app = express();
 const frontendURL = "http://localhost:3000"
 
 // parsing settings
-app.use(express.json()); 
-app.use(express.urlencoded()); 
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // cookie parser
 app.use(cookieParser());
@@ -75,7 +75,7 @@ app.get('*', (req, res) => {
 });
 
 
-  
+
 
 // Run the application on port 3000
 app.listen(3000, function () {
