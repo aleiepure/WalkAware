@@ -8,8 +8,8 @@ const buonoSchema = new mongoose.Schema({
 });
 
 const segnalazioneSchema = new mongoose.Schema({
-    luogo: { type: String, required: true }, // Formato "latitudine,longitudine"
-    foto: { type: String },  //TODO: verify how to actually store an image
+    luogo: String, //{ type: String, required: true }, // Formato "latitudine,longitudine"
+    foto: String, //{ type: String },  //TODO: verify how to actually store an image
     tipo: { type: String, enum: ["strada", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche"] },
     urgenza: { type: String, enum: ["bassa", "medio-bassa", "medio-alta", "alta"] },
     status: { type: String, enum: ["aperta", "presa_in_carico", "conclusa"] },

@@ -1,5 +1,6 @@
 const express = require('express');
-const Immagine = require("../db_models/immagine.js")
+const Immagine = require("../models/immagine.js")
+const Segnalazioni = require("../models/segnalazione.js")
 
 const router = express.Router();
 
@@ -26,6 +27,9 @@ router.get("/:id", async (req, res) =>{
 
 });
 
-// router.get(//ottieni tutte le segnalazioni web)
+router.get(" ", async (req, res) =>{
+	
+
+});
 
 module.exports = router;

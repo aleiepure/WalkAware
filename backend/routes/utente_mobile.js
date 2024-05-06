@@ -3,8 +3,8 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 
 const utenteMobile = require('../models/utente_mobile.js');
-const segnalazione = require('../models/segnalazione.js');
-const immagine = require("../models/immagine.js")
+const Segnalazioni = require('../models/segnalazione.js');
+const Immagini = require("../models/immagine.js")
 
 require('dotenv').config();
 
