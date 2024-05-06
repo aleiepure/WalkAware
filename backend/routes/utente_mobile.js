@@ -41,7 +41,7 @@ router.post('', async (req, res) => {
 	}
 
 	// Check if user already exists
-	const existingUser = await utenteMobileModel.findOne({ email: req.body.email });
+	const existingUser = await utenteMobileModel.utenteMobileModel.findOne({ email: req.body.email });
 	if (existingUser) {
 		console.error('A mobile user with the same email already exists.');
 		return res.status(400).json({ success: false, error: 'A mobile user with the same email already exists.' });
@@ -80,7 +80,7 @@ router.post('/login', async (req, res) => {
 	}
 
 	// User not found
-	const user = await utenteMobileModel.findOne({ email: req.body.email });
+	const user = await utenteMobileModel.utenteMobileModel.findOne({ email: req.body.email });
 	if (!user) {
 		console.error('Authentication failed. User not found.');
 		return res.status(401).json({ success: false, error: 'Authentication failed. User not found.' });
