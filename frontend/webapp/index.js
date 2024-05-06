@@ -47,8 +47,8 @@ app.use(tokenChecker);
 
 // Route for the login pag
 app.get('/', (req, res) => {
-    if (verifyToken(res.cookie)) {
-        res.redirect('/segnalazioni');
+    if (verifyToken(req.cookies)) {
+        res.redirect('segnalazioni');
     } else {
         res.render('login');
     }

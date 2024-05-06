@@ -9,7 +9,6 @@ const tokenChecker = function(req, res, next) {
   }
 
   const cookie = req.cookies;
-  // console.log('cookie:', cookie);
 
 	// if there is no token
 	if (!cookie.token) {
@@ -40,6 +39,7 @@ const tokenChecker = function(req, res, next) {
 
 
 function verifyToken(cookie) {
+  //console.log(cookie.token);
   try {
       // if there is no token
       if (!cookie.token) {
