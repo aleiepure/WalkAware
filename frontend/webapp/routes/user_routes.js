@@ -47,7 +47,7 @@ router.post('/login', async (req, res) => {
 				// response okay set cookies and redirect to segnalazioni page
 				res.cookie('token', body.token, { httpOnly: true });
 				res.cookie('email', body.email, { httpOnly: true });
-				res.cookie('id', body.id, { httpOnly: true });
+				res.cookie('userId', body.id, { httpOnly: true });
 				res.render('segnalazioni', {currentPage: 'segnalazioni'});
 			}else{
 				// respone error, send error message to render
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
 router.get('/logout', async (req, res) => {
 	res.clearCookie('token', { httpOnly: true });
 	res.clearCookie('email', { httpOnly: true });
-	res.clearCookie('id', { httpOnly: true });
+	res.clearCookie('userId', { httpOnly: true });
 	
 	res.redirect('/');
 })
