@@ -11,9 +11,9 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
-import 'package:mobile/requests/backend_requests.dart';
-import 'package:mobile/requests/mapbox_requests.dart';
-import 'package:mobile/pages/account_page.dart';
+import '../requests/backend_requests.dart';
+import '../requests/mapbox_requests.dart';
+import '../pages/account_page.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/src/widgets/visibility.dart' as visibility; // ignore: implementation_imports
@@ -49,7 +49,7 @@ class _HomePageState extends State<HomePage> {
         11.125916,
         46.068460,
       ),
-    ).toJson(),
+    ),
     zoom: 12.0,
   );
 
@@ -234,7 +234,7 @@ class _HomePageState extends State<HomePage> {
       case TrackingMode.gps:
         _mapboxMap?.flyTo(
             CameraOptions(
-              center: Point(coordinates: _position).toJson(),
+              center: Point(coordinates: _position),
               zoom: 17.0,
             ),
             MapAnimationOptions(duration: 1000));
@@ -242,7 +242,7 @@ class _HomePageState extends State<HomePage> {
       case TrackingMode.compass:
         _mapboxMap?.flyTo(
             CameraOptions(
-              center: Point(coordinates: _position).toJson(),
+              center: Point(coordinates: _position),
               bearing: _bearing,
             ),
             MapAnimationOptions(duration: 1000));
@@ -284,7 +284,7 @@ class _HomePageState extends State<HomePage> {
   /// Map scroll callback
   ///
   /// This method is called when the map is scrolled. It disables tracking mode.
-  void _onMapScroll(ScreenCoordinate screenCoordinate) {
+  void _onMapScroll(MapContentGestureContext context) {
     setState(() {
       _trackingMode = TrackingMode.none;
     });
@@ -325,7 +325,7 @@ class _HomePageState extends State<HomePage> {
         ?.create(PointAnnotationOptions(
           geometry: Point(
             coordinates: position,
-          ).toJson(),
+          ),
           iconSize: 0.2,
           iconOffset: [0, 0],
           symbolSortKey: 10,
@@ -336,7 +336,7 @@ class _HomePageState extends State<HomePage> {
     // Move camera to searched place and disable tracking
     _mapboxMap?.flyTo(
       CameraOptions(
-        center: Point(coordinates: position).toJson(),
+        center: Point(coordinates: position),
       ),
       MapAnimationOptions(),
     );
@@ -479,8 +479,8 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method is called when the directions button is tapped.
   void _onLocationInfoBottomSheetDirectionsButtonPressed(String name, String address, Position destination) async {
-    Map<String?, Object?> geometry = {};
-    List<Map<String?, Object?>?> coordinates = [];
+    LineString geometry = LineString(coordinates: []);
+    List<Point> coordinates = [];
     double duration = 0;
     double distance = 0;
 
@@ -489,10 +489,10 @@ class _HomePageState extends State<HomePage> {
     await requestMapboxWalkRoute(source, destination).then((response) {
       duration = response['routes'][0]['duration'];
       distance = response['routes'][0]['distance'];
-      geometry = response['routes'][0]['geometry'];
+      geometry = LineString.fromJson(response['routes'][0]['geometry']);
 
       for (var coordinate in response['routes'][0]['geometry']['coordinates']) {
-        coordinates.add(Point(coordinates: Position(coordinate[0], coordinate[1])).toJson());
+        coordinates.add(Point(coordinates: Position(coordinate[0], coordinate[1])));
       }
     });
 
@@ -510,7 +510,7 @@ class _HomePageState extends State<HomePage> {
 
     // Move camera to fit route
     await _mapboxMap
-        ?.cameraForCoordinates(coordinates, MbxEdgeInsets(top: 50, left: 50, bottom: 50, right: 50), null, null)
+        ?.cameraForCoordinatesPadding(coordinates, CameraOptions(), MbxEdgeInsets(top: 50, left: 50, bottom: 50, right: 50), null, null)
         .then((cameraOptions) => _mapboxMap?.flyTo(cameraOptions, MapAnimationOptions(duration: 1000)));
 
     // Close search bottom sheet

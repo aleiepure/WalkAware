@@ -2,8 +2,7 @@ import "package:crypt/crypt.dart";
 import "package:dio/dio.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
-import "package:mobile/exceptions/dio_exceptions.dart";
-import "package:shared_preferences/shared_preferences.dart";
+import "../exceptions/dio_exceptions.dart";
 
 String baseUrl = const String.fromEnvironment('BACKEND_BASE_URL');
 

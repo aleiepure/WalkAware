@@ -34,7 +34,7 @@ router.post('/', async (req, res) => {
 // Route for user login
 router.post('/login', async (req, res) => {
 	  // Make API request
-	  console.log(req.body);
+	  //console.log(req.body);
 	  fetch(path.join(backendURL, 'utente/web/login'), {
 		method: "POST",
 		headers: {"Content-Type": "application/json"},
@@ -47,8 +47,8 @@ router.post('/login', async (req, res) => {
 				// response okay set cookies and redirect to segnalazioni page
 				res.cookie('token', body.token, { httpOnly: true });
 				res.cookie('email', body.email, { httpOnly: true });
-				res.cookie('userId', body.id, { httpOnly: true });
-				res.render('segnalazioni', {currentPage: 'segnalazioni'});
+				res.cookie('userId', body.userId, { httpOnly: true });
+				res.redirect('/segnalazioni');
 			}else{
 				// respone error, send error message to render
 				res.render('login', {errorMessage: body.error});
@@ -66,7 +66,6 @@ router.get('/logout', async (req, res) => {
 	res.clearCookie('token', { httpOnly: true });
 	res.clearCookie('email', { httpOnly: true });
 	res.clearCookie('userId', { httpOnly: true });
-	
 	res.redirect('/');
 })
 

@@ -3,7 +3,7 @@ import 'package:flutter_activity_recognition/flutter_activity_recognition.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:introduction_screen/introduction_screen.dart';
 import 'package:material_symbols_icons/symbols.dart';
-import 'package:mobile/pages/home_page.dart';
+import '../pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OnboardingPage extends StatefulWidget {
