@@ -4,12 +4,16 @@ const swaggerUi = require('swagger-ui-express');
 const yaml = require('yamljs');
 const morgan = require('morgan');
 const mongoose = require("mongoose");
+const formData = require('express-form-data')
 
 require('dotenv').config();
 
 const utenteMobile = require('./routes/utente_mobile.js');
 const utenteWeb = require('./routes/utente_web.js');
 const segnalazioni = require('./routes/segnalazioni.js')
+
+
+
 
 // Express settings
 var app = express();
@@ -22,7 +26,7 @@ const swaggerDocument = yaml.load('./oas3.yml');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
 
 // Middlewares
-app.use(cors());
+//app.use(cors());
 app.use(morgan('dev'));
 
 // Routes

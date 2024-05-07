@@ -48,7 +48,7 @@ router.post('', async (req, res) => {
 	}
 
 	// Create new user
-	const user = new utenteMobileModel({
+	const user = new utenteMobileModel.utenteMobileModel({
 		email: req.body.email,
 		password: req.body.password,
 		nome: req.body.nome,
@@ -127,14 +127,14 @@ router.post('/:id/segnalazioni', async (req, res) => {
 		return res.status(400).json({ success: false, error: "The 'luogo' field must be a non-empty string." });
 	}
 	// Validate foto field
-	if (typeof req.body.urlFoto !== 'string' || req.body.urlFoto === '') {
+	if (typeof req.body.foto !== 'string' || req.body.foto === '') {
 		console.error("The 'urlFoto' field must be a non-empty string.");
-		return res.status(400).json({ success: false, error: "The 'urlFoto' field must be a non-empty string." });
+		return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
 	}
 	// Validate tipo field
-	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche'].includes(req.body.tipo)) {
-		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza' or 'barriereArchitettoniche'.");
-		return res.status(400).json({ success: false, error: "The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza' or 'barriereArchitettoniche'." });
+	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
+		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza'  'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'.");
+		return res.status(400).json({ success: false, error: "The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza' 'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'." });
 	}
 	// Validate urgenza field
 	if (typeof req.body.urgenza !== 'string' || !['bassa', 'medio-bassa', 'medio-alta', 'alta'].includes(req.body.urgenza)) {
@@ -153,14 +153,12 @@ router.post('/:id/segnalazioni', async (req, res) => {
 			// Create new segnalazione inside user
 			let segnalazioneUtenteMobile = new utenteMobileModel.segnalazioneUtenteMobileModel({
 				luogo: req.body.luogo,
-				urlFoto: req.body.urlFoto,
+				urlFoto: req.body.foto,
 				tipo: req.body.tipo,
 				urgenza: req.body.urgenza,
 				status: req.body.status
 			});
 
-			// NON FUNZIONA
-			console.log("UTENTEEEEEEEEEEEE" + result)
 			result.segnalazioni.push(segnalazioneUtenteMobile);
 			result.save();
 
@@ -168,7 +166,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
 			let segnalazione = new segnalazioneModel({
 				id: segnalazioneUtenteMobile._id,
 				luogo: req.body.luogo,
-				urlFoto: req.body.urlFoto,
+				urlFoto: req.body.foto,
 				tipo: req.body.tipo,
 				urgenza: req.body.urgenza,
 				status: req.body.status
