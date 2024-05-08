@@ -50,7 +50,7 @@ app.get('/', (req, res) => {
     if (verifyToken(req.cookies)) {
         res.redirect('segnalazioni');
     } else {
-        res.render('login');
+        res.render('login', { currentPage: 'login' });
     }
 });
 
@@ -71,7 +71,7 @@ app.get('/aziende', (req, res) => {
 
 // Route page not found
 app.get('*', (req, res) => {
-    res.render('404');
+    res.render('404', {currentPage: '404'});
 });
 
 
