@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
-import 'package:mobile/pages/new_report_page.dart';
-import 'package:mobile/pages/onboarding.dart';
-import 'package:mobile/pages/reports_page.dart';
+import './pages/onboarding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/home_page.dart';
 
@@ -53,21 +51,19 @@ class _AppState extends State<App> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         useMaterial3: true,
       ),
-      // TODO: restore original home
-      // home: FutureBuilder(
-      //   future: _mainPage(),
-      //   builder: (context, snapshot) {
-      //     if (snapshot.connectionState == ConnectionState.done) {
-      //       return snapshot.data!;
-      //     }
-      //     return const Scaffold(
-      //       body: Center(
-      //         child: CircularProgressIndicator(),
-      //       ),
-      //     );
-      //   },
-      // ),
-      home: const NewReportPage(),
+      home: FutureBuilder(
+        future: _mainPage(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return snapshot.data!;
+          }
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        },
+      ),
     );
   }
 }
