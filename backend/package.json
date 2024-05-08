@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "run-dev": "nodemon --tls-min-v1.1 --tls-max-v1.3 ./index.js"
+    "run-dev": "nodemon --tls-min-v1.1 --tls-max-v1.3 ./index.js",
+    "test": "jest --setupFiles dotenv/config"
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +28,8 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "supertest": "^7.0.0"
   }
 }

@@ -9,7 +9,7 @@ const router = express.Router();
 
 
 
-// Route to create a new web user
+// Route to create a new web user NOT WORKING
 router.post('/', async (req, res) => {
 	// Make API request
 	console.log(req.body);
@@ -51,7 +51,7 @@ router.post('/login', async (req, res) => {
 				res.redirect('/segnalazioni');
 			}else{
 				// respone error, send error message to render
-				res.render('login', {errorMessage: body.error});
+				res.redirect('/');
 			}
 
 		})
