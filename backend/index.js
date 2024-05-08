@@ -10,7 +10,8 @@ require('dotenv').config();
 
 const utenteMobile = require('./routes/utente_mobile.js');
 const utenteWeb = require('./routes/utente_web.js');
-const segnalazioni = require('./routes/segnalazioni.js')
+const segnalazioni = require('./routes/segnalazioni.js');
+const aziende = require('./routes/aziende.js');
 
 
 
@@ -32,7 +33,8 @@ app.use(morgan('dev'));
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
 app.use('/api/v1/utente/web', utenteWeb);
-app.use('/api/v1/segnalazioni', segnalazioni)
+app.use('/api/v1/segnalazioni', segnalazioni);
+app.use('/api/v1/aziende', aziende);
 
 // MongoDB connection
 mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MONGODB_PASSWORD}@${process.env.MONGODB_CLUSTER}/?retryWrites=true&w=majority&appName=WalkAware`)
