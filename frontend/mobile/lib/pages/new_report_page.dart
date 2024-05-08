@@ -1,4 +1,4 @@
-// ignore_for_file: implementation_imports, depend_on_referenced_packages
+// ignore_for_file: implementation_imports, depend_on_referenced_packages, use_build_context_synchronously
 
 import 'dart:async';
 import 'dart:io';
@@ -9,11 +9,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:image_picker_platform_interface/src/types/image_source.dart' as image_source;
+import 'package:dio/dio.dart' as dio;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../requests/backend_requests.dart';
 
 enum TrackingMode { none, gps, compass }
 
 class NewReportPage extends StatefulWidget {
-  const NewReportPage({super.key});
+  final ValueChanged<int> update;
+  const NewReportPage({super.key, required this.update});
 
   @override
   State<NewReportPage> createState() => _NewReportPageState();
@@ -49,8 +53,14 @@ class _NewReportPageState extends State<NewReportPage> {
 
   final TextEditingController _placeFieldController = TextEditingController();
   final TextEditingController _imageFieldController = TextEditingController();
-
   final ImagePicker _imagePicker = ImagePicker();
+  File? _selectedImage;
+  String? _category;
+  String? _importance;
+
+  bool _sendButtonEnabled = true;
+
+  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   /// Callback for when the map is created
   ///
@@ -410,7 +420,7 @@ class _NewReportPageState extends State<NewReportPage> {
                       ),
                     ),
                     onPressed: _onImageSelectionGalleryButtonPressed,
-                    icon: const Icon(Icons.camera_alt),
+                    icon: const Icon(Icons.image_outlined),
                     label: const Text('Seleziona una foto'),
                   ),
                 ],
@@ -431,6 +441,7 @@ class _NewReportPageState extends State<NewReportPage> {
     if (image != null) {
       setState(() {
         _imageFieldController.text = 'Foto aggiunta';
+        _selectedImage = File(image.path);
       });
     }
   }
@@ -444,6 +455,7 @@ class _NewReportPageState extends State<NewReportPage> {
     if (image != null) {
       setState(() {
         _imageFieldController.text = 'Foto aggiunta';
+        _selectedImage = File(image.path);
       });
     }
   }
@@ -451,16 +463,80 @@ class _NewReportPageState extends State<NewReportPage> {
   /// Send button pressed
   ///
   /// This method is called when the send button is pressed. It sends the report to the server.
-  void _onSendButtonPressed() {
+  void _onSendButtonPressed() async {
+    String imageKey = '';
+    SharedPreferences prefs = await _prefs;
+    setState(() {
+      _sendButtonEnabled = false;
+    });
+
     if (_formKey.currentState!.validate()) {
-      // TODO: implement report sending
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          content: const Text('Segnalazione inviata, +1 punto!'),
-        ),
+      // Handle image upload
+      if (_selectedImage != null) {
+        dio.Response response = await backendRequestUploadImage(_selectedImage!, prefs.getString('userToken') ?? '');
+        if (response.statusCode == 200) {
+          imageKey = response.data['imageKey'];
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              content: const Text('Si è verificato un errore nel caricamento dell\'immagine. Riprova più tardi.'),
+            ),
+          );
+          setState(() {
+            _sendButtonEnabled = true;
+          });
+          return;
+        }
+      }
+
+      // Handle report issue
+      dio.Response response = await backendRequestReportIssue(
+        userId: prefs.getString('userId') ?? '',
+        latitude: _placeSelectBottomSheetCoordinates.coordinates.lat as double,
+        longitude: _placeSelectBottomSheetCoordinates.coordinates.lng as double,
+        imageKey: imageKey,
+        category: _category ?? '',
+        importance: _importance ?? '',
+        authToken: prefs.getString('userToken') ?? '',
       );
+
+      // Handle response
+      if (response.data['success'] == true) {
+        // Show success snackbar
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            content: const Text('Segnalazione inviata, +1 punto!'),
+          ),
+        );
+
+        // Update user points
+        int newPoints = prefs.getInt('userPoints')! + 1;
+        prefs.setInt('userPoints', newPoints);
+        widget.update(newPoints);
+        dio.Response pointsResponse = await backendRequestUpdateUserPoints(prefs.getString('userId')!, prefs.getString('userToken')!, newPoints);
+        if (pointsResponse.statusCode != 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              content: const Text('Si è verificato un errore nell\'aggiornamento dei punti utente sul server.'),
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Theme.of(context).colorScheme.error,
+            content: const Text('Si è verificato un errore nell\'invio della segnalazione. Riprova più tardi.'),
+          ),
+        );
+      }
     }
+
+    setState(() {
+      _sendButtonEnabled = true;
+    });
   }
 
   /// Build
@@ -515,6 +591,7 @@ class _NewReportPageState extends State<NewReportPage> {
                     readOnly: true,
                     onTap: () => showModalBottomSheet(
                       context: context,
+                      enableDrag: false,
                       builder: (context) => StatefulBuilder(builder: _placeSelectBottomSheetBuilder),
                     ),
                     validator: (value) {
@@ -542,10 +619,10 @@ class _NewReportPageState extends State<NewReportPage> {
                       ('Rifiuti', Icons.recycling, 'rifiuti'),
                       ('Sicurezza', Icons.local_police, 'sicurezza'),
                       ('Parcheggi', Icons.local_parking, 'parcheggi'),
-                      ('Viabilità', Icons.directions_car, 'viabilità'),
+                      ('Viabilità', Icons.directions_car, 'viabilita'),
                       ('Illuminazione Pubblica', Icons.lightbulb, 'illuminazione'),
                       ('Segnaletica Stradale', Icons.signpost, 'segnaletica'),
-                      ('Barriere Architettoniche', Icons.accessible, 'barriere'),
+                      ('Barriere Architettoniche', Icons.accessible, 'barriereArchitettoniche'),
                       ('Altro', Icons.help, 'altro'),
                     ].map((option) {
                       return DropdownMenuItem<String>(
@@ -561,7 +638,9 @@ class _NewReportPageState extends State<NewReportPage> {
                         ),
                       );
                     }).toList(),
-                    onChanged: (String? value) {},
+                    onChanged: (String? value) {
+                      _category = value;
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Seleziona un tipo';
@@ -584,7 +663,7 @@ class _NewReportPageState extends State<NewReportPage> {
                       labelText: 'Importanza',
                     ),
                     items: <(String, MaterialColor, String)>[
-                      ('Basso', Colors.green, 'basso'),
+                      ('Basso', Colors.green, 'bassa'),
                       ('Medio-Basso', Colors.lime, 'medio-bassa'),
                       ('Medio-Alto', Colors.amber, 'medio-alta'),
                       ('Alto', Colors.red, 'alta'),
@@ -597,13 +676,14 @@ class _NewReportPageState extends State<NewReportPage> {
                         ),
                       );
                     }).toList(),
-                    onChanged: (String? value) {},
+                    onChanged: (value) {
+                      _importance = value;
+                    },
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Seleziona un livello di urgenza';
                       }
                       return null;
-                    
                     },
                   ),
                 ),
@@ -657,9 +737,15 @@ class _NewReportPageState extends State<NewReportPage> {
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                       ),
-                      onPressed: _onSendButtonPressed,
+                      onPressed: _sendButtonEnabled ? _onSendButtonPressed : null,
                       label: const Text('Invia'),
-                      icon: const Icon(Icons.send),
+                      icon: _sendButtonEnabled
+                          ? const Icon(Icons.send)
+                          : const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(),
+                            ),
                     ),
                   ),
                 ),

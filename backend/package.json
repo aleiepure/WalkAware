@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "run-dev": "nodemon ./index.js"
+    "run-dev": "nodemon --tls-min-v1.1 --tls-max-v1.3 ./index.js"
   },
   "author": "",
   "license": "ISC",
