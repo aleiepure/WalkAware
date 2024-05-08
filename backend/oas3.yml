@@ -1,7 +1,7 @@
-openapi: '3.0.2'
+openapi: "3.0.2"
 info:
   title: WalkAware Trento API
-  version: '1.0'
+  version: "1.0"
 servers:
   - url: http://localhost:3000/api/v1
     description: Localhost
@@ -10,101 +10,177 @@ paths:
     post:
       summary: Create a new mobile user.
       description: Endpoint to create a user from a mobile app.
+      tags:
+        - UtenteMobile
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UtenteMobileRegistrazione'
+              $ref: "#/components/schemas/UtenteMobileRegistrazione"
       responses:
-        '201':
+        "201":
           description: User created. Link in Location header.
           headers:
             Location:
               schema:
                 type: string
               description: Link to the newly created mobile user.
-        '400':
-          description: Bad request
+        "400":
+          description: Bad request, invalid body
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /utente/mobile/login:
-    post: 
+    post:
       summary: Mobile user login
       description: Endpoint for mobile user login.
+      tags:
+        - UtenteMobile
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UtenteLogin'
+              $ref: "#/components/schemas/UtenteLogin"
       responses:
-        '200':
+        "200":
           description: Successful login.
           headers:
             Location:
               schema:
                 type: string
               description: Link to the logged-in user.
-        '401':
+        "401":
           description: Invalid Credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
-  /utente/web:
-    post:
-      summary: Create a new web user.
-      description: Endpoint to create a user from a web app.
+  /utente/mobile/{id}/punti:
+    get:
+      summary: Get mobile user personal points
+      description: Endpoint for mobile user to get personal points
+      tags:
+        - UtenteMobile
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: mobile user ID
+      responses:
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobilePuntiBody"
+        "404":
+          description: User not found by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Update mobile user personal points
+      description: Endpoint for mobile user to get personal points
+      tags:
+        - UtenteMobile
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: mobile user ID
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UtenteWebRegistrazione'
+              $ref: "#/components/schemas/UtenteMobilePuntiBody"
       responses:
-        '201':
+        "200":
+          description: Successful request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobilePuntiBody"
+        "404":
+          description: User not found by id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"    
+        "400":
+          description: Bad request, invalid body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"      
+
+  /utente/web:
+    post:
+      summary: Create a new web user.
+      description: Endpoint to create a user from a web app.
+      tags:
+        - UtenteWeb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UtenteWebRegistrazione"
+      responses:
+        "201":
           description: User created. Link in Location header.
           headers:
             Location:
               schema:
                 type: string
               description: Link to the newly created web user.
-        '400':
+        "400":
           description: Bad request
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
   /utente/web/login:
-    post: 
+    post:
       summary: Web user login
       description: Endpoint for web user login.
+      tags:
+        - UtenteWeb
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UtenteLogin'
+              $ref: "#/components/schemas/UtenteLogin"
       responses:
-        '200':
+        "200":
           description: Successful login.
           headers:
             Location:
               schema:
                 type: string
               description: Link to the logged-in user.
-        '401':
+        "401":
           description: Invalid Credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: "#/components/schemas/Error"
 
 components:
   schemas:
@@ -138,6 +214,12 @@ components:
         - password
         - email
 
+    UtenteMobilePuntiBody:
+      type: object
+      properties:
+        punti:
+          type: number
+
     UtenteWebRegistrazione:
       type: object
       properties:
@@ -152,9 +234,6 @@ components:
         - password
         - email
         - nome
-
-
-
 
     Error:
       type: object
