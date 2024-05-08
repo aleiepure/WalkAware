@@ -1,10 +1,9 @@
-var express = require('express');
+const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const yaml = require('yamljs');
 const morgan = require('morgan');
 const mongoose = require("mongoose");
-const formData = require('express-form-data')
 
 require('dotenv').config();
 
@@ -13,22 +12,19 @@ const utenteWeb = require('./routes/utente_web.js');
 const segnalazioni = require('./routes/segnalazioni.js');
 const aziende = require('./routes/aziende.js');
 
-
-
-
 // Express settings
 var app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'));
 
+// Middlewares
+app.use(cors());
+app.use(morgan('dev'));
+
 // Swagger configuration
 const swaggerDocument = yaml.load('./oas3.yml');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
-
-// Middlewares
-//app.use(cors());
-app.use(morgan('dev'));
 
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
@@ -45,5 +41,3 @@ mongoose.connect(`mongodb+srv://${process.env.MONGODB_USERNAME}:${process.env.MO
 app.listen(8080, function () {
     console.log('Server running on port ', 8080);
 });
-
-

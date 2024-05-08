@@ -17,7 +17,7 @@ const router = express.Router();
  * Response:
  * 		Headers: Location /api/v1/utente/mobile/{id}
 */
-router.post('', async (req, res) => {
+router.post('/', async (req, res) => {
 
 	// Validate email field
 	if (typeof req.body.nome !== 'string' || !_isValidEmail(req.body.email)) {
@@ -122,15 +122,15 @@ router.post('/:id/segnalazioni', async (req, res) => {
 
 	// Validate luogo field
 	// TODO: add regex for lat, long
-	if (typeof req.body.luogo !== 'string' || req.body.luogo.length === '') {
+	if (typeof req.body.luogo !== 'string' || req.body.luogo === '') {
 		console.error("The 'luogo' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'luogo' field must be a non-empty string." });
 	}
-	// Validate foto field
-	if (typeof req.body.foto !== 'string' || req.body.foto === '') {
-		console.error("The 'urlFoto' field must be a non-empty string.");
-		return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
-	}
+	// // Validate foto field
+	// if (req.body.foto !== null && (typeof req.body.foto !== 'string' || req.body.foto === '')) {
+	// 	console.error("The 'foto' field must be a non-empty string.");
+	// 	return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
+	// }
 	// Validate tipo field
 	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
 		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza'  'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'.");
@@ -143,8 +143,8 @@ router.post('/:id/segnalazioni', async (req, res) => {
 	}
 	// Validate status field
 	if (typeof req.body.status !== 'string' || !['aperta', 'presa_in_carico', 'conclusa'].includes(req.body.status)) {
-		console.error('The "status" field must be either "aperta", "presa_in_carico" or "conclusa".');
-		return res.status(400).json({ success: false, error: "The 'status' field must be either 'aperta', 'presa_in_carico' or 'conclusa'." });
+		console.error('The optional "status" field must be either "aperta", "presa_in_carico" or "conclusa".');
+		return res.status(400).json({ success: false, error: "The optional 'status' field must be either 'aperta', 'presa_in_carico' or 'conclusa'." });
 	}
 
 	// Check if user exists
@@ -153,7 +153,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
 			// Create new segnalazione inside user
 			let segnalazioneUtenteMobile = new utenteMobileModel.segnalazioneUtenteMobileModel({
 				luogo: req.body.luogo,
-				urlFoto: req.body.foto,
+				foto: req.body.foto,
 				tipo: req.body.tipo,
 				urgenza: req.body.urgenza,
 				status: req.body.status
@@ -166,7 +166,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
 			let segnalazione = new segnalazioneModel({
 				id: segnalazioneUtenteMobile._id,
 				luogo: req.body.luogo,
-				urlFoto: req.body.foto,
+				foto: req.body.foto,
 				tipo: req.body.tipo,
 				urgenza: req.body.urgenza,
 				status: req.body.status

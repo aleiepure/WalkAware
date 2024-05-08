@@ -11,6 +11,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import '../pages/new_report_page.dart';
 import '../requests/backend_requests.dart';
 import '../requests/mapbox_requests.dart';
 import '../pages/account_page.dart';
@@ -1106,7 +1107,12 @@ class _HomePageState extends State<HomePage> {
           iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
         child: const Icon(Icons.report),
-        onPressed: () {},
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => NewReportPage(update: _updatePointsLabel),
+          ),
+        )
       ),
     );
   }
@@ -1135,6 +1141,10 @@ class _HomePageState extends State<HomePage> {
     prefs.setInt('userPoints', previousPoints + currentPoints);
     setState(() => _points = previousPoints + currentPoints);
     await backendRequestUpdateUserPoints(prefs.getString('userId')!, prefs.getString('userToken')!, previousPoints + currentPoints);
+  }
+
+  void _updatePointsLabel(int count) {
+    setState(() => _points = count);
   }
 
   /// Init state

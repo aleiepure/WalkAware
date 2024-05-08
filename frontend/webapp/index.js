@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser")
 require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
+const aziendeRoutes = require('./routes/aziende.js')
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
@@ -40,6 +41,7 @@ app.set('views', __dirname + '/views');
 
 // Routes
 app.use('/utente', userRoutes);
+app.use("/aziende", aziendeRoutes);
 
 // tokenchecker for auth
 app.use(tokenChecker);
@@ -50,7 +52,7 @@ app.get('/', (req, res) => {
     if (verifyToken(req.cookies)) {
         res.redirect('segnalazioni');
     } else {
-        res.render('login');
+        res.render('login', { currentPage: 'login' });
     }
 });
 
@@ -65,13 +67,13 @@ app.get('/registrazione', (req, res) => {
 });
 
 // Route aziende page
-app.get('/aziende', (req, res) => {
-    res.render('aziende', { currentPage: 'aziende' });
-});
+// app.get('/aziende', (req, res) => {
+//     res.render('aziende', { currentPage: 'aziende' });
+// });
 
 // Route page not found
 app.get('*', (req, res) => {
-    res.render('404');
+    res.render('404', {currentPage: '404'});
 });
 
 
