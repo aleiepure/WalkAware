@@ -1,14 +1,13 @@
 const express = require('express');
-const { token } = require('morgan');
 const router = express.Router();
-const multer = require("multer")
-const upload = multer();
+const path = require('path');
+require('dotenv').config();
 
-const backendURL = "http://localhost:8080/api/v1/aziende"
+const baseUrl = process.env.BACKEND_BASE_URL || "http://localhost:8080/"
 
 router.get('/', async (req, res) => {
     console.log(req.cookies.token);
-    const response = await fetch(backendURL, {
+    const response = await fetch(path.join(baseUrl, "/api/v1/aziende"), {
         method: "GET",
         headers: { "Content-Type": "application/json", 'x-access-token': req.cookies.token },
     })
@@ -26,9 +25,9 @@ router.post("/", (req, res)=>{
     //     headers: { "Content-Type": "application/json", 'x-access-token': req.cookies.token },
     //     body: JSON.stringify(req.body)
     // })
-    r
+    
     console.log(JSON.stringify(req.body))
-    fetch(backendURL, {
+    fetch(path.join(baseUrl, "/api/v1/aziende"), {
 		method: "POST",
 		headers: { "x-access-token": req.cookies.token, "Content-Type": "application/json"},
 		body: JSON.stringify(req.body)

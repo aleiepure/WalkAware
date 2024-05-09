@@ -96,7 +96,7 @@ Future backendRequestUpdateUserPoints(
       data: {
         'punti': points,
       },
-      options: Options(headers: {'token': authToken}),
+      options: Options(headers: {'x-access-token': authToken}),
     );
     return response;
   } on DioException catch (e) {
@@ -126,7 +126,7 @@ Future backendRequestUploadImage(
     final response = await Dio().post(
       '$baseUrl/api/v1/segnalazioni/immagini',
       data: FormData.fromMap({'image': await MultipartFile.fromFile(image.path, contentType: MediaType('image', image.path.split('.').last))}),
-      options: Options(headers: {'token': authToken}),
+      options: Options(headers: {'x-access-token': authToken}),
     );
 
     return response;
@@ -169,7 +169,7 @@ Future backendRequestReportIssue({
         'urgenza': importance,
         'status': 'aperta',
       },
-      options: Options(headers: {'token': authToken}),
+      options: Options(headers: {'x-access-token': authToken}),
     );
 
     return response;

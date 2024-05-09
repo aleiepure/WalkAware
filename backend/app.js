@@ -3,9 +3,8 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const yaml = require('yamljs');
 const morgan = require('morgan');
-const mongoose = require("mongoose");
 
-const tokenChecker = require("./auth/tokenChecker.js")
+const tokenChecker = require("./auth/tokenChecker.js");
 
 require('dotenv').config();
 
@@ -16,15 +15,13 @@ const aziende = require('./routes/aziende.js');
 
 // Express settings
 var app = express();
-
-
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }))
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Swagger configuration
 const swaggerDocument = yaml.load('./oas3.yml');
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explorer: true }));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Middlewares
 app.use(cors());
@@ -35,8 +32,7 @@ app.use(tokenChecker);
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
 app.use('/api/v1/utente/web', utenteWeb);
-app.use('/api/v1/segnalazioni', segnalazioni);
+app.use('/api/v1/segnalazioni', segnalazioni)
 app.use('/api/v1/aziende', aziende);
-
 
 module.exports = app;

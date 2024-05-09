@@ -2,18 +2,18 @@
 const express = require('express');
 const path = require('path');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-const backendURL = "http://localhost:8080/api/v1/"
 // Create router
 const router = express.Router();
 
-
+const baseUrl = process.env.BACKEND_BASE_URL || "http://localhost:8080"
 
 // Route to create a new web user NOT WORKING
 router.post('/', async (req, res) => {
 	// Make API request
 	console.log(req.body);
-	fetch(path.join(backendURL, '/utente/web'), {
+	fetch(path.join(baseUrl, '/api/v1/utente/web'), {
 	  method: "POST",
 	  headers: {"Content-Type": "application/json"},
 	  body: JSON.stringify(req.body)
@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
 router.post('/login', async (req, res) => {
 	  // Make API request
 	  //console.log(req.body);
-	  fetch(path.join(backendURL, 'utente/web/login'), {
+	  fetch(path.join(baseUrl, '/api/v1/utente/web/login'), {
 		method: "POST",
 		headers: {"Content-Type": "application/json"},
 		body: JSON.stringify(req.body)
@@ -68,8 +68,6 @@ router.get('/logout', async (req, res) => {
 	res.clearCookie('userId', { httpOnly: true });
 	res.redirect('/');
 })
-
-
 
 
 module.exports = router;
