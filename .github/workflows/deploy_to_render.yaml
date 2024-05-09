@@ -9,6 +9,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      SUPER_SECRET: ${{ secrets.JWT_SECRET }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -20,8 +23,6 @@ jobs:
 
       - name: Run backend tests
         working-directory: ./backend
-        env:
-          SUPER_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm test
 
       - name: Trigger deploy Backend to Render
@@ -38,8 +39,6 @@ jobs:
 
       - name: Run frontend tests
         working-directory: ./frontend/webapp
-        env:
-          SUPER_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm test
 
       - name: Trigger deploy Frontend to Render
