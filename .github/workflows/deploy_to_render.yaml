@@ -19,19 +19,19 @@ jobs:
       - name: Run tests
         run: npm test
 
-      - name: Deploy Backend to Render
+      - name: Trigger deploy Backend to Render
+        uses: JorgeLNJunior/render-deploy@v1.4.4
         if: success()
-        uses: renderapp/github-action@1.5.3
         with:
-          renderToken: ${{ secrets.RENDER_TOKEN }}
-          renderFile: deployment/render-backend.yaml
+          service_id: ${{ secrets.RENDER_BACKEND_SERVICE }}
+          api_key: ${{ secrets.RENDER_TOKEN }}
 
-      - name: Deploy Frontend to Render
+      - name: Trigger deploy Frontend to Render
+        uses: JorgeLNJunior/render-deploy@v1.4.4
         if: success()
-        uses: renderapp/github-action@1.5.3
         with:
-          renderToken: ${{ secrets.RENDER_TOKEN }}
-          renderFile: deployment/render-backend.yaml
+          service_id: ${{ secrets.RENDER_FRONTEND_SERVICE }}
+          api_key: ${{ secrets.RENDER_TOKEN }}
 
       - name: Setup java
         if: success()
@@ -40,17 +40,16 @@ jobs:
           distribution: 'zulu'
           java-version: "12.x"
    
-      - uses: subosito/flutter-action@v2
+      - name: Set up Flutter
         if: success()
+        uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.0.0"
-          channel: 'stable'
+          channel: stable
 
-      - name: Get dependencies
+      - name: Get flutter app dependencies
         if: success()
         run: flutter pub get
 
-      # Runs a set of commands using the runners shell
-      - name: Start release build
+      - name: Start Android release build
         if: success()
         run: flutter build --dart-define PUBLIC_ACCESS_TOKEN=${{ secrets.MAPBOX_ACCESS_TOKEN }} --dart-define BACKEND_BASE_URL=https://walkaware.onrender.com --dart-define "JWT_SECRET=${{ secrets.JWT_SECRET }}"
