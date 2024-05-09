@@ -1,0 +1,56 @@
+name: CI/CD with Render
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Deploy Backend to Render
+        if: success()
+        uses: renderapp/github-action@1.5.3
+        with:
+          renderToken: ${{ secrets.RENDER_TOKEN }}
+          renderFile: deployment/render-backend.yaml
+
+      - name: Deploy Frontend to Render
+        if: success()
+        uses: renderapp/github-action@1.5.3
+        with:
+          renderToken: ${{ secrets.RENDER_TOKEN }}
+          renderFile: deployment/render-backend.yaml
+
+      - name: Setup java
+        if: success()
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: "12.x"
+   
+      - uses: subosito/flutter-action@v2
+        if: success()
+        with:
+          flutter-version: "3.0.0"
+          channel: 'stable'
+
+      - name: Get dependencies
+        if: success()
+        run: flutter pub get
+
+      # Runs a set of commands using the runners shell
+      - name: Start release build
+        if: success()
+        run: flutter build --dart-define PUBLIC_ACCESS_TOKEN=${{ secrets.MAPBOX_ACCESS_TOKEN }} --dart-define BACKEND_BASE_URL=https://walkaware.onrender.com --dart-define "JWT_SECRET=${{ secrets.JWT_SECRET }}"
