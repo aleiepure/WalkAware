@@ -2,6 +2,7 @@ const app = require('../app');
 const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
 const request = require('supertest');
+require('dotenv').config();
 
 
 beforeAll(async () => {
@@ -10,11 +11,12 @@ beforeAll(async () => {
 });
 afterAll(() => { mongoose.connection.close(true); });
 
+const token_secret = process.env.SUPER_SECRET || "supersecret";
 
 describe('GET /api/v1/utente/mobile/:id/punti', () => {
     // create a valid token
     var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
-        process.env.SUPER_SECRET, { expiresIn: "1y" });
+        token_secret, { expiresIn: "1y" });
 
     test('GET /api/v1/utente/mobile/:id/punti Valid request of punti', () => {
         return request(app).get('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
@@ -41,7 +43,7 @@ describe('GET /api/v1/utente/mobile/:id/punti', () => {
 describe('PUT /api/v1/utente/mobile/:id/punti', () => {
     // create a valid token
     var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
-        process.env.SUPER_SECRET, { expiresIn: "1y" });
+        token_secret, { expiresIn: "1y" });
 
     test('PUT /api/v1/utente/mobile/:id/punti Valid Request', () => {
         return request(app)
@@ -68,7 +70,7 @@ describe('PUT /api/v1/utente/mobile/:id/punti', () => {
             .send({
                 punti: "not a number"
             })
-            .expect(400, {success: false, error:"The 'punti' field must be a number"})
+            .expect(400, { success: false, error: "The 'punti' field must be a number" })
     });
 
     test('PUT /api/v1/utente/mobile/:id/punti Missing punti', () => {
@@ -76,7 +78,7 @@ describe('PUT /api/v1/utente/mobile/:id/punti', () => {
             .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
             .set('x-access-token', token)
             .set('Accept', 'application/json')
-            .expect(400, {success: false, error:"The 'punti' field must be a number"})
+            .expect(400, { success: false, error: "The 'punti' field must be a number" })
     });
 
     test('PUT /api/v1/utente/mobile/:id/punti Missing punti', () => {
