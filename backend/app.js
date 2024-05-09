@@ -11,7 +11,8 @@ require('dotenv').config();
 
 const utenteMobile = require('./routes/utente_mobile.js');
 const utenteWeb = require('./routes/utente_web.js');
-const segnalazioni = require('./routes/segnalazioni.js')
+const segnalazioni = require('./routes/segnalazioni.js');
+const aziende = require('./routes/aziende.js');
 
 // Express settings
 var app = express();
@@ -28,12 +29,14 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { explore
 // Middlewares
 app.use(cors());
 app.use(morgan('dev'));
+
 app.use(tokenChecker);
 
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
 app.use('/api/v1/utente/web', utenteWeb);
-app.use('/api/v1/segnalazioni', segnalazioni)
+app.use('/api/v1/segnalazioni', segnalazioni);
+app.use('/api/v1/aziende', aziende);
 
 
 module.exports = app;

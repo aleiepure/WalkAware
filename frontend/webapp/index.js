@@ -35,7 +35,7 @@ app.use(express.static(staticDir));
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-
+// app.use(multer)
 
 
 

@@ -12,6 +12,8 @@ nome: { type: String, required: true },
 */
 
 router.post("/", async (req, res)=>{
+
+	console.log(req.body)
     // Validate email field
 	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
 		console.error("The 'email' field must be a non-empty string in email format.");
@@ -33,22 +35,23 @@ router.post("/", async (req, res)=>{
 		return res.status(400).json({ success: false, error: 'The "password" field must be a non-empty string.' });
 	}
 
-    let hashedPassword = bcrypt.hash(req.body.password)
+    //let hashedPassword = bcrypt.hash(req.body.password)
 
     // Create new user
 	const azienda = new aziendaModel({
 		email: req.body.email,
-		password: hashedPassword,
+		password: req.body.password,
 		nome: req.body.nome,
 		p_iva: req.body.p_iva
 	});
 	await azienda.save();
 
     //response 
-    return res.status(201).location("/api/v1/utente/mobile/" + azienda._id).send({ success: true });
+    return res.status(201).location("/api/v1/aziende" + azienda._id).send({ success: true });
 });
 
 router.get("/", async (req, res)=>{
+	console.log(req.header)
 	aziendaModel.find().then((azienda) => {
         return res.send(azienda);
     }).catch((error) => {
