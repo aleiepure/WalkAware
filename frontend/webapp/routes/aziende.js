@@ -1,13 +1,13 @@
 const express = require('express');
+require('dotenv').config();
+
 const router = express.Router();
 
-
-
-const backendURL = "http://localhost:8080/api/v1/aziende"
+const baseUrl = process.env.BACKEND_BASE_URL || "http://localhost:8080"
 
 router.get('/', (req, res) => {
     let aziende = [];
-    fetch(backendURL, {
+    fetch(path.join(baseUrl, 'api/v1/aziende'), {
         method: "GET",
         headers: { "Content-Type": "application/json" }
     })
@@ -16,8 +16,7 @@ router.get('/', (req, res) => {
                 .then((body) => {
                     aziende = body;
                     res.render('aziende', { currentPage: 'aziende' , aziende: aziende});
-                }
-                )
+                })
         })
 
 });

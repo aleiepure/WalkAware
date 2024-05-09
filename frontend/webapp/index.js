@@ -12,7 +12,6 @@ const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 // creating app 
 var app = express();
-const frontendURL = "http://localhost:3000"
 
 // parsing settings
 app.use(express.json());
@@ -76,12 +75,10 @@ app.get('*', (req, res) => {
     res.render('404', {currentPage: '404'});
 });
 
-
-
-
 // Run the application on port 3000
-app.listen(3000, function () {
-    console.log('Server running on port ', 3000);
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
 });
 
 
