@@ -20,6 +20,8 @@ jobs:
 
       - name: Run backend tests
         working-directory: ./backend
+        env:
+          SUPER_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm test
 
       - name: Trigger deploy Backend to Render
@@ -30,12 +32,14 @@ jobs:
           api_key: ${{ secrets.RENDER_TOKEN }}
 
       # Frontend
-      - name: Install backend dependencies
-        working-directory: ./backend
+      - name: Install frontend dependencies
+        working-directory: ./frontend/webapp
         run: npm install
 
-      - name: Run backend tests
-        working-directory: ./backend
+      - name: Run frontend tests
+        working-directory: ./frontend/webapp
+        env:
+          SUPER_SECRET: ${{ secrets.JWT_SECRET }}
         run: npm test
 
       - name: Trigger deploy Frontend to Render
