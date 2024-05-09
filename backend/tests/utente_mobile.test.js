@@ -25,19 +25,14 @@ beforeAll(async () => {
         });
     userSpySave = jest.fn().mockResolvedValue();
 });
-afterAll(() => { userSpyFindById.mockRestore();userSpySave.mockRestore()});
+afterAll(() => { userSpyFindById.mockRestore(); userSpySave.mockRestore() });
 
 // create a valid token
-var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
-    process.env.SUPER_SECRET, { expiresIn: "1y" });
-afterAll(() => { mongoose.connection.close(true); });
-
 const token_secret = process.env.SUPER_SECRET || "supersecret";
+var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
+    token_secret, { expiresIn: "1y" });
 
-describe('GET /api/v1/utente/mobile/:id/punti', () => {
-    // create a valid token
-    var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
-        token_secret, { expiresIn: "1y" });
+
 
 
 describe('GET /api/v1/utente/mobile/:id/punti', () => {
@@ -52,16 +47,16 @@ describe('GET /api/v1/utente/mobile/:id/punti', () => {
                 expect(res.body.success).toBe(true);
                 expect(res.body.punti).toBeDefined();
                 expect(typeof res.body.punti).toBe('number');
-                expect(res.body.punti).toBe(1000); 
+                expect(res.body.punti).toBe(1000);
             });
     });
-    
-        test('GET /api/v1/utente/mobile/:id/punti Get punti, wrong id', async () => {
-            return request(app).get('/api/v1/utente/mobile/InvlidIDInvlaidID/punti')
-                .set('x-access-token', token)
-                .set('Accept', 'application/json')
-                .expect(404, { success: false, error: 'User not found with the specified ID.' })
-        });
+
+    test('GET /api/v1/utente/mobile/:id/punti Get punti, wrong id', async () => {
+        return request(app).get('/api/v1/utente/mobile/InvlidIDInvlaidID/punti')
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(404, { success: false, error: 'User not found with the specified ID.' })
+    });
 })
 
 
@@ -118,5 +113,3 @@ describe('PUT /api/v1/utente/mobile/:id/punti', () => {
     });
 
 })
-
-
