@@ -4,64 +4,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WalkAware</title>
+    <title>WalkAware - <%= currentPage %></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
 
 <body>
-    <!-- <header class="d-flex justify-content-center py-3"> -->
-    <!-- <header> 
-        <% //if (currentPage !=='login' ) {%>
-            <ul class="nav nav-pills">
-                <li class="nav-item">
-                    <a href="/segnalazioni" class="nav-link <%= currentPage === 'segnalazioni' ? 'active' : '' %>"
-                        aria-current="page">Segnalazioni</a>
-                </li>
-                <li class="nav-item">
-                    <a href="/aziende" class="nav-link <%= currentPage === 'aziende' ? 'active' : '' %>">Aziende</a>
-                </li>
-                <li class="nav-item">
-                    <a href="/registrazione"
-                        class="nav-link <%= currentPage === 'registrazione' ? 'active' : '' %>">Registra Utente</a>
-                </li>
-                <li class="nav-item">
-                    <a href="/utente/logout" class="nav-link">Logout</a>
-                </li>
-            </ul>
-        <% //} %>
-        -->
-
-
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">WalkAware</a>
-            <% if (currentPage !== 'login') { %>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav nav-underline me-auto mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link <%= currentPage === 'segnalazioni' ? 'active' : '' %>" href="/segnalazioni">Segnalazioni</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= currentPage === 'aziende' ? 'active' : '' %>" href="/aziende">Aziende</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <%= currentPage === 'registrazione' ? 'active' : '' %>" href="/registrazione">Utenti</a>
-                    </li>
-                </ul>
-                <div class="d-flex">
-                    <a href="/utente/logout" class="btn btn-outline-primary"><i class="fa-solid fa-right-from-bracket me-2"></i>Logout</a>
-                    <!-- <button class="btn btn-outline-primary"><i class="fa-solid fa-right-from-bracket me-2"></i>Log Out</button> -->
+            <% if (currentPage !=='login' ) { %>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav nav-underline me-auto mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link <%= currentPage === 'segnalazioni' ? 'active' : '' %>"
+                                href="/segnalazioni">Segnalazioni</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= currentPage === 'aziende' ? 'active' : '' %>"
+                                href="/aziende">Aziende</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <%= currentPage === 'registrazione' ? 'active' : '' %>"
+                                href="/registrazione">Utenti</a>
+                        </li>
+                    </ul>
+                    <div class="d-flex">
+                        <a href="/utente/logout" class="btn btn-outline-primary"><i
+                                class="fa-solid fa-right-from-bracket me-2"></i>Logout</a>
+                    </div>
                 </div>
-            </div>
             <% } %>
     </nav>
 
     <div class="container">
         <div class="row justify-content-center mt-5">
-
-        <!-- </header> -->
