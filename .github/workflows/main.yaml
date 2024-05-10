@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SUPER_SECRET: ${{ secrets.JWT_SECRET }}
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
 
     steps:
       - name: Checkout code
