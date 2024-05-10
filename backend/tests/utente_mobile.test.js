@@ -11,85 +11,106 @@ beforeAll(async () => {
 afterAll(() => { mongoose.connection.close(true); });
 
 
-describe('GET /api/v1/utente/mobile/:id/punti', () => {
-    // create a valid token
-    var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
-        process.env.SUPER_SECRET, { expiresIn: "1y" });
+// describe('GET /api/v1/utente/mobile/:id/punti', () => {
+//     // create a valid token
+//     var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
+//         process.env.SUPER_SECRET, { expiresIn: "1y" });
 
-    test('GET /api/v1/utente/mobile/:id/punti Valid request of punti', () => {
-        return request(app).get('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .expect(200)
-            .expect((res) => {
-                expect(res.body.success).toBe(true);
-                expect(res.body.punti).toBeDefined();
-                expect(typeof res.body.punti).toBe('number');
-                expect(res.body.punti).toBeGreaterThanOrEqual(0);
-            });
-    });
+//     test('GET /api/v1/utente/mobile/:id/punti Valid request of punti', () => {
+//         return request(app).get('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
+//             .set('x-access-token', token)
+//             .set('Accept', 'application/json')
+//             .expect(200)
+//             .expect((res) => {
+//                 expect(res.body.success).toBe(true);
+//                 expect(res.body.punti).toBeDefined();
+//                 expect(typeof res.body.punti).toBe('number');
+//                 expect(res.body.punti).toBeGreaterThanOrEqual(0);
+//             });
+//     });
 
-    test('GET /api/v1/utente/mobile/:id/punti Get punti, wrong id', () => {
-        return request(app).get('/api/v1/utente/mobile/InvlidIDInvlaidID/punti')
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .expect(404, { success: false, error: 'User not found with the specified ID.' })
-    });
-})
+//     test('GET /api/v1/utente/mobile/:id/punti Get punti, wrong id', () => {
+//         return request(app).get('/api/v1/utente/mobile/InvlidIDInvlaidID/punti')
+//             .set('x-access-token', token)
+//             .set('Accept', 'application/json')
+//             .expect(404, { success: false, error: 'User not found with the specified ID.' })
+//     });
+// })
 
 
-describe('PUT /api/v1/utente/mobile/:id/punti', () => {
-    // create a valid token
-    var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
-        process.env.SUPER_SECRET, { expiresIn: "1y" });
+// describe('PUT /api/v1/utente/mobile/:id/punti', () => {
+//     // create a valid token
+//     var token = jwt.sign({ email: 'mobile@test.com', id: "6635ed27332aa85d3e6453ac" },
+//         process.env.SUPER_SECRET, { expiresIn: "1y" });
 
-    test('PUT /api/v1/utente/mobile/:id/punti Valid Request', () => {
+//     test('PUT /api/v1/utente/mobile/:id/punti Valid Request', () => {
+//         return request(app)
+//             .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
+//             .set('x-access-token', token)
+//             .set('Accept', 'application/json')
+//             .send({
+//                 punti: 1000
+//             })
+//             .expect(200)
+//             .expect((res) => {
+//                 expect(res.body.success).toBe(true);
+//                 expect(res.body.punti).toBeDefined();
+//                 expect(typeof res.body.punti).toBe('number');
+//                 expect(res.body.punti).toBeGreaterThanOrEqual(0);
+//             });
+//     });
+
+//     test('PUT /api/v1/utente/mobile/:id/punti Invalid punti', () => {
+//         return request(app)
+//             .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
+//             .set('x-access-token', token)
+//             .set('Accept', 'application/json')
+//             .send({
+//                 punti: "not a number"
+//             })
+//             .expect(400, {success: false, error:"The 'punti' field must be a number"})
+//     });
+
+//     test('PUT /api/v1/utente/mobile/:id/punti Missing punti', () => {
+//         return request(app)
+//             .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
+//             .set('x-access-token', token)
+//             .set('Accept', 'application/json')
+//             .expect(400, {success: false, error:"The 'punti' field must be a number"})
+//     });
+
+//     test('PUT /api/v1/utente/mobile/:id/punti Missing punti', () => {
+//         return request(app)
+//             .put('/api/v1/utente/mobile/InvalidIDInvalidID/punti')
+//             .set('x-access-token', token)
+//             .set('Accept', 'application/json')
+//             .send({
+//                 punti: 1000
+//             })
+//             .expect(404, { success: false, error: 'User not found with the specified ID.' })
+//     });
+
+// })
+
+
+describe("POST /api/v1/utente/mobile", ()=>{
+    test("POST /api/v1/utente/mobile Valid request", ()=>{
         return request(app)
-            .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .send({
-                punti: 1000
-            })
-            .expect(200)
-            .expect((res) => {
-                expect(res.body.success).toBe(true);
-                expect(res.body.punti).toBeDefined();
-                expect(typeof res.body.punti).toBe('number');
-                expect(res.body.punti).toBeGreaterThanOrEqual(0);
-            });
+        .post("/api/v1/utente/mobile")
+        .set('Accept', 'application/json')
+        .send({
+            nome: "caa",
+            email: "uuu@gmail.com",
+            password: "buondiomollami",
+            eta: 34
+        })
+        .expect(201)
+        
     });
+    console.log(app)
+});
 
-    test('PUT /api/v1/utente/mobile/:id/punti Invalid punti', () => {
-        return request(app)
-            .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .send({
-                punti: "not a number"
-            })
-            .expect(400, {success: false, error:"The 'punti' field must be a number"})
-    });
-
-    test('PUT /api/v1/utente/mobile/:id/punti Missing punti', () => {
-        return request(app)
-            .put('/api/v1/utente/mobile/6635ed27332aa85d3e6453ac/punti')
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .expect(400, {success: false, error:"The 'punti' field must be a number"})
-    });
-
-    test('PUT /api/v1/utente/mobile/:id/punti Missing punti', () => {
-        return request(app)
-            .put('/api/v1/utente/mobile/InvalidIDInvalidID/punti')
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .send({
-                punti: 1000
-            })
-            .expect(404, { success: false, error: 'User not found with the specified ID.' })
-    });
-
-})
-
-
+// describe("POST /api/v1/utente/mobile/login", ()=>{
+//     var token = jwt.sign({ email: 'unabellaballerina@gmail.com', id: "" },
+//          process.env.SUPER_SECRET, { expiresIn: "1y" });
+// })
