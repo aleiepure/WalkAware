@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
-const utenteMobileModel = require('../models/utente_mobile.js');
+const {utenteMobileModel, segnalazioneUtenteMobileModel} = require('../models/utente_mobile.js');
 const segnalazioneModel = require('../models/segnalazione.js');
 
 require('dotenv').config();
@@ -41,14 +41,14 @@ router.post('/', async (req, res) => {
 	}
 
 	// Check if user already exists
-	const existingUser = await utenteMobileModel.utenteMobileModel.findOne({ email: req.body.email });
+	const existingUser = await utenteMobileModel.findOne({ email: req.body.email });
 	if (existingUser) {
 		console.error('A mobile user with the same email already exists.');
 		return res.status(400).json({ success: false, error: 'A mobile user with the same email already exists.' });
 	}
 
 	// Create new user
-	const user = new utenteMobileModel.utenteMobileModel({
+	const user = new utenteMobileModel({
 		email: req.body.email,
 		password: req.body.password,
 		nome: req.body.nome,
@@ -80,7 +80,7 @@ router.post('/login', async (req, res) => {
 	}
 
 	// User not found
-	const user = await utenteMobileModel.utenteMobileModel.findOne({ email: req.body.email });
+	const user = await utenteMobileModel.findOne({ email: req.body.email });
 	if (!user) {
 		console.error('Authentication failed. User not found.');
 		return res.status(401).json({ success: false, error: 'Authentication failed. User not found.' });
@@ -149,10 +149,10 @@ router.post('/:id/segnalazioni', async (req, res) => {
 	}
 
 	// Check if user exists
-	utenteMobileModel.utenteMobileModel.findById(req.params.id).exec()
+	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			// Create new segnalazione inside user
-			let segnalazioneUtenteMobile = new utenteMobileModel.segnalazioneUtenteMobileModel({
+			let segnalazioneUtenteMobile = new segnalazioneUtenteMobileModel({
 				luogo: req.body.luogo,
 				foto: req.body.foto,
 				tipo: req.body.tipo,
@@ -192,7 +192,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
 router.get("/:id/segnalazioni/", async (req, res) => {
 
 	// Check if user exists
-	utenteMobileModel.utenteMobileModel.findById(req.params.id).exec()
+	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			return res.status(200).json({ success: true, segnalazioni: result.segnalazioni });
 		})
@@ -217,7 +217,7 @@ router.put('/:id/punti', async (req, res) => {
 	}
 
 	// User not found
-	utenteMobileModel.utenteMobileModel.findById(req.params.id)
+	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			result.punti = req.body.punti;
 			result.save();
@@ -237,7 +237,7 @@ router.put('/:id/punti', async (req, res) => {
  */
 router.get('/:id/punti', async (req, res) => {
 	// User not found
-	utenteMobileModel.utenteMobileModel.findById(req.params.id)
+	utenteMobileModel.findById(req.params.id)
 	.then((result) => {
 		return res.send({ success: true, punti: result.punti });
 	})
