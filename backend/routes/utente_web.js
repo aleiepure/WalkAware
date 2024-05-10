@@ -17,7 +17,7 @@ const router = express.Router();
  * Response:
  * 		Headers: Location /api/v1/utente/web/{id}
 */
-router.post('', async (req, res) => {
+router.post('/', async (req, res) => {
 
 	// Validate email field
 	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {

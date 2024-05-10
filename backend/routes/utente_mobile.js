@@ -20,7 +20,7 @@ const router = express.Router();
 router.post('/', async (req, res) => {
 
 	// Validate email field
-	if (typeof req.body.nome !== 'string' || !_isValidEmail(req.body.email)) {
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
 		console.error("The 'email' field must be a non-empty string in email format.");
 		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
