@@ -20,12 +20,12 @@ const router = express.Router();
 router.post('/', async (req, res) => {
 
 	// Validate email field
-	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) || _isEmptyString(req.body.email)) {
 		console.error("The 'email' field must be a non-empty string in email format.");
 		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
 	// Validate name field
-	if (typeof req.body.nome !== 'string') {
+	if (typeof req.body.nome !== 'string' || _isEmptyString(req.body.nome)) {
 		console.error("The 'nome' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
 	}
@@ -35,9 +35,9 @@ router.post('/', async (req, res) => {
 		return res.status(400).json({ success: false, error: "The 'eta' field must be a number greater than 18." });
 	}
 	// Validate password field
-	if (typeof req.body.password !== 'string') {
+	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error('The "password" field must be a non-empty string');
-		return res.status(400).json({ success: false, error: 'The "password" field must be a non-empty string.' });
+		return res.status(400).json({success: false, error:"The 'password' field must be a non-empty string"});
 	}
 
 	// Check if user already exists
@@ -46,6 +46,7 @@ router.post('/', async (req, res) => {
 		console.error('A mobile user with the same email already exists.');
 		return res.status(400).json({ success: false, error: 'A mobile user with the same email already exists.' });
 	}
+
 
 	// Create new user
 	const user = new utenteMobileModel({
@@ -69,12 +70,12 @@ router.post('/', async (req, res) => {
 router.post('/login', async (req, res) => {
 
 	// Validate email field
-	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) || _isEmptyString(req.body.email)) {
 		console.error("The 'email' field must be a non-empty string in email format.");
 		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
 	// Validate password field
-	if (typeof req.body.password !== 'string') {
+	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error("The 'password' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
 	}
@@ -217,15 +218,15 @@ router.put('/:id/punti', async (req, res) => {
 	}
 
 	// User not found
-	utenteMobileModel.findById(req.params.id)
+	utenteMobileModel.findById(req.params.id) 
 		.then((result) => {
 			result.punti = req.body.punti;
 			result.save();
 
-			return res.send({ success: true, punti: result.punti });
+			return res.json({ success: true, punti: result.punti });
 		})
 		.catch((error) => {
-			console.error('User not found with the specified ID.');
+			console.error('User not found with the specified ID.', error);
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
 		});
 });
@@ -252,5 +253,9 @@ function _isValidEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(email);
 }
+
+function _isEmptyString(str) {
+	return str.length === 0;
+  }
 
 module.exports = router;

@@ -69,12 +69,12 @@ router.post('/', async (req, res) => {
 router.post('/login', async (req, res) => {
 
 	// Validate email field
-	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) || _isEmptyString(req.body.email)) {
 		console.error("The 'email' field must be a non-empty string in email format.");
 		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
 	// Validate password field
-	if (typeof req.body.password !== 'string') {
+	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error("The 'password' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
 	}
@@ -113,5 +113,9 @@ function _isValidEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(email);
 }
+
+function _isEmptyString(str) {
+	return str.length === 0;
+  }
 
 module.exports = router;
