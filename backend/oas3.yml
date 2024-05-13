@@ -3,13 +3,16 @@ info:
   title: WalkAware Trento API
   version: "1.0"
 servers:
+  - url: https://walkaware.onrender.com/api/v1
+    description: Produzione
   - url: http://localhost:3000/api/v1
     description: Localhost
 paths:
+
   /utente/mobile:
     post:
-      summary: Create a new mobile user.
-      description: Endpoint to create a user from a mobile app.
+      summary: Crea un nuovo utente mobile
+      description: Endpoint per creare un nuovo utente mobile.
       tags:
         - UtenteMobile
       requestBody:
@@ -17,17 +20,21 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteMobileRegistrazione"
+              $ref: "#/components/schemas/UtenteMobileRegistrazioneRequest"
       responses:
         "201":
-          description: User created. Link in Location header.
+          description: Created. Nuovo utente mobile creato con successo. Link in Location header.
           headers:
             Location:
               schema:
                 type: string
-              description: Link to the newly created mobile user.
+              description: Link al nuovo utente mobile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
         "400":
-          description: Bad request, invalid body
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
           content:
             application/json:
               schema:
@@ -35,8 +42,8 @@ paths:
 
   /utente/mobile/login:
     post:
-      summary: Mobile user login
-      description: Endpoint for mobile user login.
+      summary: Login utente mobile
+      description: Endpoint per il login di un utente mobile.
       tags:
         - UtenteMobile
       requestBody:
@@ -44,17 +51,95 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteLogin"
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: Successful login.
+          description: OK. Login con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobileLoginResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Not Authorized. Credenziali non valide.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+
+  /utente/mobile/{id}/segnalazioni:
+    get:
+      summary: Restituisce tutte le segnalazioni di un utente.
+      description: Endpoint per ottenere tutte le segnalazioni di un utente.
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+      responses:
+        "200":
+          description: OK. Segnalazioni trovate.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegnalazioneResponse"
+        "404":
+          description: Not Found. Utente con l'id specificato non trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post:
+      summary: Crea una nuova segnalazione
+      description: Endpoint per creare una nuova segnalazione. Verrà aggiunta sia all'utente specificato che nella collezione delle segnalazioni.
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UtenteMobileSegnalazioneRequest"
+      responses:
+        "201":
+          description: Created. Nuova segnalazione creata con successo. Link in Location header.
           headers:
             Location:
               schema:
                 type: string
-              description: Link to the logged-in user.
-        "401":
-          description: Invalid Credentials
+              description: Link alla nuova segnalazione.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Utente con l'id specificato non trovato
           content:
             application/json:
               schema:
@@ -62,67 +147,67 @@ paths:
 
   /utente/mobile/{id}/punti:
     get:
-      summary: Get mobile user personal points
-      description: Endpoint for mobile user to get personal points
+      summary: Punti dell'utente mobile
+      description: Endpoint per ottenere i punti di un utente mobile
       tags:
         - UtenteMobile
       security:
-        - BearerAuth: []
+        - apiKeyAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-          description: mobile user ID
+          description: ID dell'utente mobile
       responses:
         "200":
-          description: Successful request
+          description: OK. Punteggio dell'utente.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UtenteMobilePuntiBody"
+                $ref: "#/components/schemas/UtenteMobilePuntiResponse"
         "404":
-          description: User not found by id
+          description: Not Found. Utente con l'id specificato non trovato
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
     put:
-      summary: Update mobile user personal points
-      description: Endpoint for mobile user to get personal points
+      summary: Aggiorna i punti dell'utente mobile
+      description: Endpoint per aggiornare i punti di un utente mobile
       tags:
         - UtenteMobile
       security:
-        - BearerAuth: []
+        - apiKeyAuth: []
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-          description: mobile user ID
+          description: ID dell'utente mobile
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteMobilePuntiBody"
+              $ref: "#/components/schemas/UtenteMobilePuntiRequest"
       responses:
         "200":
-          description: Successful request
+          description: OK. Punti aggiornati con successo
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UtenteMobilePuntiBody"
+                $ref: "#/components/schemas/UtenteMobilePuntiResponse"
         "404":
-          description: User not found by id
+          description: Utente con l'id specificato non trovato.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"    
         "400":
-          description: Bad request, invalid body
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
           content:
             application/json:
               schema:
@@ -130,8 +215,8 @@ paths:
 
   /utente/web:
     post:
-      summary: Create a new web user.
-      description: Endpoint to create a user from a web app.
+      summary: Crea un nuovo utente web
+      description: Endpoint per creare un nuovo utente web.
       tags:
         - UtenteWeb
       requestBody:
@@ -139,26 +224,30 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteWebRegistrazione"
+              $ref: "#/components/schemas/UtenteWebRegistrazioneRequest"
       responses:
         "201":
-          description: User created. Link in Location header.
+          description: Created. Nuovo utente web creato con successo. Link in Location header.
           headers:
             Location:
               schema:
                 type: string
-              description: Link to the newly created web user.
+              description: Link al nuovo utente mobile.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
         "400":
-          description: Bad request
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
 
   /utente/web/login:
-    post:
-      summary: Web user login
-      description: Endpoint for web user login.
+    post: 
+      summary: Login utente web
+      description: Endpoint per il login di un utente mobile.
       tags:
         - UtenteWeb
       requestBody:
@@ -166,77 +255,286 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteLogin"
+              $ref: "#/components/schemas/LoginRequest"
       responses:
         "200":
-          description: Successful login.
-          headers:
-            Location:
+          description: OK. Login con successo.
+          content:
+            application/json:
               schema:
-                type: string
-              description: Link to the logged-in user.
-        "401":
-          description: Invalid Credentials
+                $ref: "#/components/schemas/UtenteWebLoginResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "401":
+          description: Not Authorized. Credenziali non valide.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
 
 components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-access-token
+
   schemas:
-    UtenteMobileRegistrazione:
+    UtenteMobileRegistrazioneRequest:
       type: object
       properties:
         email:
           type: string
           format: email
-        password:
-          type: string
+          description: Email dell'utente
         nome:
           type: string
+          description: Nome dell'utente
         eta:
           type: string
+          description: Età dell'utente
+        password:
+          type: string
+          description: Hash della password dell'utente
       required:
-        - password
         - email
         - nome
         - eta
+        - password
 
-    UtenteLogin:
+    PostSuccessfulResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o no
+
+    LoginRequest:
       type: object
       properties:
         email:
           type: string
           format: email
+          description: Email dell'utente
         password:
           type: string
+          description: Hash della password dell'utente
       required:
         - password
         - email
 
-    UtenteMobilePuntiBody:
+    UtenteMobileLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se il login è stato effettuato con successo
+        message:
+          type: string
+          description: Messaggio di risposta
+        token:
+          type: string
+          description: Token di autenticazione
+        self:
+          type: string
+          description: Link all'utente mobile
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        userId:
+          type: string
+          description: ID dell'utente
+        name:
+          type: string
+          description: Nome dell'utente
+        points:
+          type: number
+          description: Punti dell'utente
+
+    UtenteMobileSegnalazioneRequest:
+      type: object
+      properties:
+        luogo:
+          type: string
+          description: Coordinate del luogo della segnalazione
+          format: lat,lon
+        foto:
+          type: string
+          description: URL della foto della segnalazione
+        tipo:
+          type: string
+          description: Tipo della segnalazione
+          format: enum
+          enum:
+            - strada
+            - illuminazione
+            - segnaletica
+            - sicurezza
+            - barriereArchitettoniche
+            - rifiuti
+            - parcheggi
+            - altro
+        urgenza:
+          type: string
+          description: Urgenza percepita della segnalazione
+          format: enum
+          enum:
+            - bassa
+            - medio-bassa
+            - modio-alta
+            - alta
+        status:
+          type: string
+          description: Stato della segnalazione
+          format: enum
+          enum:
+            - aperta
+            - inCorso
+            - chiusa
+          default: aperta
+      required:
+        - luogo
+        - tipo
+        - urgenza
+
+    SegnalazioneResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o no
+        segnalazioni:
+          type: array
+          items:
+            type: object
+            properties:
+              luogo:
+                type: string
+                description: Coordinate del luogo della segnalazione
+                format: lat,lon
+              foto:
+                type: string
+                description: URL della foto della segnalazione
+              tipo:
+                type: string
+                description: Tipo della segnalazione
+                format: enum
+                enum:
+                  - strada
+                  - illuminazione
+                  - segnaletica
+                  - sicurezza
+                  - barriereArchitettoniche
+                  - rifiuti
+                  - parcheggi
+                  - altro
+              urgenza:
+                type: string
+                description: Urgenza percepita della segnalazione
+                format: enum
+                enum:
+                  - bassa
+                  - medio-bassa
+                  - modio-alta
+                  - alta
+              status:
+                type: string
+                description: Stato della segnalazione
+                format: enum
+                enum:
+                  - aperta
+                  - inCorso
+                  - chiusa
+              id:
+                type: string
+                description: ID della segnalazione
+
+    UtenteMobilePuntiResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o no
+        punti:
+          type: number
+          description: Punti dell'utente
+
+    UtenteMobilePuntiRequest:
       type: object
       properties:
         punti:
           type: number
+          description: Nuovo punteggio
 
-    UtenteWebRegistrazione:
+    UtenteWebRegistrazioneRequest:
       type: object
       properties:
         email:
           type: string
           format: email
-        password:
-          type: string
+          description: Email dell'utente
         nome:
           type: string
+          description: Nome dell'utente
+        password:
+          type: string
+          description: Hash della password dell'utente
+        supporto_tecnico:
+          type: boolean
+          description: Indica se l'utente è un supporto tecnico
+          default: false
       required:
         - password
         - email
         - nome
 
+    UtenteWebLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se il login è stato effettuato con successo
+        message:
+          type: string
+          description: Messaggio di risposta
+        token:
+          type: string
+          description: Token di autenticazione
+        self:
+          type: string
+          description: Link all'utente web
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        userId:
+          type: string
+          description: ID dell'utente
+        name:
+          type: string
+          description: Nome dell'utente
+
     Error:
       type: object
       properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o no
         error:
           type: string
+          description: Messaggio di errore
+
+    AuthError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o no
+        error:
+          type: string
+          description: Indica l'errore di autenticazione

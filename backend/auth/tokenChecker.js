@@ -18,7 +18,8 @@ const tokenChecker = function (req, res, next) {
 	}
 
 	// decode token, verifies secret and checks exp
-	jwt.verify(token, process.env.SUPER_SECRET, function (err, decoded) {
+	const token_secret = process.env.SUPER_SECRET || "supersecret";
+	jwt.verify(token, token_secret, function (err, decoded) {
 		if (err) {
 			return res.status(403).send({
 				success: false,

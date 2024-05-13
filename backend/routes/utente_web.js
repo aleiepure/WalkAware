@@ -17,7 +17,7 @@ const router = express.Router();
  * Response:
  * 		Headers: Location /api/v1/utente/web/{id}
 */
-router.post('', async (req, res) => {
+router.post('/', async (req, res) => {
 
 	// Validate email field
 	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
@@ -93,7 +93,8 @@ router.post('/login', async (req, res) => {
 	// Create JWT token
 	const payload = { userId: user._id, email: user.email };
 	const options = { expiresIn: '1y' };
-	const token = jwt.sign(payload, process.env.SUPER_SECRET, options);
+	const secret = process.env.SUPER_SECRET || "supersecret";
+	const token = jwt.sign(payload, secret, options);
 
 	// Response
 	return res.json({

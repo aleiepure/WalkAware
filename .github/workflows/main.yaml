@@ -1,0 +1,83 @@
+name: CI/CD with Render
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    env:
+      SUPER_SECRET: ${{ secrets.JWT_SECRET }}
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Backend 
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Run backend tests
+        working-directory: ./backend
+        run: npm test
+
+      - name: Trigger deploy Backend to Render
+        uses: JorgeLNJunior/render-deploy@v1.4.4
+        if: success()
+        with:
+          service_id: ${{ secrets.RENDER_BACKEND_SERVICE }}
+          api_key: ${{ secrets.RENDER_TOKEN }}
+
+      # Frontend
+      - name: Install frontend dependencies
+        working-directory: ./frontend/webapp
+        run: npm install
+
+      - name: Trigger deploy Frontend to Render
+        uses: JorgeLNJunior/render-deploy@v1.4.4
+        if: success()
+        with:
+          service_id: ${{ secrets.RENDER_FRONTEND_SERVICE }}
+          api_key: ${{ secrets.RENDER_TOKEN }}
+
+      # Mobile
+      - name: Setup java
+        if: success()
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+   
+      - name: Set up Flutter
+        if: success()
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore gradle.properties
+        env:
+          GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
+        shell: bash
+        run: |
+          mkdir -p ~/.gradle/
+          echo "::set-env name=GRADLE_USER_HOME::$HOME/.gradle"
+          echo ${GRADLE_PROPERTIES} > ~/.gradle/gradle.properties
+
+      - name: Get flutter app dependencies
+        if: success()
+        working-directory: ./frontend/mobile
+        run: flutter pub get
+
+      - name: Start Android release build
+        if: success()
+        working-directory: ./frontend/mobile
+        env:
+          MAPBOX_ACCESS_TOKEN: ${{ secrets.MAPBOX_ACCESS_TOKEN }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: flutter build apk --dart-define PUBLIC_ACCESS_TOKEN="$MAPBOX_ACCESS_TOKEN" --dart-define BACKEND_BASE_URL=https://walkaware.onrender.com --dart-define JWT_SECRET="$JWT_SECRET"
