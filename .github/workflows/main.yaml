@@ -8,6 +8,7 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    
     env:
       SUPER_SECRET: ${{ secrets.JWT_SECRET }}
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -61,6 +62,7 @@ jobs:
           cache: true
 
       - name: Restore gradle.properties
+        if: success()
         env:
           GRADLE_PROPERTIES: ${{ secrets.GRADLE_PROPERTIES }}
         shell: bash
@@ -81,3 +83,9 @@ jobs:
           MAPBOX_ACCESS_TOKEN: ${{ secrets.MAPBOX_ACCESS_TOKEN }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: flutter build apk --dart-define PUBLIC_ACCESS_TOKEN="$MAPBOX_ACCESS_TOKEN" --dart-define BACKEND_BASE_URL=https://walkaware.onrender.com --dart-define JWT_SECRET="$JWT_SECRET"
+
+      - name: Archive build result
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-app.apk
+          path: ./frontend/mobile/build/app/outputs/flutter-apk/app-release.apk
