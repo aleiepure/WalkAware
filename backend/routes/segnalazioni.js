@@ -30,7 +30,7 @@ router.post('/immagini', upload.single('image'), async (req, res) => {
     // Check if an image was provided
     if (!req.file) {
         console.error("No image provided");
-        return res.status(400).json({ success: false, error: "No image provided" })
+        return res.status(400).json({ success: false, error: "No image provided" });
     }
 
     // Prepare the image to be uploaded
@@ -48,7 +48,7 @@ router.post('/immagini', upload.single('image'), async (req, res) => {
         'Content-Type': `image/${imageType}`,
         'ContentEncoding': 'base64',
     };
-    await s3Client.putObject('walkaware', key, base64Image, size, metaData)
+    s3Client.putObject('walkaware', key, base64Image, size, metaData)
         .then((result) => {
             console.log('Successfully uploaded the image with key:', key);
             return res.json({ success: true, imageKey: key });
@@ -64,12 +64,12 @@ router.post('/immagini', upload.single('image'), async (req, res) => {
  * 
  * GET /api/v1/segnalazioni/immagini/{id}
 */
-router.get("/immagini/:id", async (req, res) => {
-    await s3Client.presignedGetObject('walkaware', req.params.id, 60)
+router.get("/immagini/:imageKey", async (req, res) => {
+    s3Client.presignedGetObject('walkaware', req.params.imageKey, 60)
         .then((result) => {
-            return res.json({ success: true, imageKey: result });
-        }).catch((error) => {
-            console.error("Error retrieving image:", error.message);
+            return res.json({ success: true, imageUrl: result });
+        }).catch((err) => {
+            console.error("Error retrieving image:", err);
             return res.status(500).json({ success: false, error: "Error retrieving image" });
         });
 });
@@ -84,12 +84,13 @@ router.get("/", async (req, res) => {
 
     // const segnalazioni = await segnalazioneModel.find();
     // return res.send(segnalazioni)
-    segnalazioneModel.find().then((segnalazione) => {
-        return res.send(segnalazione);
-    }).catch((error) => {
-        console.error("Segnalazioni not found");
-        return res.status(404).json({ success: false, error: "Segnalazioni not found" });
-    })
+    segnalazioneModel.findAll()
+        .then((segnalazione) => {
+            return res.json({ success: true, segnalazioni: segnalazione });
+        }).catch((error) => {
+            console.error("Segnalazioni not found");
+            return res.status(404).json({ success: false, error: "Segnalazioni not found" });
+        });
 });
 
 /**  
@@ -99,11 +100,11 @@ router.get("/", async (req, res) => {
 */
 router.get("/:id", async (req, res) => {
     segnalazioneModel.findById(req.params.id).then((segnalazione) => {
-        return res.send(segnalazione);
+        return res.json({ success: true, segnalazione: segnalazione });
     }).catch((error) => {
         console.error("Segnalazione not found");
         return res.status(404).json({ success: false, error: "Segnalazione not found" });
-    })
+    });
 
 });
 
