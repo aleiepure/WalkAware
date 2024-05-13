@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "run-dev": "nodemon ./index.js",
-    "test": "jest --setupFiles dotenv/config"
+    "test": "jest --setupFiles dotenv/config",
+    "seqtest": "jest --runInBand --testPathPattern='app.test.js|utente_mobile_2.test.js|utente_web.test.js'"
   },
   "author": "",
   "license": "ISC",
@@ -17,6 +18,7 @@
     "jest": "^29.7.0",
     "jsonwebtoken": "^9.0.2",
     "minio": "^8.0.0",
+    "mockingoose": "^2.16.2",
     "mongodb": "^6.5.0",
     "mongoose": "^8.3.2",
     "morgan": "^1.10.0",

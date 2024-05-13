@@ -276,6 +276,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthError"
 
+  /aziende:
+    get:
+      summary: Cerca tutte le aziende convenzionate 
+      description: Endpoint che ritorna tutte le azinde convenzionate
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: OK. Lista di aziende
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AziendeGetResponse"
+        "404":
+          description: Azienda not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    post: 
+      summary: Inserisce una nuova azienda 
+      description: Endpoint per inserire un'azienda
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AzinedeRegistrazioneRequest"
+      responses:
+        "201":
+          description: OK. Azienda aggiunta con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        
+
+
+      
+      
+
+      
+
+
+
 components:
   securitySchemes:
     apiKeyAuth:
@@ -311,7 +368,7 @@ components:
       properties:
         success:
           type: boolean
-          description: Indica se la richiesta è andata a buon fine o no
+          description: Indica se la richiesta è andata a buon fine o meno.
 
     LoginRequest:
       type: object
@@ -538,3 +595,28 @@ components:
         error:
           type: string
           description: Indica l'errore di autenticazione
+    
+    AziendeGetResponse:
+      type: object
+      
+    AzinedeRegistrazioneRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email dell'aziende
+        nome:
+          type: string
+          description: Nome dell'azienda
+        password:
+          type: string
+          description: Hash della password dell'azienda
+        p_iva:
+          type: string
+          description: Partita IVA dell'azienda
+      required:
+        - password
+        - email
+        - nome     
+        - p_iva
