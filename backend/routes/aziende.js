@@ -56,8 +56,8 @@ router.post("/", async (req, res) => {
 });
 
 router.get("/", async (req, res) => {
-	aziendaModel.find().then((azienda) => {
-		return res.send(azienda);
+	aziendaModel.find().then((aziende) => {
+		return res.json({success: true, aziende: aziende});
 	}).catch((error) => {
 		console.error("Azienda not found");
 		return res.status(404).json({ success: false, error: "Azienda not found" });

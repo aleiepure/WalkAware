@@ -313,6 +313,11 @@ paths:
       responses:
         "201":
           description: OK. Azienda aggiunta con successo.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link alla nuova azienda.
           content:
             application/json:
               schema:
@@ -323,9 +328,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+        "401":
+          description: Credenziali già in uso
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
         
 
-
+  /aziende/{id}:
+      get:
+        summary: Restituisce un'azieda.
+        description: Endpoint per ottenere un'azienda
+        tags:
+          - Aziende
+        security:
+          - apiKeyAuth: []
+        parameters:
+          - in: path
+            name: id
+            required: true
+            schema:
+              type: string
+            description: ID dell'azienda
+        responses:
+          "200":
+            description: OK. Azienda trovata.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/AziendaGetResponse"
+          "404":
+            description: Not Found. Utente con l'id specificato non trovato
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
       
       
 
@@ -582,9 +620,11 @@ components:
         success:
           type: boolean
           description: Indica se la richiesta è andata a buon fine o no
+          default: false
         error:
           type: string
           description: Messaggio di errore
+      
 
     AuthError:
       type: object
@@ -592,13 +632,51 @@ components:
         success:
           type: boolean
           description: Indica se la richiesta è andata a buon fine o no
+          default: false
         error:
           type: string
           description: Indica l'errore di autenticazione
     
     AziendeGetResponse:
       type: object
-      
+      properties:
+        success:
+          type: boolean
+          description: Ritorna la lista di tutte le aziende
+        aziende:
+          type: array
+          description: Lista di aziende 
+          items: 
+            type: object
+            properties:
+              nome: 
+                type: string
+              email:
+                type: string
+              password: 
+                type: string
+              p_iva: 
+                type: string
+
+    AziendaGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Ritorna l'azienda con l'ID indiacto
+        aziende:
+          type: object
+          description: Lista di aziende 
+          properties:
+            nome: 
+              type: string
+            email:
+              type: string
+            password: 
+              type: string
+            p_iva: 
+              type: string
+  
     AzinedeRegistrazioneRequest:
       type: object
       properties:
