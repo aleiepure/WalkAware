@@ -1,7 +1,7 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
-const {utenteMobileModel, segnalazioneUtenteMobileModel} = require('../models/utente_mobile.js');
+const { utenteMobileModel, segnalazioneUtenteMobileModel } = require('../models/utente_mobile.js');
 const segnalazioneModel = require('../models/segnalazione.js');
 
 require('dotenv').config();
@@ -124,7 +124,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
 
 	// Validate luogo field
 	// TODO: add regex for lat, long
-	if (typeof req.body.luogo !== 'string' || req.body.luogo === '') {
+	if (typeof req.body.luogo !== 'string' || _isEmptyString(req.body.luogo)) {
 		console.error("The 'luogo' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'luogo' field must be a non-empty string." });
 	}
@@ -239,13 +239,13 @@ router.put('/:id/punti', async (req, res) => {
 router.get('/:id/punti', async (req, res) => {
 	// User not found
 	utenteMobileModel.findById(req.params.id)
-	.then((result) => {
-		return res.send({ success: true, punti: result.punti });
-	})
-	.catch((error) => {
-		console.error('User not found with the specified ID.');
-		return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
-	});
+		.then((result) => {
+			return res.send({ success: true, punti: result.punti });
+		})
+		.catch((error) => {
+			console.error('User not found with the specified ID.');
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
 });
 
 // Check if a given email is in a valid format
