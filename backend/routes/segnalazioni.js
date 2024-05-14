@@ -1,6 +1,12 @@
 const express = require('express');
 const minio = require("minio");
 const multer = require('multer');
+let crypto;
+try {
+  crypto = require('node:crypto');
+} catch (err) {
+  console.error('crypto support is disabled!');
+} 
 
 const immagineModel = require("../models/immagine.js");
 const segnalazioneModel = require("../models/segnalazione.js");
