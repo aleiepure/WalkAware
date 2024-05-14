@@ -135,14 +135,17 @@ describe("GET /api/v1/aziende/{id}", () => {
             .set('Accept', 'application/json')
             .expect(200)
             .expect((res) => {
-                expect(res.body).toEqual(expect.objectContaining({
-                    _id: standardAzienda._id.toString(),
-                    nome: standardAzienda.nome,
-                    p_iva: standardAzienda.p_iva,
-                    email: standardAzienda.email,
-                    password: standardAzienda.password
-                }));
-
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("azienda");
+                expect(res.body.azienda).toHaveProperty("nome");
+                expect(res.body.azienda.nome).toBe(standardAzienda.nome);
+                expect(res.body.azienda).toHaveProperty("p_iva");
+                expect(res.body.azienda.p_iva).toBe(standardAzienda.p_iva);
+                expect(res.body.azienda).toHaveProperty("email");
+                expect(res.body.azienda.email).toBe(standardAzienda.email);
+                expect(res.body.azienda).toHaveProperty("password");
+                expect(res.body.azienda.password).toBe(standardAzienda.password);
             });
     });
 
@@ -165,14 +168,17 @@ describe("GET /api/v1/aziende", () => {
             .set('Accept', 'application/json')
             .expect(200)
             .expect((res) => {
-                expect(res.body).toBeInstanceOf(Array);
-                expect(res.body.length).toBeGreaterThan(0);
-                expect(res.body[0]).toHaveProperty("nome");
-                expect(res.body[0]).toHaveProperty("p_iva");
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("aziende");
+                expect(res.body.aziende).toBeInstanceOf(Array);
+                expect(res.body.aziende.length).toBeGreaterThan(0);
+                expect(res.body.aziende[0]).toHaveProperty("nome");
+                expect(res.body.aziende[0]).toHaveProperty("p_iva");
             });
     });
 
-    test("GET /api/v1/aziende Valid request", async () => {
+    test("GET /api/v1/aziende Valid request with empty response", async () => {
         await dropAllCollections();
         return request(app)
             .get("/api/v1/aziende")
@@ -180,8 +186,11 @@ describe("GET /api/v1/aziende", () => {
             .set('Accept', 'application/json')
             .expect(200)
             .expect((res) => {
-                expect(res.body).toBeInstanceOf(Array);
-                expect(res.body.length).toBe(0);
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("aziende");
+                expect(res.body.aziende).toBeInstanceOf(Array);
+                expect(res.body.aziende.length).toBe(0);
             });
     });
 

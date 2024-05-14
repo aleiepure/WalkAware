@@ -28,7 +28,7 @@ router.post("/", async (req, res) => {
 		return res.status(400).json({ success: false, error: "The 'P. IVA' field must be a string." });
 	}
 	// Validate password field
-	if (typeof req.body.password !== 'string'  || _isEmptyString(req.body.password)) {
+	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error('The "password" field must be a non-empty string');
 		return res.status(400).json({ success: false, error: 'The "password" field must be a non-empty string.' });
 	}
@@ -39,9 +39,9 @@ router.post("/", async (req, res) => {
 	const existingAzienda = await aziendaModel.findOne({ email: req.body.email });
 	if (existingAzienda) {
 		console.error('An azienda with the same email already exists.');
-		return res.status(401).json({ success: false, error: 'An azienda with the same email already exists.'});
+		return res.status(401).json({ success: false, error: 'An azienda with the same email already exists.' });
 	}
-	
+
 	// Create new user
 	const azienda = new aziendaModel({
 		email: req.body.email,
@@ -57,7 +57,7 @@ router.post("/", async (req, res) => {
 
 router.get("/", async (req, res) => {
 	aziendaModel.find().then((aziende) => {
-		return res.json({success: true, aziende: aziende});
+		return res.json({ success: true, aziende: aziende });
 	}).catch((error) => {
 		console.error("Azienda not found");
 		return res.status(404).json({ success: false, error: "Azienda not found" });
@@ -66,7 +66,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
 	aziendaModel.findById(req.params.id).then((azienda) => {
-		return res.send(azienda);
+		return res.json({ success: true, azienda: azienda });
 	}).catch((error) => {
 		console.error("Azienda not found");
 		return res.status(404).json({ success: false, error: "Azienda not found" });
