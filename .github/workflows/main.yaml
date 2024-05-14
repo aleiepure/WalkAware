@@ -24,7 +24,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: ./backend
-        run: npm test
+        run: npm run seqtest
 
       - name: Trigger deploy Backend to Render
         uses: JorgeLNJunior/render-deploy@v1.4.4
