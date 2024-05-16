@@ -6,7 +6,6 @@ require('dotenv').config();
 
 // Mock minio module
 const minio = require("minio");
-
 let mockPutObject = jest.fn()
     .mockResolvedValueOnce()
     .mockRejectedValueOnce(new Error('Error uploading image'));
@@ -88,8 +87,8 @@ afterAll(async () => {
     // mongoose.connection.close();
 });
 
-describe('POST /api/v1/segnalazioni/immagini', () => {
-    test("No image provided", () => {
+describe('POST /api/v1/segnalazioni/immagini: Caricamento di un\'immagine', () => {
+    test("Nessuna immagine fornita", () => {
         return request(app)
             .post('/api/v1/segnalazioni/immagini')
             .set('x-access-token', token)
@@ -97,7 +96,7 @@ describe('POST /api/v1/segnalazioni/immagini', () => {
             .expect(400, { success: false, error: "No image provided" });
     });
 
-    test("Upload an image", () => {
+    test("Immagine caricata con successo", () => {
         return request(app)
             .post('/api/v1/segnalazioni/immagini')
             .set('x-access-token', token)
@@ -110,7 +109,7 @@ describe('POST /api/v1/segnalazioni/immagini', () => {
             });
     });
 
-    test("Image upload failed", () => {
+    test("Caricamento dell'immagine fallito", () => {
         return request(app)
             .post('/api/v1/segnalazioni/immagini')
             .set('x-access-token', token)
@@ -120,8 +119,8 @@ describe('POST /api/v1/segnalazioni/immagini', () => {
     });
 });
 
-describe('GET /api/v1/segnalazioni/immagini/{id}', () => {
-    test("Download an image", () => {
+describe('GET /api/v1/segnalazioni/immagini/:id: Download di un\'immagine', () => {
+    test("Generazione del link con successo", () => {
         return request(app)
             .get('/api/v1/segnalazioni/immagini/1234')
             .set('x-access-token', token)
@@ -133,7 +132,7 @@ describe('GET /api/v1/segnalazioni/immagini/{id}', () => {
             });
     });
 
-    test("Image download failed", () => {
+    test("Problema nella generazione del link", () => {
         return request(app)
             .get('/api/v1/segnalazioni/immagini/1234')
             .set('x-access-token', token)
@@ -142,8 +141,8 @@ describe('GET /api/v1/segnalazioni/immagini/{id}', () => {
     });
 });
 
-describe('GET /api/v1/segnalazioni', () => {
-    test("Get all segnalazione", () => {
+describe('GET /api/v1/segnalazioni: Lettura di tutte le segnalazioni', () => {
+    test("Richiesta con successo", () => {
         return request(app)
             .get('/api/v1/segnalazioni')
             .set('x-access-token', token)
@@ -156,7 +155,7 @@ describe('GET /api/v1/segnalazioni', () => {
             });
     });
 
-    test("Segnalazioni not found", () => {
+    test("Nessuna segnalazione trovata", () => {
         return request(app)
             .get('/api/v1/segnalazioni')
             .set('x-access-token', token)
@@ -165,8 +164,8 @@ describe('GET /api/v1/segnalazioni', () => {
     });
 });
 
-describe('GET /api/v1/segnalazioni/{id}', () => {
-    test("Get a segnalazione", () => {
+describe('GET /api/v1/segnalazioni/:id: Lettura di una segnalazione', () => {
+    test("Richiesta con successo", () => {
         return request(app)
             .get('/api/v1/segnalazioni/123')
             .set('x-access-token', token)
@@ -178,7 +177,7 @@ describe('GET /api/v1/segnalazioni/{id}', () => {
             });
     });
 
-    test("Segnalazione not found", () => {
+    test("Segnalazione non trovata", () => {
         return request(app)
             .get('/api/v1/segnalazioni/123')
             .set('x-access-token', token)

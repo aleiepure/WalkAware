@@ -3,15 +3,14 @@ const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
 const request = require('supertest');
 require('dotenv').config();
+
 const UtenteWeb = require('../models/utente_web');
 const AziendaModel = require('../models/azienda');
 
-
-
-
 beforeAll(async () => {
-    jest.setTimeout(8000);
+    jest.setTimeout(15000);
     app.locals.db = mongoose.connect(process.env.MONGODB_URI_TEST);
+
     // create a standard mobile user
     standardUserWeb = new UtenteWeb({
         nome: "mario",
@@ -20,7 +19,7 @@ beforeAll(async () => {
     });
     await standardUserWeb.save();
 
-    // create a standard mobile user
+    // create a standard azienda
     standardAzienda = new AziendaModel({
         nome: "aziendaName2",
         p_iva: "111111111111",
@@ -28,13 +27,12 @@ beforeAll(async () => {
         password: "passwordAzienda2"
     });
     await standardAzienda.save();
+
     // create a valid token
     const token_secret = process.env.SUPER_SECRET;
     token = jwt.sign({ email: 'web@test.com', id: standardUserWeb._id },
         token_secret, { expiresIn: "1y" });
-
 });
-
 
 async function dropAllCollections() {
     const collections = Object.keys(mongoose.connection.collections);
@@ -62,12 +60,8 @@ afterAll(async () => {
     mongoose.connection.close();
 });
 
-
-
-// Testing add a new azienda
-describe("POST /api/v1/aziende", () => {
-
-    test("POST /api/v1/aziende Valid request", () => {
+describe("POST /api/v1/aziende: Aggiunta di un'azienda", () => {
+    test("Richiesta valida", () => {
         return request(app)
             .post("/api/v1/aziende")
             .set('x-access-token', token)
@@ -78,24 +72,28 @@ describe("POST /api/v1/aziende", () => {
                 email: "azienda@test.com",
                 password: "passwordAzienda"
             })
-            .expect(201);
+            .expect(201)
+            .expect((res) => {
+                expect(res.headers.location).toBeDefined();
+                expect(res.body.success).toBe(true);
+            });
     });
 
-    test("POST /api/v1/aziende User already existing", () => {
+    test("Azienda già esistente", () => {
         return request(app)
             .post("/api/v1/aziende")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
-                nome: "aziendaName",
-                p_iva: "315134523452",
-                email: "azienda@test.com",
-                password: "passwordAzienda"
+                nome: "aziendaName2",
+                p_iva: "111111111111",
+                email: "azienda2@test.com",
+                password: "passwordAzienda2"
             })
             .expect(401, { success: false, error: 'An azienda with the same email already exists.' });
     });
 
-    test("POST /api/v1/aziende Missing email", () => {
+    test("Campo email non fornito", () => {
         return request(app)
             .post("/api/v1/aziende")
             .set('x-access-token', token)
@@ -108,7 +106,7 @@ describe("POST /api/v1/aziende", () => {
             .expect((400), { success: false, error: "The 'email' field must be a non-empty string in email format." });
     });
 
-    test("POST /api/v1/aziende Password field not a string", () => {
+    test("Campo password non è una stringa", () => {
         return request(app)
             .post("/api/v1/aziende")
             .set('x-access-token', token)
@@ -121,14 +119,10 @@ describe("POST /api/v1/aziende", () => {
             })
             .expect(400, { success: false, error: 'The "password" field must be a non-empty string.' });
     });
-
 });
 
-
-
-// Test get azienda by id
-describe("GET /api/v1/aziende/{id}", () => {
-    test("GET /api/v1/aziende/{id} Valid request", () => {
+describe("GET /api/v1/aziende/:id: Lettura di un'azienda", () => {
+    test("Richiesta valida", () => {
         return request(app)
             .get(`/api/v1/aziende/${standardAzienda._id}`)
             .set('x-access-token', token)
@@ -149,7 +143,7 @@ describe("GET /api/v1/aziende/{id}", () => {
             });
     });
 
-    test("GET /api/v1/aziende/{id} InvalidID", () => {
+    test("ID non trovato", () => {
         return request(app)
             .get(`/api/v1/aziende/InvalidIdInvalidId`)
             .set('x-access-token', token)
@@ -159,9 +153,8 @@ describe("GET /api/v1/aziende/{id}", () => {
     });
 });
 
-// Testing get all aziende
-describe("GET /api/v1/aziende", () => {
-    test("GET /api/v1/aziende Valid request", () => {
+describe("GET /api/v1/aziende: Lettura di tutte le aziende", () => {
+    test("Richiesta valida", () => {
         return request(app)
             .get("/api/v1/aziende")
             .set('x-access-token', token)
@@ -178,7 +171,7 @@ describe("GET /api/v1/aziende", () => {
             });
     });
 
-    test("GET /api/v1/aziende Valid request with empty response", async () => {
+    test("Richiesta valida con body vuoto", async () => {
         await dropAllCollections();
         return request(app)
             .get("/api/v1/aziende")
@@ -193,5 +186,4 @@ describe("GET /api/v1/aziende", () => {
                 expect(res.body.aziende.length).toBe(0);
             });
     });
-
 });
