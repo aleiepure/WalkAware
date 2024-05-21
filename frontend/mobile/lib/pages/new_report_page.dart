@@ -11,15 +11,13 @@ import 'package:mapbox_search/mapbox_search.dart';
 import 'package:image_picker_platform_interface/src/types/image_source.dart' as image_source;
 import 'package:dio/dio.dart' as dio;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/user_provider.dart';
 import '../requests/backend_requests.dart';
 
 enum TrackingMode { none, gps, compass }
 
 class NewReportPage extends StatefulWidget {
-  final ValueChanged<int> update;
-  const NewReportPage({super.key, required this.update});
+  const NewReportPage({super.key});
 
   @override
   State<NewReportPage> createState() => _NewReportPageState();
