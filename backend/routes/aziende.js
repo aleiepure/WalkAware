@@ -2,6 +2,7 @@ const express = require('express');
 const aziendaModel = require('../models/azienda');
 const bcrypt = require('bcrypt');
 const router = express.Router();
+const premioModel = require('../models/premio');
 
 /*
 nome: { type: String, required: true },
@@ -74,8 +75,66 @@ router.get("/:id", async (req, res) => {
 });
 
 
+/* 
+	Aggiungere premi per ogni azienda
+*/
+
+router.post("/:id/premi", async (req, res) => {
+	if (typeof req.body.nome !== 'string' || _isEmptyString(req.body.nome)) {
+		console.error("The 'nome' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
+	}
+	if (typeof req.body.valore !== 'number' || req.body.valore < 0) {
+		console.error("The 'valore' field must be a positive number.");
+		return res.status(400).json({ success: false, error: "The 'valore' field must be positive number." });
+	}
+	if (typeof req.body.tipo !== 'string' || !["percentuale", "contante", "omaggio", "quantità"].includes(req.body.tipo)) {
+		console.error("The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantità'.");
+		return res.status(400).json({ success: false, error: "The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantità'." });
+	}
+	if (typeof req.body.descrizione !== 'string' || _isEmptyString(req.body.descrizione)) {
+		console.error("The 'descrizione' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'descrizione' field must be a non-empty string." });
+	}
+	if (typeof req.body.costo_punti !== 'number' || req.body.costo_punti < 0) {
+		console.error("The 'costo_punti' field must be a positive number.");
+		return res.status(400).json({ success: false, error: "The 'costo_punti' field must be positive number." });
+	}
+	if (typeof req.body.idAzienda !== 'string' || _isEmptyString(req.body.idAzienda)) {
+		console.error("The 'idAzienda' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'idAzienda' field must be a non-empty string." });
+	}
+	if (typeof req.body.validitaBuono !== 'number' || req.body.validitaBuono < 0) {
+		console.error("The 'validitaBuono' field must be a positive number.");
+		return res.status(400).json({ success: false, error: "The 'validitaBuono' field must be positive number." });
+	}
 
 
+
+	aziendaModel.findById(req.params.id)
+		.then(async (result) => {
+			let newPremio = new premioModel({
+				nome: req.body.nome,
+				valore: req.body.valore,
+				tipo: req.body.tipo,
+				descrizione: req.body.descrizione,
+				costo_punti: req.body.costo_punti,
+				idAzienda: req.body.idAzienda,
+				validitaBuono: req.body.validitaBuono,  // Numero di giorni di validità del buono
+			});
+			result.premi.push(newPremio);
+			result.save();
+			newPremio.save();
+
+			return res.location("/api/v1/aziende/" + result._id + "/premi/" + aziendaModel._id).status(201).send({ success: true });
+		})
+		.catch((error)=>{
+			console.error('Azienda non trovata');
+			return res.status(404).json({ success: false, error: 'Azienda non trovata' });
+		});
+
+
+});
 
 function _isValidEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

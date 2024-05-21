@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 
 const port = process.env.PORT || 8080;
 
-app.locals.db = mongoose.connect(process.env.MONGODB_URI_TEST)
+app.locals.db = mongoose.connect(process.env.MONGODB_URI)
     .then(() => {
         console.log("Connected to database");
         app.listen(port, () => {

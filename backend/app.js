@@ -35,4 +35,5 @@ app.use('/api/v1/utente/web', utenteWeb);
 app.use('/api/v1/segnalazioni', segnalazioni)
 app.use('/api/v1/aziende', aziende);
 
+
 module.exports = app;

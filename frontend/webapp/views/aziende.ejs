@@ -17,10 +17,10 @@
 
         <!-- Button trigger modal -->
         <div class="d-inline gap-2 d-md-flex justify-content-md-end p-2">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
-            <i class="fa-solid fa-plus me-2"></i> Aggiungi azienda
-        </button>
-        </div>  
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                <i class="fa-solid fa-plus me-2"></i> Aggiungi azienda
+            </button>
+        </div>
         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
             aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -29,8 +29,9 @@
                         <h1 class="modal-title fs-5" id="staticBackdropLabel">Inserisci una nuova azienda</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body">
-                        <form action="/aziende" method="POST" >
+                    <form action="/aziende" method="POST">
+                        <div class="modal-body">
+
                             <div class="form-group">
                                 <label for="nome">Nome </label>
                                 <input type="nome" class="form-control" id="nome" aria-describedby="emailHelp"
@@ -51,18 +52,19 @@
                                 <input type="password" class="form-control" id="password"
                                     placeholder="Inserire password" name="password">
                             </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancella</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
-                        Salva</button>
-                    </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancella</button>
+                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
+                                Salva</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-        
-        
-        
+
+
+
         <div class="accordion" id="accordionPanelsStayOpenExample">
             <!-- Visualizzazione aziende -->
             <% aziende.forEach(element=> { %>
@@ -79,6 +81,106 @@
                             </p>
                             <p>email: <%= element.email%>
                             </p>
+                            <!-- bottone per aggiungere premi -->
+                            <div class="d-inline gap-2 d-md-flex justify-content-md-end p-2">
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+                                    data-bs-target="#<%=element._id%>-premio">
+                                    <i class="fa-solid fa-plus me-2"></i> Aggiungi premio
+                                </button>
+                            </div>
+                            <div class="modal fade" id="<%=element._id%>-premio" data-bs-backdrop="static" data-bs-keyboard="false"
+                            tabindex="-1" aria-labelledby="<%=element._id%>Label-premio" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="<%=element._id%>Label-premio">Inserisci un
+                                            nuovo premio</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form action="/aziende/<%= element._id %>/premi" method="POST">
+                                        <div class="modal-body">
+                
+                                            <!--cambiare qua -->
+                                            <div class="form-group">
+                                                <label for="nome">Nome </label>
+                                                <input type="nome" class="form-control" id="nome" aria-describedby="emailHelp"
+                                                    placeholder="Inserire nome" name="nome">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="valore">Valore</label>
+                                                <input type="number" class="form-control" id="valore" aria-describedby="emailHelp"
+                                                    placeholder="Inserire valore" name="valore">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="tipo">Tipo</label>
+                                                <select class="form-select" id="tipo" name="tipo">
+                                                    <option value="percentuale">percentuale</option>
+                                                    <option value="contante">contante</option>
+                                                    <option value="omaggio">omaggio</option>
+                                                    <option value="quantita">quantita</option>
+                
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="descrizione">Descrizione</label>
+                                                <input type="descrizione" class="form-control" id="descrizione"
+                                                    placeholder="Inserire descrizione" name="descrizione">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="costo_punti">Costo in punti</label>
+                                                <input type="number" class="form-control" id="costo_punti"
+                                                    placeholder="Inserire il costo in punti" name="costo_punti">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="validitaBuono">Giorni di validità</label>
+                                                <input type="number" class="form-control" id="validitaBuono"
+                                                    placeholder="Inserire la validità del premio" name="validitaBuono">
+                                            </div>
+                                            <!-- Precompiled, non-modifiable field -->
+                                            <div class="form-group">
+                                                <label for="idAzienda">ID azienda</label>
+                                                <input type="text" class="form-control" id="idAzienda" value=<%=element._id %>
+                                                name="idAzienda" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancella</button>
+                                            <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
+                                                Salva</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                            <!-- un altro accordion per i premi -->
+                            <div class="accordion" id="accordionPanelsStayOpenExample">
+                                <% element.premi.forEach(premio=>{ %>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button"
+                                                data-bs-toggle="collapse" data-bs-target="#<%= premio._id%>"
+                                                aria-expanded="false" aria-controls="<%= premio._id%>">
+                                                <%= premio.nome %>
+                                            </button>
+                                        </h2>
+                                        <div id="<%= premio._id%>" class="acccordio-collapse collapse">
+                                            <div class="accordion-body">
+                                                <p>valore: <%= premio.valore%>
+                                                </p>
+                                                <p>tipo: <%= premio.tipo%>
+                                                </p>
+                                                <p>descrizione: <%= premio.descrizione%>
+                                                </p>
+                                                <p>Costo in punti: <%= premio.costo_punti%>
+                                                </p>
+                                                <p>Giorni di validità: <%= premio.validitaBuono%>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                            </div>
+
                         </div>
                     </div>
                 </div>
