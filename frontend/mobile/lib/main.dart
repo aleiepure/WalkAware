@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
+import 'package:provider/provider.dart';
+import './providers/user_provider.dart';
 import './pages/onboarding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/home_page.dart';
 
 void main() {
-  runApp(const App());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserProvider(),
+      child: const App(),
+    ),
+  );
 }
 
 class App extends StatefulWidget {
@@ -40,7 +47,32 @@ class _AppState extends State<App> {
       return const OnboardingPage();
     }
 
-    return const HomePage();
+    String userId = prefs.getString('userId') ?? '';
+    String userToken = prefs.getString('userToken') ?? '';
+    return FutureBuilder(
+      future: Provider.of<UserProvider>(context, listen: false).fetchUserFromBackend(userId: userId, authToken: userToken),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: Column(
+                children: [
+                  FlutterLogo(),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: CircularProgressIndicator(),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else if (snapshot.hasError) {
+          return const Center(child: Text('Error loading user data'));
+        } else {
+          return HomePage(startAsLogged: snapshot.data!);
+        }
+      },
+    );
   }
 
   @override
