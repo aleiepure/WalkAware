@@ -248,6 +248,23 @@ router.get('/:id/punti', async (req, res) => {
 		});
 });
 
+/**
+ * Get mobile
+ * 
+ * GET /api/v1/utente/mobile/{id}
+ */
+router.get('/:id', async (req, res) => {
+	// User not found
+	utenteMobileModel.findById(req.params.id)
+		.then((result) => {
+			return res.send({ success: true, id: result.id, email: result.email, nome: result.nome, eta: result.eta, punti: result.punti});
+		})
+		.catch((error) => {
+			console.error('User not found with the specified ID.');
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+});
+
 // Check if a given email is in a valid format
 function _isValidEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;

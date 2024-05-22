@@ -10,7 +10,9 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:image_picker_platform_interface/src/types/image_source.dart' as image_source;
 import 'package:dio/dio.dart' as dio;
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../providers/user_provider.dart';
 import '../requests/backend_requests.dart';
 
 enum TrackingMode { none, gps, compass }
@@ -59,8 +61,6 @@ class _NewReportPageState extends State<NewReportPage> {
   String? _importance;
 
   bool _sendButtonEnabled = true;
-
-  final Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
 
   /// Callback for when the map is created
   ///
@@ -465,7 +465,7 @@ class _NewReportPageState extends State<NewReportPage> {
   /// This method is called when the send button is pressed. It sends the report to the server.
   void _onSendButtonPressed() async {
     String imageKey = '';
-    SharedPreferences prefs = await _prefs;
+    final provider = Provider.of<UserProvider>(context, listen: false);
     setState(() {
       _sendButtonEnabled = false;
     });
@@ -473,7 +473,7 @@ class _NewReportPageState extends State<NewReportPage> {
     if (_formKey.currentState!.validate()) {
       // Handle image upload
       if (_selectedImage != null) {
-        dio.Response response = await backendRequestUploadImage(_selectedImage!, prefs.getString('userToken') ?? '');
+        dio.Response response = await backendRequestUploadImage(_selectedImage!, provider.getUserToken());
         if (response.statusCode == 200) {
           imageKey = response.data['imageKey'];
         } else {
@@ -492,13 +492,13 @@ class _NewReportPageState extends State<NewReportPage> {
 
       // Handle report issue
       dio.Response response = await backendRequestReportIssue(
-        userId: prefs.getString('userId') ?? '',
+        userId: provider.getUserId(),
         latitude: _placeSelectBottomSheetCoordinates.coordinates.lat as double,
         longitude: _placeSelectBottomSheetCoordinates.coordinates.lng as double,
         imageKey: imageKey,
         category: _category ?? '',
         importance: _importance ?? '',
-        authToken: prefs.getString('userToken') ?? '',
+        authToken: provider.getUserToken(),
       );
 
       // Handle response
@@ -507,23 +507,9 @@ class _NewReportPageState extends State<NewReportPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Theme.of(context).colorScheme.primary,
-            content: const Text('Segnalazione inviata, +1 punto!'),
+            content: const Text('Segnalazione inviata. Grazie!'),
           ),
         );
-
-        // Update user points
-        int newPoints = prefs.getInt('userPoints')! + 1;
-        prefs.setInt('userPoints', newPoints);
-        widget.update(newPoints);
-        dio.Response pointsResponse = await backendRequestUpdateUserPoints(prefs.getString('userId')!, prefs.getString('userToken')!, newPoints);
-        if (pointsResponse.statusCode != 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              content: const Text('Si è verificato un errore nell\'aggiornamento dei punti utente sul server.'),
-            ),
-          );
-        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

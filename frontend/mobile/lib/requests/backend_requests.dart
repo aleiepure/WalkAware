@@ -5,7 +5,7 @@ import "package:dio/dio.dart";
 import "package:flutter/foundation.dart";
 import "package:flutter/material.dart";
 import "../exceptions/dio_exceptions.dart";
-import 'package:http_parser/http_parser.dart';  // ignore: depend_on_referenced_packages
+import 'package:http_parser/http_parser.dart'; // ignore: depend_on_referenced_packages
 
 String baseUrl = const String.fromEnvironment('BACKEND_BASE_URL');
 
@@ -169,6 +169,66 @@ Future backendRequestReportIssue({
         'urgenza': importance,
         'status': 'aperta',
       },
+      options: Options(headers: {'x-access-token': authToken}),
+    );
+
+    return response;
+  } on DioException catch (e) {
+    if (e.type == DioExceptionType.badResponse) {
+      return e.response;
+    }
+
+    final errorMessage = DioExceptions.fromDioException(e).toString();
+    debugPrint(errorMessage);
+
+    return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
+  }
+}
+
+/// Sends a request to the backend to get the users points.
+///
+/// Sends a GET request to the backend (URL from the BACKEND_BASE_URL environment
+/// variable) to get the points of the user with the given [userId] and [authToken].
+/// Returns the response from the backend. If an error occurs, logs the error and
+/// returns a response with status code 418 (I'm a teapot) to indicate that its not
+/// a backend issue.
+Future backendRequestGetUserPoints(
+  String userId,
+  String authToken,
+) async {
+  try {
+    final response = await Dio().get(
+      '$baseUrl/api/v1/utente/mobile/$userId/punti',
+      options: Options(headers: {'x-access-token': authToken}),
+    );
+
+    return response;
+  } on DioException catch (e) {
+    if (e.type == DioExceptionType.badResponse) {
+      return e.response;
+    }
+
+    final errorMessage = DioExceptions.fromDioException(e).toString();
+    debugPrint(errorMessage);
+
+    return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
+  }
+}
+
+/// Sends a request to the backend to get the user.
+/// 
+/// Sends a GET request to the backend (URL from the BACKEND_BASE_URL environment
+/// variable) to get the user with the given [userId] and [authToken].
+/// Returns the response from the backend. If an error occurs, logs the error and
+/// returns a response with status code 418 (I'm a teapot) to indicate that its not
+/// a backend issue.
+Future backendRequestGetUser(
+  String userId,
+  String authToken,
+) async {
+  try {
+    final response = await Dio().get(
+      '$baseUrl/api/v1/utente/mobile/$userId',
       options: Options(headers: {'x-access-token': authToken}),
     );
 

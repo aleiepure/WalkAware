@@ -35,6 +35,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   String baseUrl = const String.fromEnvironment('BACKEND_BASE_URL');
 
+  bool _registerButtonEnabled = true;
+
   /// Show a dialog to the user to confirm the email address
   ///
   /// The dialog will inform the user that they need to check their email to confirm their account.
@@ -61,7 +63,7 @@ class _RegisterPageState extends State<RegisterPage> {
   ///
   /// The method will close the bottom sheet, open the email app and navigate to the login page.
   void _onShowEmailConfirmationDialogButtonPressed() {
-    // Open the email app 
+    // Open the email app
     if (Platform.isAndroid) {
       AndroidIntent intent = const AndroidIntent(
         action: 'android.intent.action.MAIN',
@@ -86,11 +88,14 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   /// Register button tap callback
-  /// 
+  ///
   /// The method will validate the form and send the registration request to the backend.
   void _onRegisterButtonPressed() async {
+    setState(() {
+      _registerButtonEnabled = false;
+    });
+
     if (_formKey.currentState!.validate()) {
-      
       // Get validated form data
       final String name = _nameController.text;
       final String email = _emailController.text;
@@ -104,19 +109,48 @@ class _RegisterPageState extends State<RegisterPage> {
       Response<dynamic> response = await backendRequestUserRegistration(name, email, passwordHash, age);
 
       // Handle response
-      if (response.statusCode == 201) {
+      if (response.statusCode == 400 && response.data['success'] == false) {
+        if (response.data['error'] == 'A mobile user with the same email already exists.') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Email già in uso. Riprova con un\'altra email.'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+
+          setState(() {
+            _registerButtonEnabled = true;
+          });
+          return;
+        }
+      }
+
+      if (response.statusCode == 201 && response.data['success'] == true) {
         _showEmailConfirmationDialog();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Registrazione avvenuta con successo.'),
+            backgroundColor: Theme.of(context).colorScheme.primary,
+          ),
+        );
+
+        setState(() {
+          _registerButtonEnabled = true;
+        });
+        return;
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            response.statusCode == 201 ? 'Registrazione avvenuta con successo' : 'Errore durante la registrazione',
-          ),
-          backgroundColor: response.statusCode == 201 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
+          content: const Text('Errore durante la registrazione'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
         ),
       );
     }
+
+    setState(() {
+      _registerButtonEnabled = true;
+    });
   }
 
   /// Build
@@ -262,8 +296,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         TextSpan(
                           text: 'termini e condizioni d\'uso',
                           style: Theme.of(context).textTheme.labelLarge!.copyWith(color: Theme.of(context).colorScheme.primary),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () => launchUrl(Uri.parse('$baseUrl/terms_conds.html')),
+                          recognizer: TapGestureRecognizer()..onTap = () => launchUrl(Uri.parse('$baseUrl/terms_conds.html')),
                         ),
                       ],
                     ),
@@ -284,11 +317,27 @@ class _RegisterPageState extends State<RegisterPage> {
                       : null,
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: FilledButton.icon(
-                    onPressed: _onRegisterButtonPressed,
-                    icon: const Icon(Icons.person_add),
-                    label: const Text('Registrati'),
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      onPressed: _registerButtonEnabled ? _onRegisterButtonPressed : null,
+                      label: const Text('Registrati'),
+                      icon: _registerButtonEnabled
+                          ? const Icon(Icons.person_add)
+                          : const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(),
+                            ),
+                    ),
                   ),
                 ),
               ],
