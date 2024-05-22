@@ -1,10 +1,7 @@
-name: CI/CD with Render
+name: Run tests
 
 on:
-  push:
   pull_request:
-    branches: 
-      - main
 
 jobs:
   setup:
@@ -27,25 +24,6 @@ jobs:
       - name: Run backend tests
         working-directory: ./backend
         run: npm run seqtest
-
-      - name: Trigger deploy Backend to Render
-        uses: JorgeLNJunior/render-deploy@v1.4.4
-        if: success()
-        with:
-          service_id: ${{ secrets.RENDER_BACKEND_SERVICE }}
-          api_key: ${{ secrets.RENDER_TOKEN }}
-
-      # Frontend
-      - name: Install frontend dependencies
-        working-directory: ./frontend/webapp
-        run: npm install
-
-      - name: Trigger deploy Frontend to Render
-        uses: JorgeLNJunior/render-deploy@v1.4.4
-        if: success()
-        with:
-          service_id: ${{ secrets.RENDER_FRONTEND_SERVICE }}
-          api_key: ${{ secrets.RENDER_TOKEN }}
 
       # Mobile
       - name: Setup java
