@@ -6,7 +6,11 @@
         <h2><i class="fa-solid fa-user-plus me-2"></i>User Registration</h2>
       </div>
       <div class="card-body">
-        <form>
+        <form action="/utente" method="POST" onsubmit="setCheckboxValue()">
+          <div class="mb-3">
+            <label for="nome" class="form-label">Nome</label>
+            <input type="string" class="form-control" id="nome" name="nome" required>
+          </div>
           <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="email" class="form-control" id="email" name="email" required>
@@ -16,18 +20,31 @@
             <input type="password" class="form-control" id="password" name="password" required>
           </div>
           <div class="mb-3">
-            <input type="checkbox" class="form-check-input" id="exampleCheck1">
-            <label class="form-check-label" for="exampleCheck1">Supporto Utente</label>
+            <input type="checkbox" class="form-check-input" id="supporto_tecnicoCheckBox">
+            <input type="hidden" id="supporto_tecnico" name="supporto_tecnico" value="false">
+            <label class="form-check-label" for="exampleCheck1">Supporto Tecnico</label>
           </div>
           <div class="row mb-3">
             <% if (typeof errorMessage !=='undefined' ) { %>
               <small id="emailHelp" class="form-text text-danger"><%- errorMessage %></small>
               <% } %>
+                <% if (typeof successMessage !=='undefined' ) { %>
+                  <small id="emailHelp" class="form-text text-success"><%- successMessage%></small>
+                  <% } %>
           </div>
-          <button type="submit" class="btn btn-primary"> <i class="fa-solid fa-right-to-bracket me-2"></i>Login</button>
+          <button type="submit" class="btn btn-primary"> <i
+              class="fa-solid fa-right-to-bracket me-2"></i>Registra</button>
         </form>
       </div>
     </div>
   </div>
+
+  <script>
+    function setCheckboxValue() {
+      var checkbox = document.getElementById('supporto_tecnicoCheckBox');
+      var hiddenField = document.getElementById('supporto_tecnico');
+      hiddenField.value = checkbox.checked ? 'true' : 'false';
+    }
+  </script>
 
   <%- include('partials/footer') %>

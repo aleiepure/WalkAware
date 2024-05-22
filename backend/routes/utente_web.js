@@ -19,6 +19,7 @@ const router = express.Router();
 */
 router.post('/', async (req, res) => {
 
+	console.log(req.body);
 	// Validate email field
 	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
 		console.error("The 'email' field must be a non-empty string in email format.");
@@ -47,7 +48,7 @@ router.post('/', async (req, res) => {
 		return res.status(400).json({ success: false, error: 'A web user with the same email already exists.' });
 	}
 
-	// Create new user
+	//Create new user
 	const user = new utenteWebModel({
 		email: req.body.email,
 		password: req.body.password,
@@ -59,6 +60,7 @@ router.post('/', async (req, res) => {
 	// Response
 	return res.location("/api/v1/utente/web/" + user._id).status(201).send({ success: true });
 });
+
 
 /**  
  * Web user login
@@ -105,6 +107,7 @@ router.post('/login', async (req, res) => {
 		email: user.email,
 		userId: user._id,
 		name: user.nome,
+		supporto_tecnico: user.supporto_tecnico
 	});
 });
 

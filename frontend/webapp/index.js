@@ -2,11 +2,11 @@ var express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
-const cookieParser = require("cookie-parser")
+const cookieParser = require("cookie-parser");
 require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
-const aziendeRoutes = require('./routes/aziende.js')
+const aziendeRoutes = require('./routes/aziende.js');
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
@@ -57,22 +57,24 @@ app.get('/', (req, res) => {
 
 // Route segnalazioni
 app.get('/segnalazioni', (req, res) => {
-    res.render('segnalazioni', { currentPage: 'segnalazioni' });
+    console.log(typeof(req.cookies.supporto_tecnico));
+    res.render('segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
 });
 
 // Route registrer web user
 app.get('/registrazione', (req, res) => {
-    res.render('registrazione', { currentPage: 'registrazione' });
+    res.render('registrazione', { currentPage: 'registrazione', isSupportoTecnico: req.cookies.supporto_tecnico });
 });
 
-// Route aziende page
-// app.get('/aziende', (req, res) => {
-//     res.render('aziende', { currentPage: 'aziende' });
-// });
+//Route aziende page
+app.get('/aziende', (req, res) => {
+    res.render('aziende', { currentPage: 'aziende', isSupportoTecnico: req.cookies.supporto_tecnico });
+});
 
 // Route page not found
 app.get('*', (req, res) => {
-    res.render('404', {currentPage: '404'});
+    res.render('404', { currentPage: '404', isSupportoTecnico: req.cookies.supporto_tecnico });
+
 });
 
 // Run the application on port 3000
