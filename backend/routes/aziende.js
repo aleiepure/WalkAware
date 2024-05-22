@@ -56,7 +56,7 @@ router.post("/", (req, res) => {
 		})
 		.catch((error) => {
 			console.error("Problem retrieving aziende");
-		return res.status(500).json({ success: false, error: "Problem retrieving aziende" });
+			return res.status(500).json({ success: false, error: "Problem retrieving aziende" });
 		});
 });
 
@@ -153,7 +153,9 @@ function _isValidEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(email);
 }
+
 function _isEmptyString(str) {
 	return str.length === 0;
 }
+
 module.exports = router;
