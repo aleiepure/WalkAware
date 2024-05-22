@@ -15,7 +15,7 @@ class RewardsPage extends StatefulWidget {
 class _RewardsPageState extends State<RewardsPage> {
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<UserProvider>(context, listen: false);
+    final provider = Provider.of<UserProvider>(context);
     // debugPrint(provider.user.toString());
 
     return DefaultTabController(

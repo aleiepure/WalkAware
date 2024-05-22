@@ -52,6 +52,82 @@ class _RedeemRewardsListViewState extends State<RedeemRewardsListView> {
     }
   }
 
+  void _onConfirmReward(RewardModel reward) async {
+    final provider = Provider.of<UserProvider>(context, listen: false);
+
+    // Redeem the reward
+    Response response = await backendRequestRedeemReward(userId: provider.getUserId(), authToken: provider.getUserToken(), rewardId: reward.id);
+    if (response.statusCode != 201 && response.data['status'] != 'success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Si è verificato un errore durante il riscatto del premio'),
+        ),
+      );
+      return;
+    }
+
+    // Update the userModel
+    await provider.fetchUserFromBackend(userId: provider.getUserId(), authToken: provider.getUserToken());
+
+
+    // Show a confirmation message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Premio riscattato con successo!'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+      ),
+    );
+  }
+
+  void _onRewardTap(RewardModel reward) {
+    final provider = Provider.of<UserProvider>(context, listen: false);
+
+    // Check if the user has enough points to redeem the reward
+    if (provider.getUserPoints() < reward.pointsCost) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Theme.of(context).colorScheme.error,
+          content: const Text('Punti non sufficienti per riscattare il premio'),
+        ),
+      );
+      return;
+    }
+
+    showDialog(context: context, builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Riscatta ${reward.name} per ${reward.pointsCost} punti'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(reward.description),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text('Fornito da: ${reward.issuingCompany}'),
+            ),
+            
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Annulla'),
+          ),
+          TextButton(
+            onPressed: () {
+              _onConfirmReward(reward);
+              Navigator.of(context).pop();
+            },
+            child: const Text('Conferma'),
+          ),
+        ],
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -62,7 +138,7 @@ class _RedeemRewardsListViewState extends State<RedeemRewardsListView> {
         itemBuilder: (BuildContext context, int index) {
           return Card(
             child: InkWell(
-              onTap: () => print('Tapped $index'),
+              onTap: () => _onRewardTap(rewards[index]),
               child: ListTile(
                 leading: Container(
                   decoration: BoxDecoration(
