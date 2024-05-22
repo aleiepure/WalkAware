@@ -3,8 +3,8 @@ const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
 const request = require('supertest');
 require('dotenv').config();
+
 const utenteWebModel = require('../models/utente_web.js');
-const {utenteMobileModel} = require('../models/utente_mobile.js')
 
 let standardUserId;
 let standardUserIdWeb;
@@ -12,14 +12,13 @@ beforeAll(async () => {
     jest.setTimeout(15000);
     await mongoose.connect(process.env.MONGODB_URI_TEST);
     let standardUserWeb = new utenteWebModel({
-        nome: "franco",
+        nome: "Franco",
         email: "web@test.com",
-        password: "456",
+        password: "password456",
     });
     await standardUserWeb.save();
     standardUserIdWeb = standardUserWeb._id;
 });
-
 
 async function dropAllCollections() {
     const collections = Object.keys(mongoose.connection.collections);
@@ -41,87 +40,90 @@ async function dropAllCollections() {
     }
 }
 
-// Disconnect Mongoose
 afterAll(async () => {
     await dropAllCollections();
     mongoose.connection.close();
 });
 
-describe("POST /api/v1/utente/web/login", ()=>{
-    test("Login valido", ()=>{
+describe("POST /api/v1/utente/web/login: Login utente webapp", () => {
+    test("Login valido", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: "web@test.com",
-            password: "456",
-        })
-        .expect(200);
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: "web@test.com",
+                password: "password456",
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.success).toBe(true);
+                expect(res.body.token).toBeDefined();
+            });
     });
 
-    test("Email sbagliata", ()=>{
+    test("Email sbagliata", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: "alfredo@test.com",
-            password: "456",
-        })
-        .expect(401, { success: false, error: 'Authentication failed. User not found.' });
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: "web2@test.com",
+                password: "password456",
+            })
+            .expect(401, { success: false, error: 'Authentication failed. User not found.' });
     });
 
-    test("Campo email vuoto", ()=>{
+    test("Campo email vuoto", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: "",
-            password: "456",
-        })
-        .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: "",
+                password: "password456",
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
     });
 
-    test("Campo email contentente qualcosa di diverso da una stringa", ()=>{
+    test("Campo email contenente qualcosa di diverso da una stringa", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: 12,
-            password: "456",
-        })
-        .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: 12,
+                password: "password456",
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
     });
 
-    test("Password sbagliata", ()=>{
+    test("Password sbagliata", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: "web@test.com",
-            password: "890",
-        })
-        .expect(401, { success: false, error: 'Authentication failed. Incorrect password.' });
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: "web@test.com",
+                password: "password890",
+            })
+            .expect(401, { success: false, error: 'Authentication failed. Incorrect password.' });
     });
 
-    test("Campo password contentente qualcosa di diverso da una stringa", ()=>{
+    test("Campo password contenente qualcosa di diverso da una stringa", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: "web@test.com",
-            password: 23,
-        })
-        .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: "web@test.com",
+                password: 23,
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
     });
 
-    test("Campo password vuoto", ()=>{
+    test("Campo password vuoto", () => {
         return request(app)
-        .post("/api/v1/utente/web/login")
-        .set('Accept', 'application/json')
-        .send({
-            email: "web@test.com",
-            password: "",
-        })
-        .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+            .post("/api/v1/utente/web/login")
+            .set('Accept', 'application/json')
+            .send({
+                email: "web@test.com",
+                password: "",
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
     });
-})
+});

@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart' as geolocator;
@@ -11,8 +10,9 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
+import 'package:provider/provider.dart';
 import '../pages/new_report_page.dart';
-import '../requests/backend_requests.dart';
+import '../providers/user_provider.dart';
 import '../requests/mapbox_requests.dart';
 import '../pages/account_page.dart';
 import 'package:pedometer/pedometer.dart';
@@ -22,7 +22,9 @@ import 'package:flutter/src/widgets/visibility.dart' as visibility; // ignore: i
 enum TrackingMode { none, gps, compass }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final bool startAsLogged;
+
+  const HomePage({super.key, this.startAsLogged = false});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -58,9 +60,10 @@ class _HomePageState extends State<HomePage> {
   final SearchController _searchController = SearchController();
   final TextEditingController _searchTextEditingController = TextEditingController();
 
-  bool _isUserLogged = false;
+  late bool _isUserLogged;
 
   late Stream<StepCount> _stepCountStream;
+  bool _firstStepUpdate = true;
   int _points = 0;
 
   /// Track user position with GPS
@@ -995,6 +998,9 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method returns the account button.
   Widget _accountButton() {
+    final userProvider = Provider.of<UserProvider>(context);
+    final user = userProvider.user;
+
     return ElevatedButton(
         style: ButtonStyle(
           shape: MaterialStateProperty.all(
@@ -1008,7 +1014,7 @@ class _HomePageState extends State<HomePage> {
         ),
         child: Icon(_isUserLogged ? Icons.account_circle : Icons.person_off),
         onPressed: () async {
-          if (_isUserLogged) {
+          if (user != null) {
             // TODO: Navigate to account info page instead of logging out
             // Navigator.push(
             //   context,
@@ -1019,10 +1025,7 @@ class _HomePageState extends State<HomePage> {
             SharedPreferences prefs = await SharedPreferences.getInstance();
             prefs.remove('userId');
             prefs.remove('userToken');
-            prefs.remove('userEmail');
-            prefs.remove('userName');
-            prefs.remove('userPoints');
-            setState(() => _isUserLogged = false);
+            Provider.of<UserProvider>(context, listen: false).clearUser();
           } else {
             Navigator.push(
               context,
@@ -1068,6 +1071,8 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method returns the points button.
   Widget _pointsButton() {
+    final provider = Provider.of<UserProvider>(context);
+
     return visibility.Visibility(
       visible: _isUserLogged,
       child: ElevatedButton.icon(
@@ -1083,7 +1088,7 @@ class _HomePageState extends State<HomePage> {
           foregroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
         ),
         icon: const Icon(Symbols.local_activity),
-        label: Text(_points.toString()),
+        label: Text(provider.isUserSet() ? provider.getUserPoints().toString() : ""),
         onPressed: () {},
       ),
     );
@@ -1096,24 +1101,23 @@ class _HomePageState extends State<HomePage> {
     return visibility.Visibility(
       visible: _isUserLogged,
       child: ElevatedButton(
-        style: ButtonStyle(
-          shape: MaterialStateProperty.all(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18.0),
+          style: ButtonStyle(
+            shape: MaterialStateProperty.all(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18.0),
+              ),
             ),
+            padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
+            backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
+            iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
           ),
-          padding: MaterialStateProperty.all(const EdgeInsets.all(18.0)),
-          backgroundColor: MaterialStateProperty.all(Theme.of(context).colorScheme.primary),
-          iconColor: MaterialStateProperty.all(Theme.of(context).colorScheme.onPrimary),
-        ),
-        child: const Icon(Icons.report),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => NewReportPage(update: _updatePointsLabel),
-          ),
-        )
-      ),
+          child: const Icon(Icons.report),
+          onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => NewReportPage(update: _updatePointsLabel),
+                ),
+              )),
     );
   }
 
@@ -1121,30 +1125,24 @@ class _HomePageState extends State<HomePage> {
   ///
   /// This method listens to the step count stream and updates the user points.
   void _onStepCount(StepCount event) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    debugPrint('Step count: ${event.steps}');
+    final provider = Provider.of<UserProvider>(context, listen: false);
+
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
 
     // Bail if user is not logged
-    if (prefs.getString('userId') == null || prefs.getString('userToken') == null) {
+    if (!provider.isUserSet() || provider.getUserTokenExpired()) {
       return;
     }
 
-    // Calculate new points amount
-    int previousPoints = prefs.getInt('userPoints') ?? 0;
-    int currentPoints = (event.steps / 2000).floor() - previousPoints;
-
-    // Bail if the points didn't change
-    if (currentPoints == 0) {
+    if (_firstStepUpdate) {
+      _firstStepUpdate = false;
       return;
     }
 
-    // Save user points
-    prefs.setInt('userPoints', previousPoints + currentPoints);
-    setState(() => _points = previousPoints + currentPoints);
-    await backendRequestUpdateUserPoints(prefs.getString('userId')!, prefs.getString('userToken')!, previousPoints + currentPoints);
-  }
-
-  void _updatePointsLabel(int count) {
-    setState(() => _points = count);
+    // Calculate new points and save
+    int newPoints = (event.steps / 2000).floor();
+    provider.setUserPoints(newPoints);
   }
 
   /// Init state
@@ -1152,44 +1150,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
+    _isUserLogged = widget.startAsLogged;
+
     // Connect to the pedometer
     _stepCountStream = Pedometer.stepCountStream;
     _stepCountStream.listen(_onStepCount);
+  }
 
-    // Check if user is logged
-    SharedPreferences.getInstance().then((prefs) {
-      String userToken = prefs.getString('userToken') ?? '';
-
-      // No token, user not logged
-      if (userToken.isEmpty) {
-        prefs.remove('userId');
-        prefs.remove('userToken');
-        prefs.remove('userEmail');
-        prefs.remove('userName');
-        prefs.remove('userPoints');
-        setState(() => _isUserLogged = false);
-        return;
-      }
-
-      // Verify the token
-      try {
-        JWT.verify(userToken, SecretKey(const String.fromEnvironment('JWT_SECRET')));
-        setState(() {
-          _isUserLogged = true;
-          _points = prefs.getInt('userPoints')!;
-        });
-      } on JWTExpiredException {
-        // Token expired, user not logged
-        prefs.remove('userId');
-        prefs.remove('userToken');
-        prefs.remove('userEmail');
-        prefs.remove('userName');
-        prefs.remove('userPoints');
-        setState(() => _isUserLogged = false);
-      } on JWTException catch (ex) {
-        debugPrint(ex.message);
-      }
+  @override
+  void didChangeDependencies() {
+    UserProvider provider = Provider.of<UserProvider>(context);
+    provider.addListener(() {
+      setState(() => _isUserLogged = provider.user != null);
     });
+    super.didChangeDependencies();
   }
 
   /// Build

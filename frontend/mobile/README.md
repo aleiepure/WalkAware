@@ -1,16 +1,29 @@
-# mobile
+# WalkAware Trento Frontend App Mobile
 
-A new Flutter project.
+L'applicazione mobile è sviluppata in Flutter ed è dedicata agli abitanti della città di Trento.
 
-## Getting Started
+L'app già compilata è scaricabile nell'[ultima release](https://github.com/aleiepure/WalkAware/releases/latest). Per eseguirla con un altro backend seguire le seguenti indicazioni.
 
-This project is a starting point for a Flutter application.
+## Requisiti
+- [Flutter](https://docs.flutter.dev/get-started/install)
 
-A few resources to get you started if this is your first Flutter project:
+## Come usare
+1. Clonare il repository se non è già stato fatto:
+``` bash
+git clone https://github.com/aleiepure/WalkAware.git
+cd WalkAware/frontend/mobile
+```
+2. Per configurare mapbox seguire la sezione "secret token" a questo [link](https://pub.dev/packages/mapbox_maps_flutter#installation)
+3. Installa le dipendenze
+```bash
+flutter pub get
+```
+4. Compila l'applicazione:
+``` bash
+flutter build apk --dart-define PUBLIC_ACCESS_TOKEN=<token di accesso> \
+                  --dart-define BACKEND_BASE_URL=<URL BACKEND> \
+                  --dart-define JWT_SECRET=<jwt secret token uguale al backend>
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Assicurarsi di sostituire con i valori corretti. 
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

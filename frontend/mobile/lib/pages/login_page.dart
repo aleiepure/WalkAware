@@ -1,10 +1,13 @@
 // ignore_for_file: use_build_context_synchronously
 
+
 import 'package:crypt/crypt.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../models/user_model.dart';
+import '../providers/user_provider.dart';
 import '../requests/backend_requests.dart';
-import '../pages/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -23,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isPasswordVisible = false;
   bool _showError = false;
   String _errorMessage = '';
+  bool _loginButtonEnabled = true;
 
   late SharedPreferences _prefs;
 
@@ -33,6 +37,7 @@ class _LoginPageState extends State<LoginPage> {
     // Hide error message
     setState(() {
       _showError = false;
+      _loginButtonEnabled = false;
     });
 
     // Validate form
@@ -47,44 +52,58 @@ class _LoginPageState extends State<LoginPage> {
       // Send the login request to the backend
       Response<dynamic> response = await backendRequestUserLogin(email, passwordHash);
 
-      // TODO: handle response never came
-
-      // Wrong email
-      if (response.statusCode == 401 && response.data['error'] == 'Authentication failed. User not found.') {
+      // Handle the response
+      if (response.statusCode == 401 && response.data['success'] == false) {
         setState(() {
           _showError = true;
-          _errorMessage = 'Indirizzo email non riconosciuto';
         });
-        return;
-      }
 
-      // Wrong password
-      if (response.statusCode == 401 && response.data['error'] == 'Authentication failed. Incorrect password.') {
+        if (response.data['error'] == 'Authentication failed. User not found.') {
+          setState(() {
+            _errorMessage = 'Utente non trovato';
+          });
+        } else if (response.data['error'] == 'Authentication failed. Incorrect password.') {
+          setState(() {
+            _errorMessage = 'Password errata';
+          });
+        }
+
         setState(() {
-          _showError = true;
-          _errorMessage = 'Password errata';
+          _loginButtonEnabled = true;
         });
+
         return;
       }
 
       // Correct login
-      if (response.statusCode == 200) {
-        // Save user info
-        await _prefs.setString('userId', response.data['userId']);
-        await _prefs.setString('userToken', response.data['token']);
-        await _prefs.setString('userEmail', response.data['email']);
-        await _prefs.setString('userName', response.data['name']);
-        await _prefs.setInt('userPoints', response.data['points']);
+      if (response.statusCode == 200 && response.data['success'] == true) {
 
-        // Redirect to the home page
-        Navigator.pushReplacement<void, void>(
-          context,
-          MaterialPageRoute<void>(
-            builder: (BuildContext context) => const HomePage(),
-          ),
+        UserModel user = UserModel(
+          id: response.data['userId'],
+          name: response.data['name'],
+          email: response.data['email'],
+          token: response.data['token'],
+          points: response.data['points'],
         );
+
+        await _prefs.setString('userId', user.id);
+        await _prefs.setString('userToken', user.token);
+        Provider.of<UserProvider>(context, listen: false).setUser(user);
+      
+        // Exit to the home page
+        Navigator.of(context)..pop()..pop();
+      }
+
+      if (response.statusCode != 200 || response.statusCode != 401) {
+        setState(() {
+          _showError = true;
+          _errorMessage = 'Si è verificato un errore. Riprova più tardi.';
+        });
       }
     }
+    setState(() {
+      _loginButtonEnabled = true;
+    });
   }
 
   @override
@@ -174,11 +193,27 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: FilledButton.icon(
-                    onPressed: _onLoginButtonPressed,
-                    icon: const Icon(Icons.login),
-                    label: const Text('Accedi'),
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Align(
+                    alignment: Alignment.center,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                      ),
+                      onPressed: _loginButtonEnabled ? _onLoginButtonPressed : null,
+                      label: const Text('Accedi'),
+                      icon: _loginButtonEnabled
+                          ? const Icon(Icons.login)
+                          : const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(),
+                            ),
+                    ),
                   ),
                 ),
               ],
