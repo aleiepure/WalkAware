@@ -165,7 +165,7 @@
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancella</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
                   <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
                     Salva</button>
                 </div>
@@ -184,13 +184,8 @@
                 <h1 class="modal-title fs-5" id="<%=element._id%>Label-modifica">Modifica Dettagli</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <form action="/aziende/<%= element._id %>/premi" method="POST"> <!-- TODO: cambia url -->
+              <form action="/aziende/<%= element._id %>?_method=PUT" method="POST">
                 <div class="modal-body">
-                  <div class="form-group">
-                    <label for="nome">Nome</label>
-                    <input type="text" class="form-control" id="nome" aria-describedby="emailHelp"
-                      placeholder="Inserire nome" name="nome" value="<%= element.nome %>">
-                  </div>
                   <div class="form-group">
                     <label for="nome">Partita IVA</label>
                     <input type="text" class="form-control" id="nome" aria-describedby="emailHelp"
@@ -208,7 +203,7 @@
                   </div>
                 </div>
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancella</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
                   <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
                     Salva</button>
                 </div>
@@ -257,7 +252,7 @@
               </div>
             </div>
             <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancella</button>
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annulla</button>
               <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
                 Salva</button>
             </div>

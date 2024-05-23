@@ -1,8 +1,9 @@
-var express = require('express');
+const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const cookieParser = require("cookie-parser");
+const methodOverride = require('method-override');
 require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
@@ -16,6 +17,7 @@ var app = express();
 // parsing settings
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
 
 // cookie parser
 app.use(cookieParser());

@@ -149,6 +149,45 @@ router.post("/:id/premi", async (req, res) => {
 		});
 });
 
+/**  
+ * Update azienda's info
+ * 
+ * PUT /api/v1/aziende/{id}
+ * 		Required fields: p_iva, email
+ * 		Optional fields: password
+*/
+router.put("/:id", async (req, res) => {
+
+	// Validate fields
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) || _isEmptyString(req.body.email)) {
+		console.error("The 'email' field must be a non-empty string in email format.");
+		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
+	}
+	if (typeof req.body.p_iva !== 'string' || _isEmptyString(req.body.p_iva)) {
+		console.error("The 'p_iva' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'p_iva' field must be a non-empty string." });
+	}
+
+	aziendaModel.findById(req.params.id)
+		.then((result) => {
+
+			// Update azienda
+			result.email = req.body.email;
+			result.p_iva = req.body.p_iva;
+			if (req.body.password){
+				result.password = req.body.password;
+			}
+
+			result.save();
+
+			return res.status(200).send({ success: true });
+		})
+		.catch((error) => {
+			console.error('Azienda not found');
+			return res.status(404).json({ success: false, error: 'Azienda not found' });
+		});
+});
+
 function _isValidEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(email);
