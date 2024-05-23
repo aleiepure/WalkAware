@@ -1,48 +1,41 @@
 const app = require('../app');
 const jwt = require('jsonwebtoken');
-const mongoose = require("mongoose");
 const request = require('supertest');
 require('dotenv').config();
 
+// Mock utenteWeb model
 const utenteWebModel = require('../models/utente_web.js');
-
-let standardUserId;
-let standardUserIdWeb;
-beforeAll(async () => {
-    jest.setTimeout(15000);
-    await mongoose.connect(process.env.MONGODB_URI_TEST);
-    let standardUserWeb = new utenteWebModel({
+let mockFindOne = jest.fn()
+    .mockResolvedValueOnce(new utenteWebModel({ // Login valido (91)
         nome: "Franco",
         email: "web@test.com",
-        password: "password456",
-    });
-    await standardUserWeb.save();
-    standardUserIdWeb = standardUserWeb._id;
-});
+        password: "password456"
+    }))
+    .mockResolvedValueOnce(null)   // Email sbagliata (91)
+    .mockResolvedValueOnce(new utenteWebModel({ // Password sbagliata (91)
+        nome: "Franco",
+        email: "web@test.com",
+        password: "password456"
+    }))
+    .mockResolvedValueOnce(null) // Registrazione valida (43)
+    .mockResolvedValueOnce(new utenteWebModel({ // Email già in uso (43)
+        nome: "Franco",
+        email: "web@test.com",
+        password: "password456"
+    }));
+utenteWebModel.findOne = mockFindOne;
 
-async function dropAllCollections() {
-    const collections = Object.keys(mongoose.connection.collections);
-    for (const collectionName of collections) {
-        const collection = mongoose.connection.collections[collectionName];
-        try {
-            await collection.drop();
-        } catch (error) {
-            // This error happens when you try to drop a collection that's already dropped. Happens infrequently. 
-            // Safe to ignore. 
-            if (error.message === 'ns not found') return;
+let mockSave = jest.fn()
+    .mockResolvedValueOnce();
+utenteWebModel.prototype.save = mockSave;
 
-            // This error happens when you use it.todo.
-            // Safe to ignore. 
-            if (error.message.includes('a background operation is currently running')) return;
-
-            console.log(error.message);
-        }
-    }
-}
+// Create a valid token
+const token_secret = process.env.SUPER_SECRET || "supersecret";
+token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
+    token_secret, { expiresIn: "1y" });
 
 afterAll(async () => {
-    await dropAllCollections();
-    mongoose.connection.close();
+    jest.restoreAllMocks();
 });
 
 describe("POST /api/v1/utente/web/login: Login utente webapp", () => {
@@ -126,4 +119,92 @@ describe("POST /api/v1/utente/web/login: Login utente webapp", () => {
             })
             .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
     });
+});
+
+describe("POST /api/v1/utente/web: Registrazione utente webapp", () => {
+    test("Registrazione valida", () => {
+        return request(app)
+            .post("/api/v1/utente/web")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "web@test.com",
+                password: "password456",
+                nome: "Franco",
+                supporto_tecnico: true
+            })
+            .expect(201)
+            .expect((res) => {
+                expect(res.body.success).toBe(true);
+                expect(res.header.location).toBeDefined();
+            });
+    });
+
+    test("Email già esistente", () => {
+        return request(app)
+            .post("/api/v1/utente/web")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "web@test.com",
+                password: "password456",
+                nome: "Franco",
+                supporto_tecnico: true
+            })
+            .expect(400, { success: false, error: 'A web user with the same email already exists.' });
+    });
+
+    test("Campo email non fornito", () => {
+        return request(app)
+            .post("/api/v1/utente/web")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                password: "password456",
+                nome: "Franco",
+                supporto_tecnico: true
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+    });
+
+    test("Campo nome non fornito", () => {
+        return request(app)
+            .post("/api/v1/utente/web")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "web@test.com",
+                password: "password456",
+                supporto_tecnico: true
+            })
+            .expect(400, { success: false, error: "The 'nome' field must be a non-empty string." });
+    });
+
+    test("Campo password non fornito", () => {
+        return request(app)
+            .post("/api/v1/utente/web")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "web@test.com",
+                nome: "Franco",
+                supporto_tecnico: true
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+    });
+
+    test("Campo supporto_tecnico fornito come stringa", () => {
+        return request(app)
+            .post("/api/v1/utente/web")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "web@test.com",
+                password: "password456",
+                nome: "Franco",
+                supporto_tecnico: "true"
+            })
+            .expect(400, { success: false, error: "The optional 'supporto_tecnico' field must be a boolean." });
+    });
+
 });
