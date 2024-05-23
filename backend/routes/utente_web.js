@@ -18,7 +18,6 @@ const router = express.Router();
  * 		Headers: Location /api/v1/utente/web/{id}
 */
 router.post('/', async (req, res) => {
-
 	console.log(req.body);
 	// Validate email field
 	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email)) {
@@ -26,12 +25,12 @@ router.post('/', async (req, res) => {
 		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
 	// Validate name field
-	if (typeof req.body.nome !== 'string') {
+	if (typeof req.body.nome !== 'string' || _isEmptyString(req.body.nome)) {
 		console.error("The 'nome' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
 	}
 	// Validate password field
-	if (typeof req.body.password !== 'string') {
+	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error("The 'password' field must be a non-empty string");
 		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
 	}
@@ -42,23 +41,30 @@ router.post('/', async (req, res) => {
 	}
 
 	// Check if user already exists
-	const existingUser = await utenteWebModel.findOne({ email: req.body.email });
-	if (existingUser) {
-		console.error('A web user with the same email already exists.');
-		return res.status(400).json({ success: false, error: 'A web user with the same email already exists.' });
-	}
+	utenteWebModel.findOne({ email: req.body.email })
+		.then((existingUser) => {
+			console.log(existingUser);
+			if (existingUser) {
+				console.error('A web user with the same email already exists.');
+				return res.status(400).json({ success: false, error: 'A web user with the same email already exists.' });
+			}
 
-	//Create new user
-	const user = new utenteWebModel({
-		email: req.body.email,
-		password: req.body.password,
-		nome: req.body.nome,
-		supporto_tecnico: req.body.supporto_tecnico || false,
-	});
-	await user.save();
+			//Create new user
+			const user = new utenteWebModel({
+				email: req.body.email,
+				password: req.body.password,
+				nome: req.body.nome,
+				supporto_tecnico: req.body.supporto_tecnico || false,
+			});
+			user.save();
 
-	// Response
-	return res.location("/api/v1/utente/web/" + user._id).status(201).send({ success: true });
+			// Response
+			return res.location("/api/v1/utente/web/" + user._id).status(201).send({ success: true });
+		})
+		.catch((error) => {
+			console.error(error.message);
+			return res.status(500).json({ success: false, error: 'Internal server error.' });
+		});
 });
 
 
@@ -82,33 +88,40 @@ router.post('/login', async (req, res) => {
 	}
 
 	// User not found
-	const user = await utenteWebModel.findOne({ email: req.body.email });
-	if (!user) {
-		console.error('Authentication failed. User not found.');
-		return res.status(401).json({ success: false, error: 'Authentication failed. User not found.' });
-	}
-	// Check password
-	if (req.body.password != user.password) {
-		return res.status(401).json({ success: false, error: 'Authentication failed. Incorrect password.' });
-	}
+	utenteWebModel.findOne({ email: req.body.email })
+		.then((user) => {
+			if (!user) {
+				console.error('Authentication failed. User not found.');
+				return res.status(401).json({ success: false, error: 'Authentication failed. User not found.' });
+			}
 
-	// Create JWT token
-	const payload = { userId: user._id, email: user.email };
-	const options = { expiresIn: '1y' };
-	const secret = process.env.SUPER_SECRET || "supersecret";
-	const token = jwt.sign(payload, secret, options);
+			// Check password
+			if (req.body.password != user.password) {
+				return res.status(401).json({ success: false, error: 'Authentication failed. Incorrect password.' });
+			}
 
-	// Response
-	return res.json({
-		success: true,
-		message: 'Authentication successful.',
-		token: token,
-		self: `/api/v1/utente/web/${user._id}`,
-		email: user.email,
-		userId: user._id,
-		name: user.nome,
-		supporto_tecnico: user.supporto_tecnico
-	});
+			// Create JWT token
+			const payload = { userId: user._id, email: user.email };
+			const options = { expiresIn: '1y' };
+			const secret = process.env.SUPER_SECRET || "supersecret";
+			const token = jwt.sign(payload, secret, options);
+
+			// Response
+			return res.json({
+				success: true,
+				message: 'Authentication successful.',
+				token: token,
+				self: `/api/v1/utente/web/${user._id}`,
+				email: user.email,
+				userId: user._id,
+				name: user.nome,
+				supporto_tecnico: user.supporto_tecnico
+			});
+		})
+		.catch((error) => {
+			console.error(error.message);
+			return res.status(500).json({ success: false, error: 'Internal server error.' });
+		});
 });
 
 // Function to check email format
@@ -119,6 +132,6 @@ function _isValidEmail(email) {
 
 function _isEmptyString(str) {
 	return str.length === 0;
-  }
+}
 
 module.exports = router;
