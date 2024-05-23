@@ -232,7 +232,7 @@ paths:
             Location:
               schema:
                 type: string
-              description: Link al nuovo utente mobile.
+              description: Link al nuovo utente web.
           content:
             application/json:
               schema:
