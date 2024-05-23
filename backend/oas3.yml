@@ -279,20 +279,20 @@ paths:
   /aziende:
     get:
       summary: Cerca tutte le aziende convenzionate 
-      description: Endpoint che ritorna tutte le azinde convenzionate
+      description: Endpoint che ritorna tutte le aziende convenzionate
       tags:
         - Aziende
       security:
         - apiKeyAuth: []
       responses:
         "200":
-          description: OK. Lista di aziende
+          description: OK. Lista di aziende, potrebbe essere vuota.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AziendeGetResponse"
-        "404":
-          description: Azienda not found
+        "500":
+          description: Internal Server Error. Errore interno al server.
           content:
             application/json:
               schema:
@@ -309,7 +309,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AzinedeRegistrazioneRequest"
+              $ref: "#/components/schemas/AziendeRegistrazioneRequest"
       responses:
         "201":
           description: OK. Azienda aggiunta con successo.
@@ -328,49 +328,88 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "401":
-          description: Credenziali già in uso
+        "500":
+          description: Internal Server Error. Errore interno al server.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthError"
+                $ref: "#/components/schemas/Error"
         
-
   /aziende/{id}:
-      get:
-        summary: Restituisce un'azieda.
-        description: Endpoint per ottenere un'azienda
-        tags:
-          - Aziende
-        security:
-          - apiKeyAuth: []
-        parameters:
-          - in: path
-            name: id
-            required: true
+    get:
+      summary: Restituisce un'azienda.
+      description: Endpoint per ottenere un'azienda
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      responses:
+        "200":
+          description: OK. Azienda trovata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AziendaGetResponse"
+        "404":
+          description: Not Found. Azienda con l'id specificato non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /aziende/{id}/premi:
+    post:
+      summary: Inserisce un nuovo premio
+      description: Endpoint per inserire un nuovo premio
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      requestBody:
+        required: true
+        content:
+          application/json:
             schema:
-              type: string
-            description: ID dell'azienda
-        responses:
-          "200":
-            description: OK. Azienda trovata.
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/AziendaGetResponse"
-          "404":
-            description: Not Found. Utente con l'id specificato non trovato
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Error"
+              $ref: "#/components/schemas/PremioRegistrazioneRequest"
+      responses:
+        "201":
+          description: Created. Nuovo premio creato con successo. Link in Location header.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link al nuovo premio.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Azienda con l'id specificato non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
       
-      
-
-      
-
-
-
 components:
   securitySchemes:
     apiKeyAuth:
@@ -625,7 +664,6 @@ components:
           type: string
           description: Messaggio di errore
       
-
     AuthError:
       type: object
       properties:
@@ -651,33 +689,105 @@ components:
             properties:
               nome: 
                 type: string
+                description: Nome dell'azienda
               email:
                 type: string
+                format: email
+                description: Email dell'azienda
               password: 
                 type: string
+                description: Hash della password dell'azienda
               p_iva: 
                 type: string
+                description: Partita IVA dell'azienda
+              premi:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    nome:
+                      type: string
+                      description: Nome del premio
+                    valore:
+                      type: number
+                      description: Valore del premio
+                    tipo:
+                      type: string
+                      enum:
+                        - percentuale
+                        - contante
+                        - omaggio
+                        - quantita
+                      description: Tipo del premio
+                    descrizione:
+                      type: string
+                      description: Descrizione del premio
+                    costo_punti:
+                      type: number
+                      description: Costo in punti del premio
+                    idAzienda:
+                      type: string
+                      description: Nome dell'azienda che offre il premio
+                    validitaBuono:
+                      type: number
+                      description: Giorni di validità dal riscatto del buono
 
     AziendaGetResponse:
       type: object
       properties:
         success:
           type: boolean
-          description: Ritorna l'azienda con l'ID indiacto
-        aziende:
+          description: Ritorna l'azienda con l'ID indicato
+        azienda:
           type: object
-          description: Lista di aziende 
+          description: Azienda con l'ID indicato
           properties:
             nome: 
               type: string
+              description: Nome dell'azienda
             email:
               type: string
+              format: email
+              description: Email dell'azienda
             password: 
               type: string
+              description: Hash della password dell'azienda
             p_iva: 
               type: string
+              description: Partita IVA dell'azienda
+            premi:
+              type: array
+              items:
+                type: object
+                properties:
+                  nome:
+                    type: string
+                    description: Nome del premio
+                  valore:
+                    type: number
+                    description: Valore del premio
+                  tipo:
+                    type: string
+                    enum:
+                      - percentuale
+                      - contante
+                      - omaggio
+                      - quantita
+                    description: Tipo del premio
+                  descrizione:
+                    type: string
+                    description: Descrizione del premio
+                  costo_punti:
+                    type: number
+                    description: Costo in punti del premio
+                  idAzienda:
+                    type: string
+                    description: Nome dell'azienda che offre il premio
+                  validitaBuono:
+                    type: number
+                    description: Giorni di validità dal riscatto del buono
   
-    AzinedeRegistrazioneRequest:
+    AziendeRegistrazioneRequest:
       type: object
       properties:
         email:
@@ -698,3 +808,41 @@ components:
         - email
         - nome     
         - p_iva
+
+    PremioRegistrazioneRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nome del premio
+        valore:
+          type: number
+          description: Valore del premio
+        tipo:
+          type: string
+          enum:
+            - percentuale
+            - contante
+            - omaggio
+            - quantita
+          description: Tipo del premio
+        descrizione:
+          type: string
+          description: Descrizione del premio
+        costo_punti:
+          type: number
+          description: Costo in punti del premio
+        idAzienda:
+          type: string
+          description: Nome dell'azienda che offre il premio
+        validitaBuono:
+          type: number
+          description: Giorni di validità dal riscatto del buono
+      required:
+        - nome
+        - valore
+        - tipo
+        - descrizione
+        - costo_punti
+        - validitaBuono
+        - idAzienda
