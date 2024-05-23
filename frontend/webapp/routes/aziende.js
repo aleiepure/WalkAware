@@ -1,13 +1,14 @@
 const express = require('express');
-const router = express.Router();
 const path = require('path');
+const bcrypt = require('bcrypt');
+
 require('dotenv').config();
-const bcrypt = require('bcrypt')
+
+const router = express.Router();
 
 const baseUrl = process.env.BACKEND_BASE_URL || "http://localhost:8080/"
 
 router.get('/', async (req, res) => {
-    console.log(req.cookies.token);
     const response = await fetch(path.join(baseUrl, "/api/v1/aziende"), {
         method: "GET",
         headers: { "Content-Type": "application/json", 'x-access-token': req.cookies.token },
@@ -15,9 +16,7 @@ router.get('/', async (req, res) => {
 
     const json = await response.json();
     console.log(json.aziende);
-    res.render('aziende', { currentPage: 'aziende', aziende: json.aziende });
-
-
+    res.render('aziende', { currentPage: 'aziende', aziende: json.aziende, isSupportoTecnico: req.cookies.supporto_tecnico });
 });
 
 router.post("/", async (req, res)=>{
