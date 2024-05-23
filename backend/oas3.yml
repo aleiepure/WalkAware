@@ -363,6 +363,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    
+    put:
+      summary: Aggiorna informazioni di un'azienda.
+      description: "Endpoint per aggiornare informazioni di un'azienda. Campi aggiornabili: email, partita iva e password."
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AziendeModificaRequest"
+      responses:
+        "200":
+          description: OK. Azienda aggiornata con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Azienda con l'id specificato non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /aziende/{id}/premi:
     post:
@@ -807,6 +847,23 @@ components:
         - password
         - email
         - nome     
+        - p_iva
+
+    AziendeModificaRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Nuova email dell'azienda
+        password:
+          type: string
+          description: Nuova password dell'azienda
+        p_iva:
+          type: string
+          description: Nuova partita IVA dell'azienda
+      required:
+        - email
         - p_iva
 
     PremioRegistrazioneRequest:
