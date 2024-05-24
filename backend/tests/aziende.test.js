@@ -58,12 +58,21 @@ let mockAziendaFindById = jest.fn()
         password: "passwordAzienda",
         _id: "1234"
     }))
-    .mockRejectedValueOnce(new Error('Azienda not found'));
+    .mockRejectedValueOnce(new Error('Azienda not found'))
+    .mockResolvedValueOnce(new AziendaModel({//modifica azienda richiesta valida
+        nome: "azienda1",
+        p_iva: "1",
+        email: "azienda@test.com",
+        password: "passwordAzienda",
+        _id: "1234"
+    })) 
+    .mockRejectedValueOnce() //modifica azienda: azienda non trovata
 AziendaModel.findById = mockAziendaFindById;
 
 let mockAziendaSave = jest.fn()
     .mockResolvedValueOnce(true)
-    .mockResolvedValueOnce(true);
+    .mockResolvedValueOnce(true)
+    .mockResolvedValueOnce(true)
 AziendaModel.prototype.save = mockAziendaSave;
 
 // Mock premioModel
@@ -412,3 +421,56 @@ describe("POST /api/v1/aziende/:id/premi: Aggiunta di un premio a un'azienda", (
             .expect(400, { success: false, error: "The 'validitaBuono' field must be a positive number." });
     });
 });
+
+//test modifica dati azienda
+
+describe("PUT /api/v1/aziende/{id}: modifica dati azienda", ()=>{
+    test("Richiesta valida", ()=>{
+        return request(app)
+            .put(`/api/v1/aziende/12345`)
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                email: "newAziendaEmail@test.com",
+                p_iva: "987654321"
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.success).toBe(true)
+            });
+    })
+    test("Azienda non trovata", ()=>{
+        return request(app)
+            .put(`/api/v1/aziende/7890`)
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                email: "newAziendaEmail@test.com",
+                p_iva: "987654321"
+            })
+            .expect(404, { success: false, error: 'Azienda not found' })
+    })
+    test("Email non valida", ()=>{
+        return request(app)
+            .put(`/api/v1/aziende/7890`)
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                email: "",
+                p_iva: "987654321"
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." })
+    })
+    test("P.IVA non valida", ()=>{
+        return request(app)
+            .put(`/api/v1/aziende/7890`)
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                email: "newAziendaEmail@test.com",
+                p_iva: 1234567
+            })
+            .expect(400, { success: false, error: "The 'p_iva' field must be a non-empty string." })
+    })
+    
+})
