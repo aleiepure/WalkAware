@@ -8,7 +8,6 @@ servers:
   - url: http://localhost:3000/api/v1
     description: Localhost
 paths:
-
   /utente/mobile:
     post:
       summary: Crea un nuovo utente mobile
@@ -205,13 +204,92 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"    
+                $ref: "#/components/schemas/Error"
         "400":
           description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"      
+                $ref: "#/components/schemas/Error"
+
+  /utente/mobile/{id}:
+    get:
+      summary: Restituisce un utente 
+      description: Endpoint per ottenere un utente
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: string
+          description: ID dell'utente mobile
+      responses:
+        "200":
+          description: OK. Utente trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobileGetResponse"
+        "404":
+          description: User not found with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /utente/mobile/{id}/riscattaBuono:
+    post:
+      summary: Riscatta un premio
+      description: Endpoint per riscattare un premio. Diventerà un buono
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+        - in: query
+          name: premioId
+          required: true
+          schema:
+            type: string
+          description: Id del premio
+      responses:
+        "201":
+          description: Created. Nuovo buono riscattato con successo
+          headers:
+            Location:
+              schema:
+                type: string
+              description: link al nuovo buono riscattato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              
+
+      
+
 
   /utente/web:
     post:
@@ -245,7 +323,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /utente/web/login:
-    post: 
+    post:
       summary: Login utente web
       description: Endpoint per il login di un utente mobile.
       tags:
@@ -278,7 +356,7 @@ paths:
 
   /aziende:
     get:
-      summary: Cerca tutte le aziende convenzionate 
+      summary: Cerca tutte le aziende convenzionate
       description: Endpoint che ritorna tutte le azinde convenzionate
       tags:
         - Aziende
@@ -297,8 +375,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    post: 
-      summary: Inserisce una nuova azienda 
+    post:
+      summary: Inserisce una nuova azienda
       description: Endpoint per inserire un'azienda
       tags:
         - Aziende
@@ -334,40 +412,67 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthError"
-        
 
   /aziende/{id}:
-      get:
-        summary: Restituisce un'azieda.
-        description: Endpoint per ottenere un'azienda
-        tags:
-          - Aziende
-        security:
-          - apiKeyAuth: []
-        parameters:
-          - in: path
-            name: id
-            required: true
-            schema:
-              type: string
-            description: ID dell'azienda
-        responses:
-          "200":
-            description: OK. Azienda trovata.
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/AziendaGetResponse"
-          "404":
-            description: Not Found. Utente con l'id specificato non trovato
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Error"
-      
-      
+    get:
+      summary: Restituisce un'azieda.
+      description: Endpoint per ottenere un'azienda
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      responses:
+        "200":
+          description: OK. Azienda trovata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AziendaGetResponse"
+        "404":
+          description: Not Found. Utente con l'id specificato non trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-      
+  /premi:
+    get:
+      summary: Cerca tutti i premi disponibili
+      description: Endpoint che ritorna tutti i premi disponibili
+      tags:
+        - Premi
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: OK. Lista di premi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PremiGetResponse"
+        "404":
+          description: Premi not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -624,7 +729,6 @@ components:
         error:
           type: string
           description: Messaggio di errore
-      
 
     AuthError:
       type: object
@@ -636,7 +740,7 @@ components:
         error:
           type: string
           description: Indica l'errore di autenticazione
-    
+
     AziendeGetResponse:
       type: object
       properties:
@@ -645,17 +749,17 @@ components:
           description: Ritorna la lista di tutte le aziende
         aziende:
           type: array
-          description: Lista di aziende 
-          items: 
+          description: Lista di aziende
+          items:
             type: object
             properties:
-              nome: 
+              nome:
                 type: string
               email:
                 type: string
-              password: 
+              password:
                 type: string
-              p_iva: 
+              p_iva:
                 type: string
 
     AziendaGetResponse:
@@ -666,17 +770,17 @@ components:
           description: Ritorna l'azienda con l'ID indiacto
         aziende:
           type: object
-          description: Lista di aziende 
+          description: Azienda specifica
           properties:
-            nome: 
+            nome:
               type: string
             email:
               type: string
-            password: 
+            password:
               type: string
-            p_iva: 
+            p_iva:
               type: string
-  
+
     AzinedeRegistrazioneRequest:
       type: object
       properties:
@@ -696,5 +800,85 @@ components:
       required:
         - password
         - email
-        - nome     
+        - nome
         - p_iva
+    
+    PremiGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        premi: 
+          type: array
+          description: lista di premi
+          items:
+            type: object
+            properties:
+              nome: 
+                type: string
+                description: nome del buono
+              valore:
+                type: number
+                description: valore del buono
+              tipo:
+                type: string
+                description: tipo di buono
+                format: enum
+                enum:
+                - percentuale
+                - contante
+                - omaggio
+                - quantita
+              descrizione:
+                type: string
+                description: descrizione del buono
+              costo_punti:
+                type: number
+                description: punti necessari per il riscatto del buono
+              idAzienda:
+                type: string
+                description: id dell'azienda
+              validitaBuono: 
+                type: number
+                description: giorni di validità del buono
+          required:
+            - nome
+            - valore
+            - tipo 
+            - descrizione
+            - costo_punti
+            - idAzienda
+            - validitaBuono
+            
+    UtenteMobileGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        UtenteMobile:
+          type: object
+          description: utente mobile specifico
+          properties:
+            id: 
+              type: string
+              description: id dell'utente
+            nome:
+              type: string
+              description: nome utente mobile
+            email:
+              type: string
+              description: email dell'utente
+              format: email
+            eta: 
+              type: number
+              description: era dell'utente
+            punti:
+              type: number
+              description: punti dell'utente
+    
+  
+      
+
+        
