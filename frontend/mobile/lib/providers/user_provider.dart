@@ -36,6 +36,22 @@ class UserProvider with ChangeNotifier {
     return _user!.points;
   }
 
+  int getUserPointsFromBackend() {
+    backendRequestGetUserPoints(_user!.id, _user!.token).then((value) {
+      Response response = value;
+      if (response.statusCode != 200 || response.data['success'] != true) {
+        return 0;
+      }
+
+      _user!.points = response.data['punti'];
+      notifyListeners();
+      return _user!.points;
+    }).catchError((error) {
+      debugPrint(error.toString());
+    });
+    return _user!.points;
+  }
+
   String getUserToken() {
     return _user!.token;
   }

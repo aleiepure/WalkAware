@@ -4,12 +4,46 @@ const mongoose = require("mongoose");
 const request = require('supertest');
 require('dotenv').config();
 const { utenteMobileModel } = require('../models/utente_mobile.js');
+const premioModel = require('../models/premio.js');
 
-let standardUserId;
-beforeAll(async () => {
-    jest.setTimeout(15000);
-    await mongoose.connect(process.env.MONGODB_URI_TEST);
-    let standardUser = new utenteMobileModel({
+
+// Mock utenteMobile
+
+let mockUtenteMobileFindOne = jest.fn()
+    .mockResolvedValueOnce(false) //registrazione valida
+    .mockResolvedValueOnce(new utenteMobileModel({ //registrazione utente esiste già
+        nome: "Luigi Bianchi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1000,
+        buoni: [],
+        segnalazioni: []
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //login valido
+        nome: "Mario Rossi",
+        email: "lamiaemail@gmail.com",
+        password: "password123",
+        eta: 34
+    }))
+    .mockResolvedValueOnce(null) //utente login non trovato
+    .mockResolvedValueOnce(new utenteMobileModel({ //password sbagliata login
+        nome: "Luigi Bianchi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1000,
+        buoni: [],
+        segnalazioni: []
+    }));
+utenteMobileModel.findOne = mockUtenteMobileFindOne;
+
+let mockUtenteMobileSave = jest.fn()
+    .mockResolvedValueOnce(true);
+utenteMobileModel.prototype.save = mockUtenteMobileSave;
+
+let mockUtenteMobileFindById = jest.fn()
+    .mockResolvedValueOnce(new utenteMobileModel({ //get punti valida
         nome: "Luigi Bianchi",
         eta: 44,
         email: "mobile@test.com",
@@ -17,39 +51,84 @@ beforeAll(async () => {
         punti: 1000,
         buoni: [],
         segnalazioni: [],
-    });
-    await standardUser.save();
-    standardUserId = standardUser._id;
+    }))
+    .mockResolvedValueOnce(null) //get punti non valida
+    .mockResolvedValueOnce(new utenteMobileModel({ //put punti valida
+        nome: "Luigi Bianchi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1000,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(null) //put punti non valida
+    .mockResolvedValueOnce(new utenteMobileModel({ //get utente mobile con id valida
+        nome: "Luigi Bianchi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1000,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(null) //get utente mobile con id non valida
+    .mockResolvedValueOnce(new utenteMobileModel({ //richiesta valida riscattaBuono
+        nome: "Luigi Bianchi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1000,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //not enough punti
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockRejectedValueOnce() // utente not found riscattaBuono
+    .mockResolvedValueOnce() //premio not found
+    
+utenteMobileModel.findById = mockUtenteMobileFindById;
 
-    const token_secret = process.env.SUPER_SECRET;
-    token = jwt.sign({ email: 'mobile@test.com', id: standardUserId }, token_secret, { expiresIn: "1y" });
-});
+let mockPremioFindById = jest.fn()
+    .mockResolvedValueOnce(new premioModel({ //richiesta valida riscattaBuono
+        nome: "premioNome",
+        valore: 23,
+        tipo: "percentuale",
+        descrizione: "premioDescrizione",
+        costo_punti: 10,
+        idAzienda: "premioIdAzienda",
+        validitaBuono: 50
+    }))
+    .mockResolvedValueOnce(new premioModel({ //not enough punti
+        nome: "premioNome",
+        valore: 23,
+        tipo: "percentuale",
+        descrizione: "premioDescrizione",
+        costo_punti: 10,
+        idAzienda: "premioIdAzienda",
+        validitaBuono: 50
+    }))
+    .mockResolvedValueOnce()// utente not found riscattaBuono
+    .mockRejectedValueOnce()// premio not found riscattaBuono
+    
+premioModel.findById = mockPremioFindById;
 
-async function dropAllCollections() {
-    const collections = Object.keys(mongoose.connection.collections);
-    for (const collectionName of collections) {
-        const collection = mongoose.connection.collections[collectionName];
-        try {
-            await collection.drop();
-        } catch (error) {
-            // This error happens when you try to drop a collection that's already dropped. Happens infrequently. 
-            // Safe to ignore. 
-            if (error.message === 'ns not found') return;
+// Create a valid token
+const token_secret = process.env.SUPER_SECRET || "supersecret";
+token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
+    token_secret, { expiresIn: "1y" });
 
-            // This error happens when you use it.todo.
-            // Safe to ignore. 
-            if (error.message.includes('a background operation is currently running')) return;
 
-            console.log(error.message);
-        }
-    }
-}
-
-// Disconnect Mongoose
 afterAll(async () => {
-    await dropAllCollections();
-    mongoose.connection.close();
+    jest.restoreAllMocks();
 });
+
 
 describe("POST /api/v1/utente/mobile: Registrazione di un utente", () => {
     test("Richiesta valida", () => {
@@ -186,7 +265,7 @@ describe("POST api/v1/utente/mobile/login: Login utente mobile", () => {
 describe('GET /api/v1/utente/mobile/:id/punti: Ottenere i punti di un utente', () => {
     test('Richiesta valida', async () => {
         return request(app)
-            .get(`/api/v1/utente/mobile/${standardUserId}/punti`)
+            .get(`/api/v1/utente/mobile/12345/punti`)
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .expect(200)
@@ -211,7 +290,7 @@ describe('GET /api/v1/utente/mobile/:id/punti: Ottenere i punti di un utente', (
 describe('PUT /api/v1/utente/mobile/:id/punti: Aggiornamento dei punti di un utente', () => {
     test('Richiesta valida', async () => {
         return request(app)
-            .put(`/api/v1/utente/mobile/${standardUserId}/punti`)
+            .put(`/api/v1/utente/mobile/12345/punti`)
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -228,7 +307,7 @@ describe('PUT /api/v1/utente/mobile/:id/punti: Aggiornamento dei punti di un ute
 
     test('Punti forniti in modo errato', async () => {
         return request(app)
-            .put(`/api/v1/utente/mobile/${standardUserId}/punti`)
+            .put(`/api/v1/utente/mobile/12345/punti`)
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -239,7 +318,7 @@ describe('PUT /api/v1/utente/mobile/:id/punti: Aggiornamento dei punti di un ute
 
     test('Punti non forniti', async () => {
         return request(app)
-            .put(`/api/v1/utente/mobile/${standardUserId}/punti`)
+            .put(`/api/v1/utente/mobile/12345/punti`)
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .expect(400, { success: false, error: "The 'punti' field must be a number" });
@@ -255,4 +334,81 @@ describe('PUT /api/v1/utente/mobile/:id/punti: Aggiornamento dei punti di un ute
             })
             .expect(404, { success: false, error: 'User not found with the specified ID.' });
     });
+});
+
+describe("GET /api/v1/utente/mobile/{id}", () => {
+    test('Richiesta valida', async () => {
+        return request(app)
+            .get(`/api/v1/utente/mobile/12345`)
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("nome");
+                expect(res.body).toHaveProperty("email");
+                expect(res.body).toHaveProperty("eta");
+                expect(res.body).toHaveProperty("punti");
+                expect(res.body.nome).toBeDefined();
+                expect(res.body.email).toBeDefined();
+                expect(res.body.eta).toBeDefined()
+                expect(res.body.punti).toBeDefined()
+            });
+    });
+    test('Utente non trovato', async () => {
+        return request(app)
+            .get("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(404, { success: false, error: 'User not found with the specified ID.' });
+
+    });
+
+});
+
+describe("POST api/v1/utente/mobile/{id}/riscattaBuono", () => {
+    test("Richiesta valida", async () => {
+        return request(app)
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(201)
+            .expect((res) => {
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.headers.location).toBeDefined();
+            });
+    });
+    test("not enough punti", async () =>{
+        return request(app)
+        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+        .set('Accept', 'application/json')
+        .set('x-access-token', token)
+        .expect(400, { success: false, error: 'Not enough points to redeem the prize.' })
+    
+    }) 
+    test("utente not found", async () =>{
+        return request(app)
+        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+        .set('Accept', 'application/json')
+        .set('x-access-token', token)
+        .expect(404, { success: false, error: 'User not found with the specified ID.' })
+    })
+    test("premio not found", async () =>{
+        return request(app)
+        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+        .set('Accept', 'application/json')
+        .set('x-access-token', token)
+        .expect(404, { success: false, error: 'Prize not found with the specified ID.' })
+    })
+    test("empty query parameter", async () =>{
+        return request(app)
+        .post("/api/v1/utente/mobile/12345/riscattaBuono")
+        .set('Accept', 'application/json')
+        .set('x-access-token', token)
+        .expect(400, { success: false, error: "The 'premioId' query parameter must be a non-empty string." })
+    })
+    
+
 });

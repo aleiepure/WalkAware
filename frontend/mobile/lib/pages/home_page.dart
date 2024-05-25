@@ -17,7 +17,9 @@ import '../requests/mapbox_requests.dart';
 import '../pages/account_page.dart';
 import 'package:pedometer/pedometer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/src/widgets/visibility.dart' as visibility; // ignore: implementation_imports
+import 'package:flutter/src/widgets/visibility.dart' as visibility;
+
+import 'rewards_page.dart'; // ignore: implementation_imports
 
 enum TrackingMode { none, gps, compass }
 
@@ -64,7 +66,6 @@ class _HomePageState extends State<HomePage> {
 
   late Stream<StepCount> _stepCountStream;
   bool _firstStepUpdate = true;
-  int _points = 0;
 
   /// Track user position with GPS
   ///
@@ -1089,7 +1090,12 @@ class _HomePageState extends State<HomePage> {
         ),
         icon: const Icon(Symbols.local_activity),
         label: Text(provider.isUserSet() ? provider.getUserPoints().toString() : ""),
-        onPressed: () {},
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (BuildContext context) => const RewardsPage(),
+          ),
+        ),
       ),
     );
   }
@@ -1115,7 +1121,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (BuildContext context) => NewReportPage(update: _updatePointsLabel),
+                  builder: (BuildContext context) => const NewReportPage(),
                 ),
               )),
     );

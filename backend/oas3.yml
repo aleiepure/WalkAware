@@ -72,6 +72,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthError"
 
+  /utente/mobile/{id}:
+    get:
+      summary: Restituisce un utente 
+      description: Endpoint per ottenere un utente
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: string
+          description: ID dell'utente mobile
+      responses:
+        "200":
+          description: OK. Utente trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobileGetResponse"
+        "404":
+          description: User not found with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /utente/mobile/{id}/segnalazioni:
     get:
       summary: Restituisce tutte le segnalazioni di un utente.
@@ -213,12 +242,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"      
 
+  /utente/mobile/{id}/riscattaBuono:
+    post:
+      summary: Riscatta un premio
+      description: Endpoint per riscattare un premio. Diventerà un buono
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+        - in: query
+          name: premioId
+          required: true
+          schema:
+            type: string
+          description: Id del premio
+      responses:
+        "201":
+          description: Created. Nuovo buono riscattato con successo
+          headers:
+            Location:
+              schema:
+                type: string
+              description: link al nuovo buono riscattato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /utente/web:
     post:
       summary: Crea un nuovo utente web
       description: Endpoint per creare un nuovo utente web.
       tags:
         - UtenteWeb
+      security:
+        - apiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -449,7 +526,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-      
+  
+  /premi:
+    get:
+      summary: Cerca tutti i premi disponibili
+      description: Endpoint che ritorna tutti i premi disponibili
+      tags:
+        - Premi
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: OK. Lista di premi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PremiGetResponse"
+        "404":
+          description: Premi not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
 components:
   securitySchemes:
     apiKeyAuth:
@@ -903,3 +1002,78 @@ components:
         - costo_punti
         - validitaBuono
         - idAzienda
+
+    UtenteMobileGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        UtenteMobile:
+          type: object
+          description: utente mobile specifico
+          properties:
+            id: 
+              type: string
+              description: id dell'utente
+            nome:
+              type: string
+              description: nome utente mobile
+            email:
+              type: string
+              description: email dell'utente
+              format: email
+            eta: 
+              type: number
+              description: era dell'utente
+            punti:
+              type: number
+              description: punti dell'utente
+
+    PremiGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        premi: 
+          type: array
+          description: lista di premi
+          items:
+            type: object
+            properties:
+              nome: 
+                type: string
+                description: nome del buono
+              valore:
+                type: number
+                description: valore del buono
+              tipo:
+                type: string
+                description: tipo di buono
+                format: enum
+                enum:
+                - percentuale
+                - contante
+                - omaggio
+                - quantita
+              descrizione:
+                type: string
+                description: descrizione del buono
+              costo_punti:
+                type: number
+                description: punti necessari per il riscatto del buono
+              idAzienda:
+                type: string
+                description: id dell'azienda
+              validitaBuono: 
+                type: number
+                description: giorni di validità del buono
+          required:
+            - nome
+            - valore
+            - tipo 
+            - descrizione
+            - costo_punti
+            - idAzienda
+            - validitaBuono

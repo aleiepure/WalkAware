@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 
 const { utenteMobileModel, segnalazioneUtenteMobileModel } = require('../models/utente_mobile.js');
 const segnalazioneModel = require('../models/segnalazione.js');
+const premioModel = require('../models/premio.js');
 
 require('dotenv').config();
 
@@ -37,7 +38,7 @@ router.post('/', async (req, res) => {
 	// Validate password field
 	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error('The "password" field must be a non-empty string');
-		return res.status(400).json({success: false, error:"The 'password' field must be a non-empty string"});
+		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string" });
 	}
 
 	// Check if user already exists
@@ -218,7 +219,7 @@ router.put('/:id/punti', async (req, res) => {
 	}
 
 	// User not found
-	utenteMobileModel.findById(req.params.id) 
+	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			result.punti = req.body.punti;
 			result.save();
@@ -257,13 +258,66 @@ router.get('/:id', async (req, res) => {
 	// User not found
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
-			return res.send({ success: true, id: result.id, email: result.email, nome: result.nome, eta: result.eta, punti: result.punti});
+			return res.send({ success: true, id: result.id, email: result.email, nome: result.nome, eta: result.eta, punti: result.punti });
 		})
 		.catch((error) => {
 			console.error('User not found with the specified ID.');
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
 		});
 });
+
+/**
+ * Redeem new buono
+ * 
+ * POST /api/v1/utente/mobile/{id}/riscattaBuono?premioId={premioId}
+ */
+router.post('/:id/riscattaBuono', async (req, res) => {
+
+	// Validate premioId query parameter
+	if (typeof req.query.premioId !== 'string' || _isEmptyString(req.query.premioId)) {
+		console.error("The 'premioId' query parameter must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'premioId' query parameter must be a non-empty string." });
+	}
+
+	utenteMobileModel.findById(req.params.id)
+		.then((user) => {
+			// Check if premio exists
+			premioModel.findById(req.query.premioId)
+				.then((premio) => {
+					// Check if user has enough points
+					if (user.punti < premio.costo_punti) {
+						console.error('Not enough points to redeem the prize.');
+						return res.status(400).json({ success: false, error: 'Not enough points to redeem the prize.' });
+					}
+
+					// Create new buono
+					let buono = {
+						nome: premio.nome,
+						valore: premio.valore,
+						tipo: premio.tipo,
+						descrizione: premio.descrizione,
+						costo_punti: premio.costo_punti,
+						idAzienda: premio.idAzienda,
+						validitaBuono: premio.validitaBuono
+					};
+					user.buoni.push(buono);
+					user.punti -= premio.costo_punti;
+					user.save();
+
+					// Response
+					return res.status(201).location(`/api/v1/utente/mobile/${user._id}/buoni/${buono._id}`).send({ success: true });
+				})
+				.catch((error) => {
+					console.error('Prize not found with the specified ID.');
+					return res.status(404).json({ success: false, error: 'Prize not found with the specified ID.' });
+				});
+		})
+		.catch((error) => {
+			console.error('User not found with the specified ID.');
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+});
+
 
 // Check if a given email is in a valid format
 function _isValidEmail(email) {
@@ -273,6 +327,6 @@ function _isValidEmail(email) {
 
 function _isEmptyString(str) {
 	return str.length === 0;
-  }
+}
 
 module.exports = router;
