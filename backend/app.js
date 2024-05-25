@@ -37,4 +37,5 @@ app.use('/api/v1/segnalazioni', segnalazioni)
 app.use('/api/v1/aziende', aziende);
 app.use('/api/v1/premi', premi);
 
+
 module.exports = app;

@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 const tokenChecker = function (req, res, next) {
 	if (req.path === '/api/v1/utente/mobile' ||
 		req.path === '/api/v1/utente/mobile/login' ||
-		req.path === "/api/v1/utente/web/login") {
+		req.path === "/api/v1/utente/web/login" ||
+		req.path === "/api-docs") {
 		return next();
 	}
 	// check header or url parameters or post parameters for token
