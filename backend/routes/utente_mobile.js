@@ -333,8 +333,7 @@ router.get("/:id/buoni", async (req, res)=>{
 			console.error('User not found with the specified ID.');
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
 		});
-})
-
+});
 
 // Check if a given email is in a valid format
 function _isValidEmail(email) {
