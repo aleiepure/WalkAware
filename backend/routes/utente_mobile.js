@@ -318,6 +318,23 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 		});
 });
 
+/**
+ * Get buono
+ * 
+ * GET /api/v1/utente/mobile/{id}/buoni
+ */
+
+router.get("/:id/buoni", async (req, res)=>{
+	utenteMobileModel.findById(req.params.id)
+		.then((result) => {
+			return res.json({ success: true, buoni: result.buoni });
+		})
+		.catch((error) => {
+			console.error('User not found with the specified ID.');
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+})
+
 
 // Check if a given email is in a valid format
 function _isValidEmail(email) {

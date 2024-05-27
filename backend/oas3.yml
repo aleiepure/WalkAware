@@ -288,6 +288,35 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /utente/mobile/{id}/buoni:
+    get:
+      summary: Restituisce i buoni di un utente 
+      description: Endpoint per ottenere i buoni di un utente
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: string
+          description: ID dell'utente mobile
+      responses:
+        "200":
+          description: OK. Utente trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobileBuoniGetResponse"
+        "404":
+          description: User not found with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"      
+
   /utente/web:
     post:
       summary: Crea un nuovo utente web
@@ -1077,3 +1106,63 @@ components:
             - costo_punti
             - idAzienda
             - validitaBuono
+
+    UtenteMobileBuoniGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        UtenteMobile:
+          type: object
+          description: buoni di un utente mobile specifico
+          properties:
+            buoni: 
+              type: array
+              description: lista di buoni 
+              items:
+                type: object
+                properties:
+                  nome:
+                    type: string
+                    description: nome buono
+                  valore: 
+                    type: number
+                    description: valore del buono
+                  tipo:
+                    type: string
+                    description: tipo di buono
+                    format: enum
+                    enum:
+                    - percentuale
+                    - contante
+                    - omaggio
+                    - quantita
+                  descrizione:
+                    type: string
+                    description: descrizione del buono
+                  costo_punti:
+                    type: number
+                    description: punti necessari per il riscatto del buono
+                  idAzienda:
+                    type: string
+                    description: id dell'azienda
+                  validitaBuono: 
+                    type: number
+                    description: giorni di validità del buono
+                  data_riscatto: 
+                    type: string
+                    format: date-time
+                    description: data riscatto del buono
+                  usato: 
+                    type: boolean
+                    description: se il buono è stato usato 
+                    default: false
+              required:
+                - nome
+                - valore
+                - tipo 
+                - descrizione
+                - costo_punti
+                - idAzienda
+                - validitaBuono              
