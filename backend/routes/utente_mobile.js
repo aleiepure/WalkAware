@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
 	// Validate password field
 	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
 		console.error('The "password" field must be a non-empty string');
-		return res.status(400).json({success: false, error:"The 'password' field must be a non-empty string"});
+		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string" });
 	}
 
 	// Check if user already exists
@@ -120,7 +120,7 @@ router.post('/login', async (req, res) => {
  * Response: 201 Created
  * 		Headers: Location /api/v1/utente/mobile/{id}/segnalazioni/{id}
 */
-router.post('/:id/segnalazioni', async (req, res) => {
+router.post('/:id/segnalazioni', (req, res) => {
 
 	// Validate luogo field
 	// TODO: add regex for lat, long
@@ -128,11 +128,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
 		console.error("The 'luogo' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'luogo' field must be a non-empty string." });
 	}
-	// // Validate foto field
-	// if (req.body.foto !== null && (typeof req.body.foto !== 'string' || req.body.foto === '')) {
-	// 	console.error("The 'foto' field must be a non-empty string.");
-	// 	return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
-	// }
+
 	// Validate tipo field
 	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
 		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza'  'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'.");
@@ -166,7 +162,8 @@ router.post('/:id/segnalazioni', async (req, res) => {
 
 			// Create new segnalazione
 			let segnalazione = new segnalazioneModel({
-				id: segnalazioneUtenteMobile._id,
+				id_segnalazione: segnalazioneUtenteMobile._id,
+				id_utente: req.params.id,
 				luogo: req.body.luogo,
 				foto: req.body.foto,
 				tipo: req.body.tipo,
@@ -190,7 +187,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
  * GET /api/v1/utente/mobile/{id}/segnalazioni
  * 
 */
-router.get("/:id/segnalazioni/", async (req, res) => {
+router.get("/:id/segnalazioni/", (req, res) => {
 
 	// Check if user exists
 	utenteMobileModel.findById(req.params.id)
@@ -203,13 +200,14 @@ router.get("/:id/segnalazioni/", async (req, res) => {
 		});
 });
 
+
 /**
  * Update mobile user's points
  * 
  * PUT /api/v1/utente/mobile/{id}/punti
  * 		Required fields: punti
  */
-router.put('/:id/punti', async (req, res) => {
+router.put('/:id/punti', (req, res) => {
 
 	// Validate punti field
 	if (typeof req.body.punti != 'number') {
@@ -218,7 +216,7 @@ router.put('/:id/punti', async (req, res) => {
 	}
 
 	// User not found
-	utenteMobileModel.findById(req.params.id) 
+	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			result.punti = req.body.punti;
 			result.save();
@@ -236,7 +234,7 @@ router.put('/:id/punti', async (req, res) => {
  * 
  * GET /api/v1/utente/mobile/{id}/punti
  */
-router.get('/:id/punti', async (req, res) => {
+router.get('/:id/punti', (req, res) => {
 	// User not found
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
@@ -257,7 +255,7 @@ router.get('/:id', async (req, res) => {
 	// User not found
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
-			return res.send({ success: true, id: result.id, email: result.email, nome: result.nome, eta: result.eta, punti: result.punti});
+			return res.send({ success: true, id: result.id, email: result.email, nome: result.nome, eta: result.eta, punti: result.punti });
 		})
 		.catch((error) => {
 			console.error('User not found with the specified ID.');
@@ -273,6 +271,6 @@ function _isValidEmail(email) {
 
 function _isEmptyString(str) {
 	return str.length === 0;
-  }
+}
 
 module.exports = router;

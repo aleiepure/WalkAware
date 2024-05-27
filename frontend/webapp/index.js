@@ -3,10 +3,12 @@ const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
 const cookieParser = require("cookie-parser")
+const methodOverride = require('method-override');
 require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
-const aziendeRoutes = require('./routes/aziende.js')
+const aziendeRoutes = require('./routes/aziende.js');
+const segnalazioniRoutes = require('./routes/segnalazioni.js');
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
@@ -16,6 +18,10 @@ var app = express();
 // parsing settings
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//method override
+app.use(methodOverride('_method'));
+
 
 // cookie parser
 app.use(cookieParser());
@@ -41,6 +47,7 @@ app.set('views', __dirname + '/views');
 // Routes
 app.use('/utente', userRoutes);
 app.use("/aziende", aziendeRoutes);
+app.use("/segnalazioni", segnalazioniRoutes);
 
 // tokenchecker for auth
 app.use(tokenChecker);
@@ -55,20 +62,14 @@ app.get('/', (req, res) => {
     }
 });
 
-// Route segnalazioni
-app.get('/segnalazioni', (req, res) => {
-    res.render('segnalazioni', { currentPage: 'segnalazioni' });
-});
+
 
 // Route registrer web user
 app.get('/registrazione', (req, res) => {
     res.render('registrazione', { currentPage: 'registrazione' });
 });
 
-// Route aziende page
-// app.get('/aziende', (req, res) => {
-//     res.render('aziende', { currentPage: 'aziende' });
-// });
+
 
 // Route page not found
 app.get('*', (req, res) => {

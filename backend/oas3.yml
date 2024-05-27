@@ -8,7 +8,6 @@ servers:
   - url: http://localhost:3000/api/v1
     description: Localhost
 paths:
-
   /utente/mobile:
     post:
       summary: Crea un nuovo utente mobile
@@ -20,7 +19,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteMobileRegistrazioneRequest"
+              $ref: "#/components/schemas/UtenteMobile"
       responses:
         "201":
           description: Created. Nuovo utente mobile creato con successo. Link in Location header.
@@ -93,7 +92,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SegnalazioneResponse"
+                $ref: "#/components/schemas/UtenteMobileSegnalazioniResponse"
         "404":
           description: Not Found. Utente con l'id specificato non trovato
           content:
@@ -119,7 +118,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteMobileSegnalazioneRequest"
+              $ref: "#/components/schemas/SegnalazioneUtenteMobile"
       responses:
         "201":
           description: Created. Nuova segnalazione creata con successo. Link in Location header.
@@ -205,13 +204,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"    
+                $ref: "#/components/schemas/Error"
         "400":
           description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"      
+                $ref: "#/components/schemas/Error"
 
   /utente/web:
     post:
@@ -224,7 +223,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteWebRegistrazioneRequest"
+              $ref: "#/components/schemas/UtenteWeb"
       responses:
         "201":
           description: Created. Nuovo utente web creato con successo. Link in Location header.
@@ -245,7 +244,7 @@ paths:
                 $ref: "#/components/schemas/Error"
 
   /utente/web/login:
-    post: 
+    post:
       summary: Login utente web
       description: Endpoint per il login di un utente mobile.
       tags:
@@ -278,7 +277,7 @@ paths:
 
   /aziende:
     get:
-      summary: Cerca tutte le aziende convenzionate 
+      summary: Cerca tutte le aziende convenzionate
       description: Endpoint che ritorna tutte le azinde convenzionate
       tags:
         - Aziende
@@ -297,8 +296,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-    post: 
-      summary: Inserisce una nuova azienda 
+    post:
+      summary: Inserisce una nuova azienda
       description: Endpoint per inserire un'azienda
       tags:
         - Aziende
@@ -309,7 +308,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AzinedeRegistrazioneRequest"
+              $ref: "#/components/schemas/Azienda"
       responses:
         "201":
           description: OK. Azienda aggiunta con successo.
@@ -334,44 +333,229 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthError"
-        
 
   /aziende/{id}:
-      get:
-        summary: Restituisce un'azieda.
-        description: Endpoint per ottenere un'azienda
-        tags:
-          - Aziende
-        security:
-          - apiKeyAuth: []
-        parameters:
-          - in: path
-            name: id
-            required: true
+    get:
+      summary: Restituisce un'azieda.
+      description: Endpoint per ottenere un'azienda
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      responses:
+        "200":
+          description: OK. Azienda trovata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AziendaGetResponse"
+        "404":
+          description: Not Found. Utente con l'id specificato non trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+ 
+  /segnalazioni:
+    get:
+      summary: Restituisce tutte le segnalazioni.
+      description: Endpoint per ottenere le segnalazioni.
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: OK. Lista segnalazioni.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegnalazioniResponse"
+        "404":
+          description: Azienda not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /segnalazioni/{id}:
+    get:
+      summary: Restituisce una segnalazione per ID.
+      description: Endpoint per ottenere una segnalazione specifica.
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID della segnalazione da restituire
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK. Dettagli della segnalazione.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SegnalazioniResponse"
+        "404":
+          description: Segnalazione non trovata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      summary: Aggiorna lo stato di una segnalazione.
+      description: >
+        Endpoint per aggiornare lo stato di una segnalazione specifica.
+        Il campo "status" nella richiesta deve essere uno dei seguenti valori: "aperta", "presa_in_carico", "conclusa".
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID della segnalazione da aggiornare
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
             schema:
-              type: string
-            description: ID dell'azienda
-        responses:
-          "200":
-            description: OK. Azienda trovata.
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/AziendaGetResponse"
-          "404":
-            description: Not Found. Utente con l'id specificato non trovato
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Error"
-      
-      
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                    - aperta
+                    - presa_in_carico
+                    - conclusa
+      responses:
+        "200":
+          description: OK. Lo stato della segnalazione è stato aggiornato con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "400":
+          description: Errore di validazione del campo "status".
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Segnalazione non trovata.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Errore interno del server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-      
+  /segnalazioni/immagini:
+    post:
+      summary: Carica un'immagine.
+      description: Endpoint per caricare un'immagine nel server.
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: File dell'immagine da caricare.
 
+      responses:
+        "200":
+          description: OK. Immagine caricata con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    default: true
+                  imageKey:
+                    type: string
+                    description: Chiave univoca per l'immagine caricata.
+        "400":
+          description: >
+            Errore di validazione. Nessuna immagine fornita.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Errore interno del server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /segnalazioni/immagini/{imageKey}:
+    get:
+      summary: Ottiene un'immagine.
+      description: Endpoint per ottenere un'immagine dal server.
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: imageKey
+          in: path
+          required: true
+          description: Chiave univoca dell'immagine
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK. Immagine ottenuta con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    default: true
+                  imageUrl:
+                    type: string
+                    description: URL pre-firmato per l'immagine.
+        "500":
+          description: Errore interno del server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 
 components:
+  # Security schemas
   securitySchemes:
     apiKeyAuth:
       type: apiKey
@@ -379,49 +563,7 @@ components:
       name: x-access-token
 
   schemas:
-    UtenteMobileRegistrazioneRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          description: Email dell'utente
-        nome:
-          type: string
-          description: Nome dell'utente
-        eta:
-          type: string
-          description: Età dell'utente
-        password:
-          type: string
-          description: Hash della password dell'utente
-      required:
-        - email
-        - nome
-        - eta
-        - password
-
-    PostSuccessfulResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          description: Indica se la richiesta è andata a buon fine o meno.
-
-    LoginRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          description: Email dell'utente
-        password:
-          type: string
-          description: Hash della password dell'utente
-      required:
-        - password
-        - email
-
+    # Utente mobile responses and requests schemas
     UtenteMobileLoginResponse:
       type: object
       properties:
@@ -451,53 +593,7 @@ components:
           type: number
           description: Punti dell'utente
 
-    UtenteMobileSegnalazioneRequest:
-      type: object
-      properties:
-        luogo:
-          type: string
-          description: Coordinate del luogo della segnalazione
-          format: lat,lon
-        foto:
-          type: string
-          description: URL della foto della segnalazione
-        tipo:
-          type: string
-          description: Tipo della segnalazione
-          format: enum
-          enum:
-            - strada
-            - illuminazione
-            - segnaletica
-            - sicurezza
-            - barriereArchitettoniche
-            - rifiuti
-            - parcheggi
-            - altro
-        urgenza:
-          type: string
-          description: Urgenza percepita della segnalazione
-          format: enum
-          enum:
-            - bassa
-            - medio-bassa
-            - modio-alta
-            - alta
-        status:
-          type: string
-          description: Stato della segnalazione
-          format: enum
-          enum:
-            - aperta
-            - inCorso
-            - chiusa
-          default: aperta
-      required:
-        - luogo
-        - tipo
-        - urgenza
-
-    SegnalazioneResponse:
+    UtenteMobileSegnalazioniResponse:
       type: object
       properties:
         success:
@@ -506,48 +602,7 @@ components:
         segnalazioni:
           type: array
           items:
-            type: object
-            properties:
-              luogo:
-                type: string
-                description: Coordinate del luogo della segnalazione
-                format: lat,lon
-              foto:
-                type: string
-                description: URL della foto della segnalazione
-              tipo:
-                type: string
-                description: Tipo della segnalazione
-                format: enum
-                enum:
-                  - strada
-                  - illuminazione
-                  - segnaletica
-                  - sicurezza
-                  - barriereArchitettoniche
-                  - rifiuti
-                  - parcheggi
-                  - altro
-              urgenza:
-                type: string
-                description: Urgenza percepita della segnalazione
-                format: enum
-                enum:
-                  - bassa
-                  - medio-bassa
-                  - modio-alta
-                  - alta
-              status:
-                type: string
-                description: Stato della segnalazione
-                format: enum
-                enum:
-                  - aperta
-                  - inCorso
-                  - chiusa
-              id:
-                type: string
-                description: ID della segnalazione
+            $ref: "#/components/schemas/SegnalazioneUtenteMobile"
 
     UtenteMobilePuntiResponse:
       type: object
@@ -566,28 +621,7 @@ components:
           type: number
           description: Nuovo punteggio
 
-    UtenteWebRegistrazioneRequest:
-      type: object
-      properties:
-        email:
-          type: string
-          format: email
-          description: Email dell'utente
-        nome:
-          type: string
-          description: Nome dell'utente
-        password:
-          type: string
-          description: Hash della password dell'utente
-        supporto_tecnico:
-          type: boolean
-          description: Indica se l'utente è un supporto tecnico
-          default: false
-      required:
-        - password
-        - email
-        - nome
-
+    # Utente web responses and requests
     UtenteWebLoginResponse:
       type: object
       properties:
@@ -614,6 +648,205 @@ components:
           type: string
           description: Nome dell'utente
 
+    # Aziende responses and requests schemas
+    AziendeGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Ritorna la lista di tutte le aziende
+        aziende:
+          type: array
+          description: Lista di aziende
+          items:
+            $ref: "#/components/schemas/Azienda"
+
+    AziendaGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Ritorna l'azienda con l'ID indiacto
+        aziende:
+          $ref: "#/components/schemas/Azienda"
+
+    # Segnalazioni responses and requests schemas
+    SegnalazioniResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        segnalazioni:
+          type: array
+          description: Lista di segnalazioni.
+          items:
+            $ref: "#/components/schemas/Segnalazione"
+
+    # Database models schemas
+    Segnalazione:
+      type: object
+      properties:
+        id_utente:
+          type: string
+          description: ID dell'utente che ha fatto la segnalazione
+        id_segnalazione:
+          type: string
+          description: ID univoco della segnalazione
+        luogo:
+          type: string
+          description: Formato "latitudine,longitudine"
+        foto:
+          type: string
+          description: URL della foto allegata alla segnalazione
+        tipo:
+          type: string
+          enum:
+            - viabilità
+            - illuminazione
+            - segnaletica
+            - sicurezza
+            - barriereArchitettoniche
+            - rifiuti
+            - parcheggi
+            - altro
+          description: Tipo di segnalazione
+        urgenza:
+          type: string
+          enum:
+            - bassa
+            - medio-bassa
+            - medio-alta
+            - alta
+          description: Livello di urgenza della segnalazione
+        status:
+          type: string
+          enum:
+            - aperta
+            - presa_in_carico
+            - conclusa
+          default: aperta
+          description: Stato della segnalazione
+        data:
+          type: string
+          format: date-time
+          default: "2023-05-27T00:00:00Z"
+          description: Data della segnalazione
+      required:
+        - id_utente
+        - id_segnalazione
+        - luogo
+
+    SegnalazioneUtenteMobile:
+      type: object
+      properties:
+        luogo:
+          type: string
+          description: Formato "latitudine,longitudine"
+        foto:
+          type: string
+          description: URL della foto allegata alla segnalazione
+        tipo:
+          type: string
+          enum:
+            - strada
+            - illuminazione
+            - segnaletica
+            - sicurezza
+            - barriereArchitettoniche
+            - rifiuti
+            - parcheggi
+            - altro
+          description: Tipo di segnalazione
+        urgenza:
+          type: string
+          enum:
+            - bassa
+            - medio-bassa
+            - medio-alta
+            - alta
+          description: Livello di urgenza della segnalazione
+        status:
+          type: string
+          enum:
+            - aperta
+            - presa_in_carico
+            - conclusa
+          default: aperta
+          description: Stato della segnalazione
+        data:
+          type: string
+          format: date-time
+          default: "2023-05-27T00:00:00Z"
+          description: Data della segnalazione
+      required:
+        - luogo
+
+    Azienda:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nome dell'azienda
+        p_iva:
+          type: string
+          description: Partita IVA dell'azienda
+        email:
+          type: string
+          description: Indirizzo email dell'azienda
+        password:
+          type: string
+          description: Password per l'accesso
+      required:
+        - nome
+        - p_iva
+        - email
+        - password
+
+    UtenteWeb:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        nome:
+          type: string
+          description: Nome dell'utente
+        password:
+          type: string
+          description: Hash della password dell'utente
+        supporto_tecnico:
+          type: boolean
+          description: Indica se l'utente è un supporto tecnico
+          default: false
+      required:
+        - password
+        - email
+        - nome
+
+    UtenteMobile:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        nome:
+          type: string
+          description: Nome dell'utente
+        eta:
+          type: string
+          description: Età dell'utente
+        password:
+          type: string
+          description: Hash della password dell'utente
+      required:
+        - email
+        - nome
+        - eta
+        - password
+
+    # Errors schemas
     Error:
       type: object
       properties:
@@ -624,7 +857,6 @@ components:
         error:
           type: string
           description: Messaggio di errore
-      
 
     AuthError:
       type: object
@@ -636,65 +868,25 @@ components:
         error:
           type: string
           description: Indica l'errore di autenticazione
-    
-    AziendeGetResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          description: Ritorna la lista di tutte le aziende
-        aziende:
-          type: array
-          description: Lista di aziende 
-          items: 
-            type: object
-            properties:
-              nome: 
-                type: string
-              email:
-                type: string
-              password: 
-                type: string
-              p_iva: 
-                type: string
 
-    AziendaGetResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-          description: Ritorna l'azienda con l'ID indiacto
-        aziende:
-          type: object
-          description: Lista di aziende 
-          properties:
-            nome: 
-              type: string
-            email:
-              type: string
-            password: 
-              type: string
-            p_iva: 
-              type: string
-  
-    AzinedeRegistrazioneRequest:
+    #Others
+    LoginRequest:
       type: object
       properties:
         email:
           type: string
           format: email
-          description: Email dell'aziende
-        nome:
-          type: string
-          description: Nome dell'azienda
+          description: Email dell'utente
         password:
           type: string
-          description: Hash della password dell'azienda
-        p_iva:
-          type: string
-          description: Partita IVA dell'azienda
+          description: Hash della password dell'utente
       required:
         - password
         - email
-        - nome     
-        - p_iva
+
+    PostSuccessfulResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o meno.
