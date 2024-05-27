@@ -23,6 +23,19 @@ class CouponDetailsPage extends StatelessWidget {
     }
   }
 
+  String _couponBrief(CouponModel coupon) {
+    switch (coupon.type) {
+      case CouponType.percentage:
+        return '${coupon.value}% di sconto';
+      case CouponType.cashback:
+        return '€${coupon.value}';
+      case CouponType.freebie:
+        return 'Omaggio';
+      case CouponType.quantity:
+        return 'Quantità: ${coupon.value}x1';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -95,6 +108,22 @@ class CouponDetailsPage extends StatelessWidget {
               ),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, left: 8.0, right: 8.0),
+            child: Text(
+              'Valore',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: Text(
+              _couponBrief(coupon),
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    fontSize: 16.0,
+                  ),
+            ),
+          ),          
           Padding(
             padding: const EdgeInsets.only(top: 20.0, left: 8.0, right: 8.0),
             child: Text(

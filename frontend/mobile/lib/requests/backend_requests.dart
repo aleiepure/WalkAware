@@ -302,3 +302,30 @@ Future backendRequestRedeemReward({
     return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
   }
 }
+
+/// Sends a request to the backend to get all available coupons for a user
+/// 
+/// Sends a GET request to the backend (URL from the BACKEND_BASE_URL environment
+/// variable) to get all available coupons for a user with the given [userId] and [authToken].
+/// Returns the response from the backend. If an error occurs, logs the error and
+/// returns a response with status code 418 (I'm a teapot) to indicate that its not
+/// a backend issue.
+Future backendRequestGetUserCoupons(String userId, String authToken) async {
+  try {
+    final response = await Dio().get(
+      '$baseUrl/api/v1/utente/mobile/$userId/buoni',
+      options: Options(headers: {'x-access-token': authToken}),
+    );
+
+    return response;
+  } on DioException catch (e) {
+    if (e.type == DioExceptionType.badResponse) {
+      return e.response;
+    }
+
+    final errorMessage = DioExceptions.fromDioException(e).toString();
+    debugPrint(errorMessage);
+
+    return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
+  }
+}
