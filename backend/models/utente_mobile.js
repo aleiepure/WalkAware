@@ -15,7 +15,7 @@ const buonoSchema = new mongoose.Schema({
 const segnalazioneSchema = new mongoose.Schema({
     luogo: { type: String, required: true }, // Formato "latitudine,longitudine"
     foto: { type: String },
-    tipo: { type: String, enum: ["strada", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche", "rifiuti", "parcheggi", "altro"] },
+    tipo: { type: String, enum: ["viabilita", "illuminazione", "segnaletica", "sicurezza", "barriereArchitettoniche", "rifiuti", "parcheggi", "altro"] },
     urgenza: { type: String, enum: ["bassa", "medio-bassa", "medio-alta", "alta"] },
     status: { type: String, enum: ["aperta", "presa_in_carico", "conclusa"], default: "aperta"},
     data: { type: Date, default: Date.now }

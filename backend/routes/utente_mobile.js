@@ -122,7 +122,6 @@ router.post('/login', async (req, res) => {
  * 		Headers: Location /api/v1/utente/mobile/{id}/segnalazioni/{id}
 */
 router.post('/:id/segnalazioni', async (req, res) => {
-
 	// Validate luogo field
 	// TODO: add regex for lat, long
 	if (typeof req.body.luogo !== 'string' || _isEmptyString(req.body.luogo)) {
@@ -135,8 +134,8 @@ router.post('/:id/segnalazioni', async (req, res) => {
 	// 	return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
 	// }
 	// Validate tipo field
-	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
-		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza'  'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'.");
+	if (typeof req.body.tipo !== 'string' || !['viabilita', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
+		console.error("The 'tipo' field must be a either 'viabilita', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', 'rifiuti', 'parcheggi', or 'altro'.");
 		return res.status(400).json({ success: false, error: "The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza' 'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'." });
 	}
 	// Validate urgenza field
