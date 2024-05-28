@@ -37,7 +37,7 @@ let mockFind = jest.fn()
             status: 'conclusa'
         })])
     .mockRejectedValueOnce(new Error('Segnalazioni not found'));
-segnalazioneModel.findAll = mockFind;
+segnalazioneModel.find = mockFind;
 
 let mockFindById = jest.fn()
     .mockResolvedValueOnce(new segnalazioneModel({

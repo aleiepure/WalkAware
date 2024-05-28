@@ -632,89 +632,89 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-    /segnalazioni/immagini:
-      post:
-        summary: Carica un'immagine.
-        description: Endpoint per caricare un'immagine nel server.
-        tags:
-          - Segnalazioni
-        security:
-          - apiKeyAuth: []
-        requestBody:
-          required: true
+  /segnalazioni/immagini:
+    post:
+      summary: Carica un'immagine.
+      description: Endpoint per caricare un'immagine nel server.
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                  description: File dell'immagine da caricare.
+
+      responses:
+        "200":
+          description: OK. Immagine caricata con successo.
           content:
-            multipart/form-data:
+            application/json:
               schema:
                 type: object
                 properties:
-                  image:
+                  success:
+                    type: boolean
+                    default: true
+                  imageKey:
                     type: string
-                    format: binary
-                    description: File dell'immagine da caricare.
+                    description: Chiave univoca per l'immagine caricata.
+        "400":
+          description: >
+            Errore di validazione. Nessuna immagine fornita.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "500":
+          description: Errore interno del server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
-        responses:
-          "200":
-            description: OK. Immagine caricata con successo.
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    success:
-                      type: boolean
-                      default: true
-                    imageKey:
-                      type: string
-                      description: Chiave univoca per l'immagine caricata.
-          "400":
-            description: >
-              Errore di validazione. Nessuna immagine fornita.
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Error"
-          "500":
-            description: Errore interno del server.
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Error"
-
-    /segnalazioni/immagini/{imageKey}:
-      get:
-        summary: Ottiene un'immagine.
-        description: Endpoint per ottenere un'immagine dal server.
-        tags:
-          - Segnalazioni
-        security:
-          - apiKeyAuth: []
-        parameters:
-          - name: imageKey
-            in: path
-            required: true
-            description: Chiave univoca dell'immagine
-            schema:
-              type: string
-        responses:
-          "200":
-            description: OK. Immagine ottenuta con successo.
-            content:
-              application/json:
-                schema:
-                  type: object
-                  properties:
-                    success:
-                      type: boolean
-                      default: true
-                    imageUrl:
-                      type: string
-                      description: URL pre-firmato per l'immagine.
-          "500":
-            description: Errore interno del server.
-            content:
-              application/json:
-                schema:
-                  $ref: "#/components/schemas/Error"
+  /segnalazioni/immagini/{imageKey}:
+    get:
+      summary: Ottiene un'immagine.
+      description: Endpoint per ottenere un'immagine dal server.
+      tags:
+        - Segnalazioni
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - name: imageKey
+          in: path
+          required: true
+          description: Chiave univoca dell'immagine
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK. Immagine ottenuta con successo.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    default: true
+                  imageUrl:
+                    type: string
+                    description: URL pre-firmato per l'immagine.
+        "500":
+          description: Errore interno del server.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /premi:
     get:
