@@ -1,9 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
-const { utenteMobileModel, segnalazioneUtenteMobileModel } = require('../models/utente_mobile.js');
+const { utenteMobileModel, segnalazioneUtenteMobileModel, buonoUtenteMobileModel} = require('../models/utente_mobile.js');
 const segnalazioneModel = require('../models/segnalazione.js');
 const premioModel = require('../models/premio.js');
+const buonoModel = require('../models/buono.js');
 
 require('dotenv').config();
 
@@ -291,18 +292,30 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 					}
 
 					// Create new buono
-					let buono = {
-						nome: premio.nome,
-						valore: premio.valore,
-						tipo: premio.tipo,
-						descrizione: premio.descrizione,
-						costo_punti: premio.costo_punti,
-						idAzienda: premio.idAzienda,
-						validitaBuono: premio.validitaBuono
-					};
-					user.buoni.push(buono);
+					let buonoUtenteMobile = new buonoUtenteMobileModel({
+						nome: nome,
+						valore: valore,
+						tipo: tipo,
+						descrizione: descrizione,
+						costo_punti: costo_punti,
+						idAzienda: idAzienda,
+						validitaBuono: validitaBuono
+					});
+					user.buoni.push(buonoUtenteMobile);
 					user.punti -= premio.costo_punti;
 					user.save();
+
+					let buono = new buonoModel({
+						id: buonoUtenteMobile._id,
+						nome: nome,
+						valore: valore,
+						tipo: tipo,
+						descrizione: descrizione,
+						costo_punti: costo_punti,
+						idAzienda: idAzienda,
+						validitaBuono: validitaBuono
+					})
+					buono.save()
 
 					// Response
 					return res.status(201).location(`/api/v1/utente/mobile/${user._id}/buoni/${buono._id}`).send({ success: true });
@@ -324,7 +337,7 @@ router.post('/:id/riscattaBuono', async (req, res) => {
  * GET /api/v1/utente/mobile/{id}/buoni
  */
 
-router.get("/:id/buoni", async (req, res)=>{
+router.get("/:id/buoni", async (req, res) => {
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			return res.json({ success: true, buoni: result.buoni });
@@ -333,7 +346,7 @@ router.get("/:id/buoni", async (req, res)=>{
 			console.error('User not found with the specified ID.');
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
 		});
-})
+});
 
 
 // Check if a given email is in a valid format
