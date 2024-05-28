@@ -19,62 +19,19 @@ class _CouponsListViewState extends State<CouponsListView> {
   List<CouponModel> coupons = [];
 
   Future<void> _refreshCoupons() async {
-    // final provider = Provider.of<UserProvider>(context, listen: false);
+    final provider = Provider.of<UserProvider>(context, listen: false);
 
-    // Response response = await backendRequestGetRewards(provider.getUserToken());
-    // if (response.statusCode != 200 && response.data['status'] != 'success') {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(
-    //       content: Text('Failed to refresh'),
-    //     ),
-    //   );
-    // }
+    Response response = await backendRequestGetUserCoupons(provider.getUserId(), provider.getUserToken());
+    if (response.statusCode != 200 && response.data['status'] != 'success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to refresh'),
+        ),
+      );
+    }
 
-    // setState(() {
-    //   coupons = (response.data['premi'] as List).map((json) => CouponModel.fromJson(json)).toList();
-    // });
-
-    // Generate dummy data after 2 seconds
-    await Future.delayed(const Duration(seconds: 2));
     setState(() {
-      coupons = List.generate(
-          5,
-          (index) => CouponModel(
-                id: index.toString(),
-                name: 'Coupon $index',
-                value: 10,
-                type: CouponType.percentage,
-                description: 'Description of coupon $index',
-                pointsCost: 100,
-                issuingCompany: 'Company $index',
-                validity: 30,
-                redemptionDate: DateTime.now(),
-                used: false,
-              ));
-      coupons.add(CouponModel(
-        id: '123',
-        name: 'Coupon used',
-        value: 10,
-        type: CouponType.percentage,
-        description: 'Description of coupon used',
-        pointsCost: 100,
-        issuingCompany: 'Company used',
-        validity: 30,
-        redemptionDate: DateTime.now(),
-        used: true,
-      ));
-      coupons.add(CouponModel(
-        id: '123',
-        name: 'Coupon expired',
-        value: 10,
-        type: CouponType.percentage,
-        description: 'Description of coupon expired',
-        pointsCost: 100,
-        issuingCompany: 'Company expired',
-        validity: 1,
-        redemptionDate: DateTime(2021, 1, 1),
-        used: false,
-      ));
+      coupons = (response.data['buoni'] as List).map((json) => CouponModel.fromJson(json)).toList();
     });
   }
 
@@ -145,11 +102,17 @@ class _CouponsListViewState extends State<CouponsListView> {
                   style: Theme.of(context).textTheme.titleLarge!.copyWith(
                         fontWeight: FontWeight.w400,
                       ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(coupons[index].description),
+                    Text(
+                      coupons[index].description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis
+                    ),
                     Text('Fornito da: ${coupons[index].issuingCompany}'),
                     if (coupons[index].isUsed())
                       const Chip(

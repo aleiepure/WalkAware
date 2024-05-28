@@ -33,4 +33,5 @@ const utenteMobileSchema = new mongoose.Schema({
 
 module.exports.utenteMobileModel = mongoose.model("UtenteMobile", utenteMobileSchema);
 module.exports.segnalazioneUtenteMobileModel = mongoose.model("SegnalazioneUtenteMobile", segnalazioneSchema);
+module.exports.buonoModel = mongoose.model("Buono", buonoSchema);
 module.exports.buonoUtenteMobileModel = mongoose.model("BuonoUtenteMobile", buonoSchema);

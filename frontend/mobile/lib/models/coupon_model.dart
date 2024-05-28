@@ -38,7 +38,7 @@ class CouponModel {
     pointsCost = json['costo_punti'];
     issuingCompany = json['idAzienda'];
     validity = json['validitaBuono'];
-    redemptionDate = DateTime.parse(json['dataRiscatto']);
+    redemptionDate = DateTime.parse(json['data_riscatto']);
     used = json['usato'];
 
     switch (json['tipo']) {
