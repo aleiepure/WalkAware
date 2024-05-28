@@ -11,15 +11,13 @@ import 'package:mapbox_search/mapbox_search.dart';
 import 'package:image_picker_platform_interface/src/types/image_source.dart' as image_source;
 import 'package:dio/dio.dart' as dio;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/user_provider.dart';
 import '../requests/backend_requests.dart';
 
 enum TrackingMode { none, gps, compass }
 
 class NewReportPage extends StatefulWidget {
-  final ValueChanged<int> update;
-  const NewReportPage({super.key, required this.update});
+  const NewReportPage({super.key});
 
   @override
   State<NewReportPage> createState() => _NewReportPageState();
@@ -62,6 +60,8 @@ class _NewReportPageState extends State<NewReportPage> {
 
   bool _sendButtonEnabled = true;
 
+  late Point _selectedPosition;
+
   /// Callback for when the map is created
   ///
   /// This method is called when the map is created. It enables the location
@@ -81,7 +81,7 @@ class _NewReportPageState extends State<NewReportPage> {
     ));
 
     // Move camera to user location
-    _timer = Timer.periodic(const Duration(seconds: 1), (Timer t) => _updateUserPositionAndBearing());
+    _timer = Timer(const Duration(seconds: 1), () => _updateUserPositionAndBearing());
 
     // Create point annotation manager
     mapboxMap.annotations.createPointAnnotationManager().then((value) async {
@@ -121,7 +121,7 @@ class _NewReportPageState extends State<NewReportPage> {
 
   /// Update camera
   ///
-  /// This method updates the camera position based on the tracking mode.
+  /// This method updates the camera position
   void _updateCamera() async {
     _mapboxMap?.flyTo(
         CameraOptions(
@@ -130,9 +130,10 @@ class _NewReportPageState extends State<NewReportPage> {
         ),
         MapAnimationOptions(duration: 1000));
 
-    // Disable further position updates
-    _trackingMode = TrackingMode.none;
-    _timer!.cancel();
+    // Disable position
+    _mapboxMap!.location.updateSettings(LocationComponentSettings(
+      enabled: false,
+    ));
 
     // Add new marker
     final ByteData bytes = await rootBundle.load('assets/marker.png');
@@ -146,6 +147,7 @@ class _NewReportPageState extends State<NewReportPage> {
           image: list,
         ))
         .then((value) => _pointAnnotation = value);
+    _selectedPosition = Point(coordinates: _position);
 
     // Map coordinates to address
     final ApiResponse<List<MapBoxPlace>> address = await _reverseGeoCoding.getAddress((lat: _position.lat as double, long: _position.lng as double));
@@ -166,6 +168,10 @@ class _NewReportPageState extends State<NewReportPage> {
         _placeSelectBottomSheetDoneButtonEnabled = false;
         _placeSelectBottomSheetAddress = 'Indirizzo non trovato, per favore seleziona un altro punto sulla mappa.';
       });
+    });
+
+    setState(() {
+      _placeSelectBottomSheetCoordinates = Point(coordinates: _position);
     });
   }
 
@@ -315,6 +321,7 @@ class _NewReportPageState extends State<NewReportPage> {
           image: list,
         ))
         .then((value) => _pointAnnotation = value);
+    _selectedPosition = context.point;
 
     // Map coordinates to address
     final ApiResponse<List<MapBoxPlace>> address =
@@ -493,8 +500,8 @@ class _NewReportPageState extends State<NewReportPage> {
       // Handle report issue
       dio.Response response = await backendRequestReportIssue(
         userId: provider.getUserId(),
-        latitude: _placeSelectBottomSheetCoordinates.coordinates.lat as double,
-        longitude: _placeSelectBottomSheetCoordinates.coordinates.lng as double,
+        latitude: _selectedPosition.coordinates.lat as double,
+        longitude: _selectedPosition.coordinates.lng as double,
         imageKey: imageKey,
         category: _category ?? '',
         importance: _importance ?? '',

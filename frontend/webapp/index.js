@@ -1,8 +1,8 @@
-var express = require('express');
+const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
-const cookieParser = require("cookie-parser")
+const cookieParser = require("cookie-parser");
 const methodOverride = require('method-override');
 require('dotenv').config();
 
@@ -56,24 +56,26 @@ app.use(tokenChecker);
 // Route for the login pag
 app.get('/', (req, res) => {
     if (verifyToken(req.cookies)) {
-        res.redirect('segnalazioni');
+        res.redirect('/segnalazioni');
     } else {
         res.render('login', { currentPage: 'login' });
     }
 });
 
-
-
-// Route registrer web user
-app.get('/registrazione', (req, res) => {
-    res.render('registrazione', { currentPage: 'registrazione' });
+// Route segnalazioni
+app.get('/segnalazioni', (req, res) => {
+    res.render('segnalazioni', { currentPage: 'segnalazioni' });
 });
 
-
+// Route register web user
+app.get('/registrazione', (req, res) => {
+    res.render('registrazione', { currentPage: 'registrazione', isSupportoTecnico: req.cookies.supporto_tecnico });
+});
 
 // Route page not found
 app.get('*', (req, res) => {
-    res.render('404', {currentPage: '404'});
+    res.render('404', { currentPage: '404', isSupportoTecnico: req.cookies.supporto_tecnico });
+
 });
 
 // Run the application on port 3000

@@ -19,7 +19,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UtenteMobile"
+              $ref: "#/components/schemas/UtenteMobileRegistrationRequest"
       responses:
         "201":
           description: Created. Nuovo utente mobile creato con successo. Link in Location header.
@@ -70,6 +70,35 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthError"
+
+  /utente/mobile/{id}:
+    get:
+      summary: Restituisce un utente
+      description: Endpoint per ottenere un utente
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+      responses:
+        "200":
+          description: OK. Utente trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobileGetResponse"
+        "404":
+          description: User not found with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /utente/mobile/{id}/segnalazioni:
     get:
@@ -212,12 +241,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /utente/mobile/{id}/riscattaBuono:
+    post:
+      summary: Riscatta un premio
+      description: Endpoint per riscattare un premio. Diventerà un buono
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+        - in: query
+          name: premioId
+          required: true
+          schema:
+            type: string
+          description: Id del premio
+      responses:
+        "201":
+          description: Created. Nuovo buono riscattato con successo
+          headers:
+            Location:
+              schema:
+                type: string
+              description: link al nuovo buono riscattato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /utente/web:
     post:
       summary: Crea un nuovo utente web
       description: Endpoint per creare un nuovo utente web.
       tags:
         - UtenteWeb
+      security:
+        - apiKeyAuth: []
       requestBody:
         required: true
         content:
@@ -231,7 +308,7 @@ paths:
             Location:
               schema:
                 type: string
-              description: Link al nuovo utente mobile.
+              description: Link al nuovo utente web.
           content:
             application/json:
               schema:
@@ -278,20 +355,20 @@ paths:
   /aziende:
     get:
       summary: Cerca tutte le aziende convenzionate
-      description: Endpoint che ritorna tutte le azinde convenzionate
+      description: Endpoint che ritorna tutte le aziende convenzionate
       tags:
         - Aziende
       security:
         - apiKeyAuth: []
       responses:
         "200":
-          description: OK. Lista di aziende
+          description: OK. Lista di aziende, potrebbe essere vuota.
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/AziendeGetResponse"
-        "404":
-          description: Azienda not found
+        "500":
+          description: Internal Server Error. Errore interno al server.
           content:
             application/json:
               schema:
@@ -327,16 +404,16 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-        "401":
-          description: Credenziali già in uso
+        "500":
+          description: Internal Server Error. Errore interno al server.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthError"
+                $ref: "#/components/schemas/Error"
 
   /aziende/{id}:
     get:
-      summary: Restituisce un'azieda.
+      summary: Restituisce un'azienda.
       description: Endpoint per ottenere un'azienda
       tags:
         - Aziende
@@ -357,12 +434,98 @@ paths:
               schema:
                 $ref: "#/components/schemas/AziendaGetResponse"
         "404":
-          description: Not Found. Utente con l'id specificato non trovato
+          description: Not Found. Azienda con l'id specificato non trovata
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
- 
+
+    put:
+      summary: Aggiorna informazioni di un'azienda.
+      description: "Endpoint per aggiornare informazioni di un'azienda. Campi aggiornabili: email, partita iva e password."
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AziendeModificaRequest"
+      responses:
+        "200":
+          description: OK. Azienda aggiornata con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Azienda con l'id specificato non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /aziende/{id}/premi:
+    post:
+      summary: Inserisce un nuovo premio
+      description: Endpoint per inserire un nuovo premio
+      tags:
+        - Aziende
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'azienda
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Premio"
+      responses:
+        "201":
+          description: Created. Nuovo premio creato con successo. Link in Location header.
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Link al nuovo premio.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Azienda con l'id specificato non trovata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
   /segnalazioni:
     get:
       summary: Restituisce tutte le segnalazioni.
@@ -469,89 +632,113 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /segnalazioni/immagini:
-    post:
-      summary: Carica un'immagine.
-      description: Endpoint per caricare un'immagine nel server.
-      tags:
-        - Segnalazioni
-      security:
-        - apiKeyAuth: []
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                image:
-                  type: string
-                  format: binary
-                  description: File dell'immagine da caricare.
-
-      responses:
-        "200":
-          description: OK. Immagine caricata con successo.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    default: true
-                  imageKey:
-                    type: string
-                    description: Chiave univoca per l'immagine caricata.
-        "400":
-          description: >
-            Errore di validazione. Nessuna immagine fornita.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-        "500":
-          description: Errore interno del server.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-
-  /segnalazioni/immagini/{imageKey}:
-    get:
-      summary: Ottiene un'immagine.
-      description: Endpoint per ottenere un'immagine dal server.
-      tags:
-        - Segnalazioni
-      security:
-        - apiKeyAuth: []
-      parameters:
-        - name: imageKey
-          in: path
+    /segnalazioni/immagini:
+      post:
+        summary: Carica un'immagine.
+        description: Endpoint per caricare un'immagine nel server.
+        tags:
+          - Segnalazioni
+        security:
+          - apiKeyAuth: []
+        requestBody:
           required: true
-          description: Chiave univoca dell'immagine
-          schema:
-            type: string
-      responses:
-        "200":
-          description: OK. Immagine ottenuta con successo.
           content:
-            application/json:
+            multipart/form-data:
               schema:
                 type: object
                 properties:
-                  success:
-                    type: boolean
-                    default: true
-                  imageUrl:
+                  image:
                     type: string
-                    description: URL pre-firmato per l'immagine.
-        "500":
-          description: Errore interno del server.
+                    format: binary
+                    description: File dell'immagine da caricare.
+
+        responses:
+          "200":
+            description: OK. Immagine caricata con successo.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      default: true
+                    imageKey:
+                      type: string
+                      description: Chiave univoca per l'immagine caricata.
+          "400":
+            description: >
+              Errore di validazione. Nessuna immagine fornita.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+          "500":
+            description: Errore interno del server.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+
+    /segnalazioni/immagini/{imageKey}:
+      get:
+        summary: Ottiene un'immagine.
+        description: Endpoint per ottenere un'immagine dal server.
+        tags:
+          - Segnalazioni
+        security:
+          - apiKeyAuth: []
+        parameters:
+          - name: imageKey
+            in: path
+            required: true
+            description: Chiave univoca dell'immagine
+            schema:
+              type: string
+        responses:
+          "200":
+            description: OK. Immagine ottenuta con successo.
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                      default: true
+                    imageUrl:
+                      type: string
+                      description: URL pre-firmato per l'immagine.
+          "500":
+            description: Errore interno del server.
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Error"
+
+  /premi:
+    get:
+      summary: Cerca tutti i premi disponibili
+      description: Endpoint che ritorna tutti i premi disponibili
+      tags:
+        - Premi
+      security:
+        - apiKeyAuth: []
+      responses:
+        "200":
+          description: OK. Lista di premi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PremiGetResponse"
+        "404":
+          description: Premi not found
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+
+
 
 
 components:
@@ -564,6 +751,28 @@ components:
 
   schemas:
     # Utente mobile responses and requests schemas
+    UtenteMobileRegistrationRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        nome:
+          type: string
+          description: Nome dell'utente
+        eta:
+          type: number
+          description: Età dell'utente
+        password:
+          type: string
+          description: Hash della password dell'utente
+      required:
+        - email
+        - nome
+        - eta
+        - password
+
     UtenteMobileLoginResponse:
       type: object
       properties:
@@ -592,6 +801,33 @@ components:
         points:
           type: number
           description: Punti dell'utente
+
+    UtenteMobileGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        UtenteMobile:
+          type: object
+          description: utente mobile specifico
+          properties:
+            id:
+              type: string
+              description: id dell'utente
+            nome:
+              type: string
+              description: nome utente mobile
+            email:
+              type: string
+              description: email dell'utente
+              format: email
+            eta:
+              type: number
+              description: era dell'utente
+            punti:
+              type: number
+              description: punti dell'utente
 
     UtenteMobileSegnalazioniResponse:
       type: object
@@ -670,6 +906,23 @@ components:
         aziende:
           $ref: "#/components/schemas/Azienda"
 
+    AziendeModificaRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          description: Nuova email dell'azienda
+        password:
+          type: string
+          description: Nuova password dell'azienda
+        p_iva:
+          type: string
+          description: Nuova partita IVA dell'azienda
+      required:
+        - email
+        - p_iva
+
     # Segnalazioni responses and requests schemas
     SegnalazioniResponse:
       type: object
@@ -681,6 +934,19 @@ components:
           description: Lista di segnalazioni.
           items:
             $ref: "#/components/schemas/Segnalazione"
+
+    # Premi responses and requests schemas
+    PremiGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        premi:
+          type: array
+          description: lista di premi
+          items:
+            $ref: "#/components/schemas/Premio"
 
     # Database models schemas
     Segnalazione:
@@ -824,27 +1090,43 @@ components:
         - email
         - nome
 
-    UtenteMobile:
+    Premio:
       type: object
       properties:
-        email:
-          type: string
-          format: email
-          description: Email dell'utente
         nome:
           type: string
-          description: Nome dell'utente
-        eta:
+          description: Nome del premio
+        valore:
+          type: number
+          description: Valore del premio
+        tipo:
           type: string
-          description: Età dell'utente
-        password:
+          enum:
+            - percentuale
+            - contante
+            - omaggio
+            - quantita
+          description: Tipo del premio
+        descrizione:
           type: string
-          description: Hash della password dell'utente
+          description: Descrizione del premio
+        costo_punti:
+          type: number
+          description: Costo in punti del premio
+        idAzienda:
+          type: string
+          description: Nome dell'azienda che offre il premio
+        validitaBuono:
+          type: number
+          description: Giorni di validità dal riscatto del buono
       required:
-        - email
         - nome
-        - eta
-        - password
+        - valore
+        - tipo
+        - descrizione
+        - costo_punti
+        - validitaBuono
+        - idAzienda
 
     # Errors schemas
     Error:
@@ -883,6 +1165,8 @@ components:
       required:
         - password
         - email
+        - nome
+        - p_iva
 
     PostSuccessfulResponse:
       type: object
