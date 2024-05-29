@@ -325,18 +325,18 @@ router.post('/:id/riscattaBuono', async (req, res) => {
  */
 
 router.put('/:id/modifica', async (req, res) => {
-	// Validate fields
-
-
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
+			var changedPassword = false;
+
+			console.log(result.nome, result.email, result.password)
 
 			// Update utente
 			if (req.body.nome) {
 				if (typeof req.body.nome !== 'string') {
 					console.error("The 'nome' field must be a non-empty string.");
 					return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
-				} else if (req.body.nome == result.nome) {
+				} else if (req.body.nome === result.nome) {
 					console.error("The 'nome' must be different from the last 'nome'.");
 					return res.status(400).json({ success: false, error: "The 'nome' must be different from the last 'nome'." });
 				} else {
@@ -348,7 +348,7 @@ router.put('/:id/modifica', async (req, res) => {
 				if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) ) {
 					console.error("The 'email' field must be a non-empty string in email format.");
 					return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
-				} else if (req.body.email == result.email) {
+				} else if (req.body.email === result.email) {
 					console.error("The 'email' must be different from the last 'email'.");
 					return res.status(400).json({ success: false, error: "The 'email' must be different from the last 'email'." });
 				} else {
@@ -360,7 +360,7 @@ router.put('/:id/modifica', async (req, res) => {
 				if (typeof req.body.password !== 'string') {
 					console.error("The 'password' field must be a non-empty string.");
 					return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
-				} else if (req.body.password == result.password) {
+				} else if (req.body.password === result.password) {
 					console.error("The 'password' must be different from the last 'password'.");
 					return res.status(400).json({ success: false, error: "The 'password' must be different from the last 'password'." });
 				}  else if (req.body.old_password !== result.password || !req.body.old_password) {
@@ -369,15 +369,16 @@ router.put('/:id/modifica', async (req, res) => {
 				}
 				else {
 					result.password = req.body.password;
+					changedPassword = true;
 				}
 			}
 
 			result.save();
 
-			return res.status(200).send({ success: true, nome: result.nome, email: result.email, id: result._id});
+			return res.status(200).send({ success: true, nome: result.nome, email: result.email, passwordChanged: changedPassword, id: result._id});
 		})
 		.catch((error) => {
-			console.error('Utente not found');
+			console.error('Utente not found ', error);
 			return res.status(404).json({ success: false, error: 'Utente not found' });
 		});
 });
