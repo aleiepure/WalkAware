@@ -28,8 +28,8 @@ router.put("/:id/valida", async (req, res) => {
             }
         })
         .catch((error) => {
-            console.error('Buono not found with the specified ID.', error);
-            return res.status(404).json({ success: false, error: 'Buono not found with the specified ID.' });
+            console.error('Buono non trovato con l\'ID specificato', error);
+            return res.status(404).json({ success: false, error:'Buono non trovato con l\'ID specificato' });
         });
 
 });
@@ -40,8 +40,8 @@ router.get("/:id", async (req, res) => {
             return res.status(200).json({ success: true, buoni: result });
         })
         .catch((error) => {
-			console.error('Buono not found with the specified ID.', error);
-			return res.status(404).json({ success: false, error: 'Buono not found with the specified ID.' });
+			console.error('Buono non trovato con l\'ID specificato', error);
+			return res.status(404).json({ success: false, error: 'Buono non trovato con l\'ID specificato' });
 		});
 });
 

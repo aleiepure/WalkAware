@@ -293,13 +293,13 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 
 					// Create new buono
 					let buonoUtenteMobile = new buonoUtenteMobileModel({
-						nome: nome,
-						valore: valore,
-						tipo: tipo,
-						descrizione: descrizione,
-						costo_punti: costo_punti,
-						idAzienda: idAzienda,
-						validitaBuono: validitaBuono
+						nome: premio.nome,
+						valore: premio.valore,
+						tipo: premio.tipo,
+						descrizione: premio.descrizione,
+						costo_punti: premio.costo_punti,
+						idAzienda: premio.idAzienda,
+						validitaBuono: premio.validitaBuono
 					});
 					user.buoni.push(buonoUtenteMobile);
 					user.punti -= premio.costo_punti;
@@ -307,13 +307,13 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 
 					let buono = new buonoModel({
 						id: buonoUtenteMobile._id,
-						nome: nome,
-						valore: valore,
-						tipo: tipo,
-						descrizione: descrizione,
-						costo_punti: costo_punti,
-						idAzienda: idAzienda,
-						validitaBuono: validitaBuono
+						nome: premio.nome,
+						valore: premio.valore,
+						tipo: premio.tipo,
+						descrizione: premio.descrizione,
+						costo_punti: premio.costo_punti,
+						idAzienda: premio.idAzienda,
+						validitaBuono: premio.validitaBuono
 					})
 					buono.save()
 
@@ -321,12 +321,12 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 					return res.status(201).location(`/api/v1/utente/mobile/${user._id}/buoni/${buono._id}`).send({ success: true });
 				})
 				.catch((error) => {
-					console.error('Prize not found with the specified ID.');
+					console.error(error);
 					return res.status(404).json({ success: false, error: 'Prize not found with the specified ID.' });
 				});
 		})
 		.catch((error) => {
-			console.error('User not found with the specified ID.');
+			console.error(error);
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
 		});
 });

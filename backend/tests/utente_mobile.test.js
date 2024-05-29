@@ -3,8 +3,10 @@ const jwt = require('jsonwebtoken');
 const mongoose = require("mongoose");
 const request = require('supertest');
 require('dotenv').config();
-const { utenteMobileModel, buonoModel } = require('../models/utente_mobile.js');
+const { utenteMobileModel, buonoUtenteMobileModel } = require('../models/utente_mobile.js');
 const premioModel = require('../models/premio.js');
+const buonoModel = require("../models/buono");
+
 
 
 // Mock utenteMobile
@@ -41,6 +43,10 @@ utenteMobileModel.findOne = mockUtenteMobileFindOne;
 let mockUtenteMobileSave = jest.fn()
     .mockResolvedValueOnce(true);
 utenteMobileModel.prototype.save = mockUtenteMobileSave;
+
+let mockBuonoModel = jest.fn()
+    .mockResolvedValueOnce(true);
+buonoModel.prototype.save = mockBuonoModel;
 
 let mockUtenteMobileFindById = jest.fn()
     .mockResolvedValueOnce(new utenteMobileModel({ //get punti valida
@@ -98,7 +104,7 @@ let mockUtenteMobileFindById = jest.fn()
         password: "password123",
         punti: 1,
         buoni: [
-            new buonoModel({
+            new buonoUtenteMobileModel({
                 nome: "buonoNome",
                 valore: 23,
                 tipo: "percentuale",
@@ -132,7 +138,7 @@ let mockPremioFindById = jest.fn()
         validitaBuono: 50
     }))
     .mockResolvedValueOnce()// utente not found riscattaBuono
-    .mockRejectedValueOnce()// premio not found riscattaBuono    
+    .mockRejectedValueOnce();// premio not found riscattaBuono    
 premioModel.findById = mockPremioFindById;
 
 // Create a valid token
@@ -368,8 +374,8 @@ describe("GET /api/v1/utente/mobile/:id: Ottiene un utente", () => {
                 expect(res.body).toHaveProperty("punti");
                 expect(res.body.nome).toBeDefined();
                 expect(res.body.email).toBeDefined();
-                expect(res.body.eta).toBeDefined()
-                expect(res.body.punti).toBeDefined()
+                expect(res.body.eta).toBeDefined();
+                expect(res.body.punti).toBeDefined();
             });
     });
     test('Utente non trovato', async () => {
@@ -396,35 +402,35 @@ describe("POST api/v1/utente/mobile/{id}/riscattaBuono: Riscatta un premio", () 
                 expect(res.headers.location).toBeDefined();
             });
     });
-    test("not enough punti", async () =>{
+    test("not enough punti", async () => {
         return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(400, { success: false, error: 'Not enough points to redeem the prize.' })
-    
-    }) 
-    test("utente not found", async () =>{
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(400, { success: false, error: 'Not enough points to redeem the prize.' });
+
+    });
+    test("utente not found", async () => {
         return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(404, { success: false, error: 'User not found with the specified ID.' })
-    })
-    test("premio not found", async () =>{
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(404, { success: false, error: 'User not found with the specified ID.' });
+    });
+    test("premio not found", async () => {
         return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(404, { success: false, error: 'Prize not found with the specified ID.' })
-    })
-    test("empty query parameter", async () =>{
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(404, { success: false, error: 'Prize not found with the specified ID.' });
+    });
+    test("empty query parameter", async () => {
         return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(400, { success: false, error: "The 'premioId' query parameter must be a non-empty string." })
-    })
+            .post("/api/v1/utente/mobile/12345/riscattaBuono")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(400, { success: false, error: "The 'premioId' query parameter must be a non-empty string." });
+    });
 });
 
 describe("GET api/v1/utente/mobile/:id/buoni: Ottieni tutti i buoni dell'utente", () => {

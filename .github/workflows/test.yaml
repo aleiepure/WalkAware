@@ -23,7 +23,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: ./backend
-        run: npm run seqtest
+        run: npm test
 
       # Mobile
       - name: Setup java

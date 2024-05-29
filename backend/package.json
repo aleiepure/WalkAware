@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "run-dev": "nodemon ./index.js",
-    "test": "jest --setupFiles dotenv/config",
-    "seqtest": "jest --runInBand --testPathPattern='app.test.js|utente_mobile.test.js|aziende.test.js|segnalazioni.test.js|utente_web.test.js|aziende.test.js' --verbose=true"
+    "test": "jest --setupFiles dotenv/config"
   },
   "author": "",
   "license": "ISC",
