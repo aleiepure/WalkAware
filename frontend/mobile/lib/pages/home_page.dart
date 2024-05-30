@@ -19,6 +19,7 @@ import 'package:pedometer/pedometer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/src/widgets/visibility.dart' as visibility;
 
+import 'account_info_page.dart';
 import 'rewards_page.dart'; // ignore: implementation_imports
 
 enum TrackingMode { none, gps, compass }
@@ -1016,17 +1017,12 @@ class _HomePageState extends State<HomePage> {
         child: Icon(_isUserLogged ? Icons.account_circle : Icons.person_off),
         onPressed: () async {
           if (user != null) {
-            // TODO: Navigate to account info page instead of logging out
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute<void>(
-            //     builder: (BuildContext context) => const AccountInfoPage(),
-            //   ),
-            // );
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            prefs.remove('userId');
-            prefs.remove('userToken');
-            Provider.of<UserProvider>(context, listen: false).clearUser();
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const AccountInfoPage(),
+              ),
+            );
           } else {
             Navigator.push(
               context,

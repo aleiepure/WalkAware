@@ -167,7 +167,8 @@ router.post('/:id/segnalazioni', async (req, res) => {
 
 			// Create new segnalazione
 			let segnalazione = new segnalazioneModel({
-				id: segnalazioneUtenteMobile._id,
+				id_segnalazione: segnalazioneUtenteMobile._id,
+				id_utente: req.params.id,
 				luogo: req.body.luogo,
 				foto: req.body.foto,
 				tipo: req.body.tipo,
@@ -321,15 +322,13 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 /**
  * Modifica dati utente mobile
  * 
- * GET /api/v1/utente/mobile/{id}/modifica
+ * GET /api/v1/utente/mobile/{id}
  */
 
-router.put('/:id/modifica', async (req, res) => {
+router.put('/:id', async (req, res) => {
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
 			var changedPassword = false;
-
-			console.log(result.nome, result.email, result.password)
 
 			// Update utente
 			if (req.body.nome) {
