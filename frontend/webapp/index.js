@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
 const aziendeRoutes = require('./routes/aziende.js');
+const segnalazioniRoutes = require('./routes/segnalazioni.js');
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
@@ -17,7 +18,10 @@ var app = express();
 // parsing settings
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//method override
 app.use(methodOverride('_method'));
+
 
 // cookie parser
 app.use(cookieParser());
@@ -43,6 +47,7 @@ app.set('views', __dirname + '/views');
 // Routes
 app.use('/utente', userRoutes);
 app.use("/aziende", aziendeRoutes);
+app.use("/segnalazioni", segnalazioniRoutes);
 
 // tokenchecker for auth
 app.use(tokenChecker);
@@ -59,8 +64,7 @@ app.get('/', (req, res) => {
 
 // Route segnalazioni
 app.get('/segnalazioni', (req, res) => {
-    console.log(typeof(req.cookies.supporto_tecnico));
-    res.render('segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
+    res.render('segnalazioni', { currentPage: 'segnalazioni' });
 });
 
 // Route register web user

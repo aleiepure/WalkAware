@@ -1,0 +1,17 @@
+/* public/styles/style.css */
+.badge-aperta {
+    background-color: green;
+}
+.badge-presa-in-carico {
+    background-color: orange;
+}
+.badge-conclusa {
+    background-color: red;
+}
+.iconText_segnalazioni {
+    cursor: pointer;
+    margin-right: 20px;
+}
+.icon_segnalazioni {
+    cursor: pointer;
+}
