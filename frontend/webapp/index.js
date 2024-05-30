@@ -40,9 +40,6 @@ app.use(express.static(staticDir));
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-// app.use(multer)
-
-
 
 // Routes
 app.use('/utente', userRoutes);
@@ -56,16 +53,12 @@ app.use(tokenChecker);
 // Route for the login pag
 app.get('/', (req, res) => {
     if (verifyToken(req.cookies)) {
-        res.redirect('/segnalazioni');
+        res.redirect('/segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
     } else {
-        res.render('login', { currentPage: 'login' });
+        res.render('login', { currentPage: 'login', isSupportoTecnico: req.cookies.supporto_tecnico });
     }
 });
 
-// Route segnalazioni
-app.get('/segnalazioni', (req, res) => {
-    res.render('segnalazioni', { currentPage: 'segnalazioni' });
-});
 
 // Route register web user
 app.get('/registrazione', (req, res) => {

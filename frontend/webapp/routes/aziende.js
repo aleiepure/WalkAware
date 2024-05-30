@@ -1,8 +1,6 @@
 const express = require('express');
 const path = require('path');
-const bcrypt = require('bcrypt');
-
-require('dotenv').config();
+const {sha512} = require('js-sha512');
 
 const router = express.Router();
 
@@ -19,7 +17,12 @@ router.get('/', async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
-  let hashed_password = await bcrypt.hash(req.body.password, 10);
+  let hashed_password = '';
+
+  if (req.body.password) {
+    hashed_password = sha512.hmac("", req.body.password);
+  }
+
   fetch(path.join(baseUrl, "/api/v1/aziende"), {
     method: "POST",
     headers: { "x-access-token": req.cookies.token, "Content-Type": "application/json" },
@@ -47,11 +50,11 @@ router.post("/", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
-  
+
   let hashed_password = '';
 
   if (req.body.password) {
-    hashed_password = await bcrypt.hash(req.body.password, 10);
+    hashed_password = sha512.hmac("", req.body.password);
   }
 
   fetch(path.join(baseUrl, "/api/v1/aziende/" + req.params.id), {

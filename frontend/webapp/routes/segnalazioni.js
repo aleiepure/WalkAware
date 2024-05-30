@@ -63,7 +63,7 @@ router.get("/", async (req, res) => {
       }
     }));
 
-    res.render('segnalazioni', { currentPage: 'segnalazioni', segnalazioni: segnalazioniData.segnalazioni });
+    res.render('segnalazioni', { currentPage: 'segnalazioni', segnalazioni: segnalazioniData.segnalazioni, isSupportoTecnico: req.cookies.supporto_tecnico });
   } catch (error) {
     console.error("Errore generale:", error);
     res.status(500).send("Errore generale nella gestione delle segnalazioni");
@@ -81,11 +81,11 @@ router.put("/:id", (req, res) => {
     .then(response => {
       if (response.ok) {
         console.log("PUT request successful. Redirecting to /segnalazioni");
-        res.status(303).redirect("/segnalazioni");
+        res.redirect("/segnalazioni");
       }
       else {
         console.error("PUT request failed. Redirecting to /segnalazioni with error.");
-        res.status(303).redirect("/segnalazioni?error=Qualcosa%20C3%A%20andato%20storto");
+        res.redirect("/segnalazioni?error=Qualcosa%20C3%A%20andato%20storto");
       }
     })
     .catch(jsonError => {
