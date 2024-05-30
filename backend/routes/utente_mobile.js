@@ -121,7 +121,7 @@ router.post('/login', async (req, res) => {
  * Response: 201 Created
  * 		Headers: Location /api/v1/utente/mobile/{id}/segnalazioni/{id}
 */
-router.post('/:id/segnalazioni', async (req, res) => {
+router.post('/:id/segnalazioni', (req, res) => {
 
 	// Validate luogo field
 	// TODO: add regex for lat, long
@@ -129,14 +129,10 @@ router.post('/:id/segnalazioni', async (req, res) => {
 		console.error("The 'luogo' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'luogo' field must be a non-empty string." });
 	}
-	// // Validate foto field
-	// if (req.body.foto !== null && (typeof req.body.foto !== 'string' || req.body.foto === '')) {
-	// 	console.error("The 'foto' field must be a non-empty string.");
-	// 	return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
-	// }
+
 	// Validate tipo field
-	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
-		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza'  'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'.");
+	if (typeof req.body.tipo !== 'string' || !['viabilita', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
+		console.error("The 'tipo' field must be a either 'viabilita', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', 'rifiuti', 'parcheggi', or 'altro'.");
 		return res.status(400).json({ success: false, error: "The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza' 'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'." });
 	}
 	// Validate urgenza field
@@ -192,7 +188,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
  * GET /api/v1/utente/mobile/{id}/segnalazioni
  * 
 */
-router.get("/:id/segnalazioni/", async (req, res) => {
+router.get("/:id/segnalazioni/", (req, res) => {
 
 	// Check if user exists
 	utenteMobileModel.findById(req.params.id)
@@ -205,13 +201,14 @@ router.get("/:id/segnalazioni/", async (req, res) => {
 		});
 });
 
+
 /**
  * Update mobile user's points
  * 
  * PUT /api/v1/utente/mobile/{id}/punti
  * 		Required fields: punti
  */
-router.put('/:id/punti', async (req, res) => {
+router.put('/:id/punti', (req, res) => {
 
 	// Validate punti field
 	if (typeof req.body.punti != 'number') {
@@ -238,7 +235,7 @@ router.put('/:id/punti', async (req, res) => {
  * 
  * GET /api/v1/utente/mobile/{id}/punti
  */
-router.get('/:id/punti', async (req, res) => {
+router.get('/:id/punti', (req, res) => {
 	// User not found
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {

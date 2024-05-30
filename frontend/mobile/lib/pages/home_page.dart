@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, implementation_imports
 
 import 'dart:async';
 import 'dart:io';
@@ -11,7 +11,6 @@ import 'package:mapbox_search/mapbox_search.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
-import '../pages/new_report_page.dart';
 import '../providers/user_provider.dart';
 import '../requests/mapbox_requests.dart';
 import '../pages/account_page.dart';
@@ -21,6 +20,7 @@ import 'package:flutter/src/widgets/visibility.dart' as visibility;
 
 import 'account_info_page.dart';
 import 'rewards_page.dart'; // ignore: implementation_imports
+import 'reports_page.dart';
 
 enum TrackingMode { none, gps, compass }
 
@@ -1117,7 +1117,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (BuildContext context) => const NewReportPage(),
+                  builder: (BuildContext context) => const ReportsPage(),
                 ),
               )),
     );

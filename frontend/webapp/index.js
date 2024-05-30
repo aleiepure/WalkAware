@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
 const aziendeRoutes = require('./routes/aziende.js');
+const segnalazioniRoutes = require('./routes/segnalazioni.js');
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
@@ -17,7 +18,10 @@ var app = express();
 // parsing settings
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+//method override
 app.use(methodOverride('_method'));
+
 
 // cookie parser
 app.use(cookieParser());
@@ -36,13 +40,11 @@ app.use(express.static(staticDir));
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-// app.use(multer)
-
-
 
 // Routes
 app.use('/utente', userRoutes);
 app.use("/aziende", aziendeRoutes);
+app.use("/segnalazioni", segnalazioniRoutes);
 
 // tokenchecker for auth
 app.use(tokenChecker);
@@ -51,17 +53,12 @@ app.use(tokenChecker);
 // Route for the login pag
 app.get('/', (req, res) => {
     if (verifyToken(req.cookies)) {
-        res.redirect('/segnalazioni');
+        res.redirect('/segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
     } else {
-        res.render('login', { currentPage: 'login' });
+        res.render('login', { currentPage: 'login', isSupportoTecnico: req.cookies.supporto_tecnico });
     }
 });
 
-// Route segnalazioni
-app.get('/segnalazioni', (req, res) => {
-    console.log(typeof(req.cookies.supporto_tecnico));
-    res.render('segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
-});
 
 // Route register web user
 app.get('/registrazione', (req, res) => {
