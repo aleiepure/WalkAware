@@ -480,10 +480,10 @@ describe("POST api/v1/utente/mobile/{id}/riscattaBuono", () => {
     });
 });
 
-describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente", () => {
+describe("PUT /api/v1/utente/mobile/:id: Modifica dei dati dell'utente", () => {
     test("Richiesta valida", async () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -508,7 +508,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test("Nome non fornito come stringa", () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -522,7 +522,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Nome uguale a quello attuale', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -536,7 +536,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Email non fornita nel formato valido', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -550,7 +550,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Email uguale a quella attuale', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -564,7 +564,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Nuova Password non fornita come stringa', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -578,7 +578,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Password uguale a quella attuale', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -592,7 +592,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Password vecchia non fornita', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
@@ -605,7 +605,7 @@ describe("PUT /api/v1/utente/mobile/:id/modifica: Modifica dei dati dell'utente"
 
     test('Utente non trovato', () => {
         return request(app)
-            .put("/api/v1/utente/mobile/12345/modifica")
+            .put("/api/v1/utente/mobile/12345")
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
