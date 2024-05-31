@@ -273,7 +273,7 @@ Future backendRequestGetRewards(String authToken) async {
 }
 
 /// Sends a request to the backend to redeem a reward.
-/// 
+///
 /// Sends a POST request to the backend (URL from the BACKEND_BASE_URL environment
 /// variable) to redeem a reward with the given [userId], [rewardId] and [authToken].
 /// Returns the response from the backend. If an error occurs, logs the error and
@@ -287,6 +287,46 @@ Future backendRequestRedeemReward({
   try {
     final response = await Dio().post(
       '$baseUrl/api/v1/utente/mobile/$userId/riscattaBuono?premioId=$rewardId',
+      options: Options(headers: {'x-access-token': authToken}),
+    );
+
+    return response;
+  } on DioException catch (e) {
+    if (e.type == DioExceptionType.badResponse) {
+      return e.response;
+    }
+
+    final errorMessage = DioExceptions.fromDioException(e).toString();
+    debugPrint(errorMessage);
+
+    return Response(requestOptions: RequestOptions(), statusCode: 418, statusMessage: errorMessage);
+  }
+}
+
+/// Sends a request to the backend to edit a user.
+///
+/// Sends a PUT request to the backend (URL from the BACKEND_BASE_URL environment
+/// variable) to edit a user with the given [userId], [name], [email], [passwordHash]
+/// Returns the response from the backend. If an error occurs, logs the error and
+/// returns a response with status code 418 (I'm a teapot) to indicate that its not
+/// a backend issue.
+Future backendRequestEditUser({
+  required String userId,
+  String name = '',
+  String email = '',
+  String newPassword = '',
+  String oldPassword = '',
+  required String authToken,
+}) async {
+  try {
+    final response = await Dio().put(
+      '$baseUrl/api/v1/utente/mobile/$userId',
+      data: {
+        'nome': name,
+        'email': email,
+        'password': newPassword,
+        'old_password': oldPassword,
+      },
       options: Options(headers: {'x-access-token': authToken}),
     );
 
