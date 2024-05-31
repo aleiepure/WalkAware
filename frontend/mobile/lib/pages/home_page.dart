@@ -473,6 +473,7 @@ class _HomePageState extends State<HomePage> {
   Widget _locationInfoBottomSheetDirectionsButton(String name, String address, Position destination) {
     return Focus(
       child: FilledButton.icon(
+        autofocus: true,
         onPressed: () => _onLocationInfoBottomSheetDirectionsButtonPressed(name, address, destination),
         icon: const Icon(Icons.directions_walk),
         label: const Text('Come ci arrivo?'),
@@ -920,7 +921,10 @@ class _HomePageState extends State<HomePage> {
             _onSearchSuggestionSelected(
                 'Stazione di Trento', 'via Dogana, 3, 38122 Trento, TN', 'dXJuOm1ieHBvaTo1ZWNhNzBhMy1kNTg2LTQ3YzItOTg1ZC1lMGU4NTM5ZjAxMmU');
             controller.closeView(null);
-            FocusScope.of(context).unfocus();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              FocusScope.of(context).unfocus();
+            });
           },
         ),
         ListTile(
@@ -943,7 +947,10 @@ class _HomePageState extends State<HomePage> {
             _onSearchSuggestionSelected('Polo Scientifico e Tecnologico Fabio Ferrari', 'via Sommarive, 18, 38123 Povo, TN',
                 'dXJuOm1ieHBvaTozYTViNWUzNC1hMWVmLTQ1OWEtYTliZS03MzM3NzgwNmUwZDY');
             controller.closeView(null);
-            FocusScope.of(context).unfocus();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              FocusScope.of(context).unfocus();
+            });
           },
         ),
       ];
@@ -983,7 +990,10 @@ class _HomePageState extends State<HomePage> {
                   _onSearchSuggestionSelected(
                       suggestion.namePreferred ?? suggestion.name, suggestion.fullAddress ?? suggestion.address ?? '', suggestion.mapboxId);
                   controller.closeView(null);
-                  FocusScope.of(context).unfocus();
+
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    FocusScope.of(context).unfocus();
+                  });
                 });
           })
           .where((suggestionTile) {
