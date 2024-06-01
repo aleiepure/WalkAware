@@ -8,6 +8,7 @@ require('dotenv').config();
 
 const userRoutes = require("./routes/user_routes.js");
 const aziendeRoutes = require('./routes/aziende.js');
+const validaBuonoRoutes = require("./routes/valida_buono.js");
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
 
 
@@ -43,6 +44,7 @@ app.set('views', __dirname + '/views');
 // Routes
 app.use('/utente', userRoutes);
 app.use("/aziende", aziendeRoutes);
+app.use("/valida_buono", validaBuonoRoutes);
 
 // tokenchecker for auth
 app.use(tokenChecker);
@@ -59,7 +61,7 @@ app.get('/', (req, res) => {
 
 // Route segnalazioni
 app.get('/segnalazioni', (req, res) => {
-    console.log(typeof(req.cookies.supporto_tecnico));
+    console.log(typeof (req.cookies.supporto_tecnico));
     res.render('segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
 });
 

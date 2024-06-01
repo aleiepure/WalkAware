@@ -1,7 +1,8 @@
 const express = require('express');
-const aziendaModel = require('../models/azienda');
-const bcrypt = require('bcrypt');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
+
+const aziendaModel = require('../models/azienda');
 const premioModel = require('../models/premio');
 
 /**  
@@ -59,6 +60,63 @@ router.post("/", (req, res) => {
 			return res.status(500).json({ success: false, error: "Problem retrieving aziende" });
 		});
 });
+
+
+/**  
+ * Azienda user login
+ * 
+ * POST /api/v1/utente/aziende/login
+ * 		Required fields: email, password
+*/
+router.post('/login', async (req, res) => {
+
+	// Validate email field
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) || _isEmptyString(req.body.email)) {
+		console.error("The 'email' field must be a non-empty string in email format.");
+		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
+	}
+	// Validate password field
+	if (typeof req.body.password !== 'string' || _isEmptyString(req.body.password)) {
+		console.error("The 'password' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
+	}
+
+	// User not found
+	aziendaModel.findOne({ email: req.body.email })
+		.then((user) => {
+			if (!user) {
+				console.error('Authentication failed. User not found.');
+				return res.status(401).json({ success: false, error: 'Authentication failed. User not found.' });
+			}
+
+			// Check password
+			if (req.body.password != user.password) {
+				return res.status(401).json({ success: false, error: 'Authentication failed. Incorrect password.' });
+			}
+
+			// Create JWT token
+			const payload = { userId: user._id, email: user.email };
+			const options = { expiresIn: '1y' };
+			const secret = process.env.SUPER_SECRET || "supersecret";
+			const token = jwt.sign(payload, secret, options);
+
+			// Response
+			return res.json({
+				success: true,
+				message: 'Authentication successful.',
+				token: token,
+				self: `/api/v1/aziende/${user._id}`,
+				email: user.email,
+				userId: user._id,
+				name: user.nome
+			});
+		})
+		.catch((error) => {
+			console.error(error.message);
+			return res.status(500).json({ success: false, error: 'Internal server error.' });
+		});
+});
+
 
 /**  
  * Get all aziende
