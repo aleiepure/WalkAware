@@ -273,7 +273,7 @@ Future backendRequestGetRewards(String authToken) async {
 }
 
 /// Sends a request to the backend to redeem a reward.
-/// 
+///
 /// Sends a POST request to the backend (URL from the BACKEND_BASE_URL environment
 /// variable) to redeem a reward with the given [userId], [rewardId] and [authToken].
 /// Returns the response from the backend. If an error occurs, logs the error and

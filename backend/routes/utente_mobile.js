@@ -122,7 +122,7 @@ router.post('/login', async (req, res) => {
  * Response: 201 Created
  * 		Headers: Location /api/v1/utente/mobile/{id}/segnalazioni/{id}
 */
-router.post('/:id/segnalazioni', async (req, res) => {
+router.post('/:id/segnalazioni', (req, res) => {
 
 	// Validate luogo field
 	// TODO: add regex for lat, long
@@ -130,14 +130,10 @@ router.post('/:id/segnalazioni', async (req, res) => {
 		console.error("The 'luogo' field must be a non-empty string.");
 		return res.status(400).json({ success: false, error: "The 'luogo' field must be a non-empty string." });
 	}
-	// // Validate foto field
-	// if (req.body.foto !== null && (typeof req.body.foto !== 'string' || req.body.foto === '')) {
-	// 	console.error("The 'foto' field must be a non-empty string.");
-	// 	return res.status(400).json({ success: false, error: "The 'foto' field must be a non-empty string." });
-	// }
+
 	// Validate tipo field
-	if (typeof req.body.tipo !== 'string' || !['strada', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
-		console.error("The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza'  'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'.");
+	if (typeof req.body.tipo !== 'string' || !['viabilita', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', "rifiuti", "parcheggi", "altro"].includes(req.body.tipo)) {
+		console.error("The 'tipo' field must be a either 'viabilita', 'illuminazione', 'segnaletica', 'sicurezza', 'barriereArchitettoniche', 'rifiuti', 'parcheggi', or 'altro'.");
 		return res.status(400).json({ success: false, error: "The 'tipo' field must be a either 'strada', 'illuminazione', 'segnaletica', 'sicurezza' 'barriereArchitettoniche' 'rifiuti' 'parcheggi' or 'altro'." });
 	}
 	// Validate urgenza field
@@ -168,7 +164,8 @@ router.post('/:id/segnalazioni', async (req, res) => {
 
 			// Create new segnalazione
 			let segnalazione = new segnalazioneModel({
-				id: segnalazioneUtenteMobile._id,
+				id_segnalazione: segnalazioneUtenteMobile._id,
+				id_utente: req.params.id,
 				luogo: req.body.luogo,
 				foto: req.body.foto,
 				tipo: req.body.tipo,
@@ -192,7 +189,7 @@ router.post('/:id/segnalazioni', async (req, res) => {
  * GET /api/v1/utente/mobile/{id}/segnalazioni
  * 
 */
-router.get("/:id/segnalazioni/", async (req, res) => {
+router.get("/:id/segnalazioni/", (req, res) => {
 
 	// Check if user exists
 	utenteMobileModel.findById(req.params.id)
@@ -205,13 +202,14 @@ router.get("/:id/segnalazioni/", async (req, res) => {
 		});
 });
 
+
 /**
  * Update mobile user's points
  * 
  * PUT /api/v1/utente/mobile/{id}/punti
  * 		Required fields: punti
  */
-router.put('/:id/punti', async (req, res) => {
+router.put('/:id/punti', (req, res) => {
 
 	// Validate punti field
 	if (typeof req.body.punti != 'number') {
@@ -238,7 +236,7 @@ router.put('/:id/punti', async (req, res) => {
  * 
  * GET /api/v1/utente/mobile/{id}/punti
  */
-router.get('/:id/punti', async (req, res) => {
+router.get('/:id/punti', (req, res) => {
 	// User not found
 	utenteMobileModel.findById(req.params.id)
 		.then((result) => {
@@ -347,6 +345,70 @@ router.get("/:id/buoni", async (req, res) => {
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
 		});
 });
+
+/**
+ * Modifica dati utente mobile
+ * 
+ * GET /api/v1/utente/mobile/{id}
+ */
+
+router.put('/:id', async (req, res) => {
+	utenteMobileModel.findById(req.params.id)
+		.then((result) => {
+			var changedPassword = false;
+
+			// Update utente
+			if (req.body.nome) {
+				if (typeof req.body.nome !== 'string') {
+					console.error("The 'nome' field must be a non-empty string.");
+					return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
+				} else if (req.body.nome === result.nome) {
+					console.error("The 'nome' must be different from the last 'nome'.");
+					return res.status(400).json({ success: false, error: "The 'nome' must be different from the last 'nome'." });
+				} else {
+					result.nome = req.body.nome;
+				}
+			}
+
+			if (req.body.email) {
+				if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) ) {
+					console.error("The 'email' field must be a non-empty string in email format.");
+					return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
+				} else if (req.body.email === result.email) {
+					console.error("The 'email' must be different from the last 'email'.");
+					return res.status(400).json({ success: false, error: "The 'email' must be different from the last 'email'." });
+				} else {
+					result.email = req.body.email;
+				}
+			}
+
+			if (req.body.password) {
+				if (typeof req.body.password !== 'string') {
+					console.error("The 'password' field must be a non-empty string.");
+					return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
+				} else if (req.body.password === result.password) {
+					console.error("The 'password' must be different from the last 'password'.");
+					return res.status(400).json({ success: false, error: "The 'password' must be different from the last 'password'." });
+				}  else if (req.body.old_password !== result.password || !req.body.old_password) {
+					console.error("You must provide the correct old password in order to change it");
+					return res.status(400).json({ success: false, error: "You must provide the correct old password in order to change it" });
+				}
+				else {
+					result.password = req.body.password;
+					changedPassword = true;
+				}
+			}
+
+			result.save();
+
+			return res.status(200).send({ success: true, nome: result.nome, email: result.email, passwordChanged: changedPassword, id: result._id});
+		})
+		.catch((error) => {
+			console.error('Utente not found ', error);
+			return res.status(404).json({ success: false, error: 'Utente not found' });
+		});
+});
+
 
 // Check if a given email is in a valid format
 function _isValidEmail(email) {

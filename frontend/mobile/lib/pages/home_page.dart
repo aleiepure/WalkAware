@@ -1,4 +1,4 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, implementation_imports
 
 import 'dart:async';
 import 'dart:io';
@@ -11,7 +11,6 @@ import 'package:mapbox_search/mapbox_search.dart';
 import 'package:material_symbols_icons/symbols.dart';
 import 'package:material_symbols_icons/material_symbols_icons.dart';
 import 'package:provider/provider.dart';
-import '../pages/new_report_page.dart';
 import '../providers/user_provider.dart';
 import '../requests/mapbox_requests.dart';
 import '../pages/account_page.dart';
@@ -19,7 +18,9 @@ import 'package:pedometer/pedometer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/src/widgets/visibility.dart' as visibility;
 
+import 'account_info_page.dart';
 import 'rewards_page.dart'; // ignore: implementation_imports
+import 'reports_page.dart';
 
 enum TrackingMode { none, gps, compass }
 
@@ -473,6 +474,7 @@ class _HomePageState extends State<HomePage> {
   Widget _locationInfoBottomSheetDirectionsButton(String name, String address, Position destination) {
     return Focus(
       child: FilledButton.icon(
+        autofocus: true,
         onPressed: () => _onLocationInfoBottomSheetDirectionsButtonPressed(name, address, destination),
         icon: const Icon(Icons.directions_walk),
         label: const Text('Come ci arrivo?'),
@@ -920,7 +922,10 @@ class _HomePageState extends State<HomePage> {
             _onSearchSuggestionSelected(
                 'Stazione di Trento', 'via Dogana, 3, 38122 Trento, TN', 'dXJuOm1ieHBvaTo1ZWNhNzBhMy1kNTg2LTQ3YzItOTg1ZC1lMGU4NTM5ZjAxMmU');
             controller.closeView(null);
-            FocusScope.of(context).unfocus();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              FocusScope.of(context).unfocus();
+            });
           },
         ),
         ListTile(
@@ -943,7 +948,10 @@ class _HomePageState extends State<HomePage> {
             _onSearchSuggestionSelected('Polo Scientifico e Tecnologico Fabio Ferrari', 'via Sommarive, 18, 38123 Povo, TN',
                 'dXJuOm1ieHBvaTozYTViNWUzNC1hMWVmLTQ1OWEtYTliZS03MzM3NzgwNmUwZDY');
             controller.closeView(null);
-            FocusScope.of(context).unfocus();
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              FocusScope.of(context).unfocus();
+            });
           },
         ),
       ];
@@ -983,7 +991,10 @@ class _HomePageState extends State<HomePage> {
                   _onSearchSuggestionSelected(
                       suggestion.namePreferred ?? suggestion.name, suggestion.fullAddress ?? suggestion.address ?? '', suggestion.mapboxId);
                   controller.closeView(null);
-                  FocusScope.of(context).unfocus();
+
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    FocusScope.of(context).unfocus();
+                  });
                 });
           })
           .where((suggestionTile) {
@@ -1016,17 +1027,12 @@ class _HomePageState extends State<HomePage> {
         child: Icon(_isUserLogged ? Icons.account_circle : Icons.person_off),
         onPressed: () async {
           if (user != null) {
-            // TODO: Navigate to account info page instead of logging out
-            // Navigator.push(
-            //   context,
-            //   MaterialPageRoute<void>(
-            //     builder: (BuildContext context) => const AccountInfoPage(),
-            //   ),
-            // );
-            SharedPreferences prefs = await SharedPreferences.getInstance();
-            prefs.remove('userId');
-            prefs.remove('userToken');
-            Provider.of<UserProvider>(context, listen: false).clearUser();
+            Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (BuildContext context) => const AccountInfoPage(),
+              ),
+            );
           } else {
             Navigator.push(
               context,
@@ -1121,7 +1127,7 @@ class _HomePageState extends State<HomePage> {
           onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute<void>(
-                  builder: (BuildContext context) => const NewReportPage(),
+                  builder: (BuildContext context) => const ReportsPage(),
                 ),
               )),
     );

@@ -3,14 +3,14 @@ const minio = require("minio");
 const multer = require('multer');
 let crypto;
 try {
-  crypto = require('node:crypto');
+    crypto = require('node:crypto');
 } catch (err) {
-  console.error('crypto support is disabled!');
-} 
+    console.error('crypto support is disabled!');
+}
 
 const immagineModel = require("../models/immagine.js");
 const segnalazioneModel = require("../models/segnalazione.js");
-const segnalazione = require('../models/segnalazione.js');
+const { utenteMobileModel } = require('../models/utente_mobile.js');
 
 require('dotenv').config();
 
@@ -87,13 +87,10 @@ router.get("/immagini/:imageKey", async (req, res) => {
  * 
 */
 router.get("/", async (req, res) => {
-
-    // const segnalazioni = await segnalazioneModel.find();
-    // return res.send(segnalazioni)
-    segnalazioneModel.findAll()
+    segnalazioneModel.find()
         .then((segnalazione) => {
             return res.json({ success: true, segnalazioni: segnalazione });
-        }).catch((error) => {
+        }).catch(() => {
             console.error("Segnalazioni not found");
             return res.status(404).json({ success: false, error: "Segnalazioni not found" });
         });
@@ -105,13 +102,67 @@ router.get("/", async (req, res) => {
  * GET /api/v1/segnalazioni/{id}
 */
 router.get("/:id", async (req, res) => {
-    segnalazioneModel.findById(req.params.id).then((segnalazione) => {
-        return res.json({ success: true, segnalazione: segnalazione });
-    }).catch((error) => {
-        console.error("Segnalazione not found");
-        return res.status(404).json({ success: false, error: "Segnalazione not found" });
-    });
+    segnalazioneModel.findById(req.params.id)
+        .then((segnalazione) => {
+            return res.json({ success: true, segnalazione: segnalazione });
+        }).catch(() => {
+            console.error("Segnalazione not found");
+            return res.status(404).json({ success: false, error: "Segnalazione not found" });
+        });
 
 });
+
+/**  
+ * PUT a segnalazione  
+ * 
+ * PUT /api/v1/segnalazioni/{id}
+ *		Required fields: id
+*/
+router.put("/:id", async (req, res) => {
+    try {
+        // Validate status field
+        const validStatuses = ['aperta', 'presa_in_carico', 'conclusa'];
+        const { status } = req.body;
+        if (typeof status !== 'string' || !validStatuses.includes(status)) {
+            console.error('The optional "status" field must be either "aperta", "presa_in_carico" or "conclusa".');
+            return res.status(400).json({ success: false, error: "The optional 'status' field must be either 'aperta', 'presa_in_carico' or 'conclusa'." });
+        }
+
+        // Find the segnalazione by ID
+        const segnalazione = await segnalazioneModel.findById(req.params.id);
+        if (!segnalazione) {
+            console.error("Segnalazione not found");
+            return res.status(404).json({ success: false, error: "Segnalazione not found" });
+        }
+
+        // Update the status of the segnalazione
+        segnalazione.status = status;
+        await segnalazione.save();
+
+        // Find the user by ID
+        const utente = await utenteMobileModel.findById(segnalazione.id_utente);
+        if (!utente) {
+            console.error('User not found with the specified ID.');
+            return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+        }
+
+        // Find the specific segnalazione within the user's segnalazioni and update its status
+        let segnalazioneUtente = utente.segnalazioni.find(s => s._id.equals(segnalazione.id_segnalazione));
+        if (segnalazioneUtente) {
+            segnalazioneUtente.status = status;
+            await utente.save();
+        } else {
+            console.error('Segnalazione not found in user\'s segnalazioni.');
+            return res.status(404).json({ success: false, error: 'Segnalazione not found in user\'s segnalazioni.' });
+        }
+
+        // Respond with success
+        return res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('An error occurred:', error);
+        return res.status(500).json({ success: false, error: 'An internal error occurred' });
+    }
+});
+
 
 module.exports = router;
