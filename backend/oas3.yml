@@ -450,6 +450,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  
+  /aziende/login:
+    post:
+      summary: Login aziende
+      description: Endpoint per il login di una azienda.
+      tags:
+        - Aziende
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: OK. Login con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AziendaLoginResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Not Authorized. Credenziali non valide.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
 
   /aziende/{id}:
     get:
@@ -1023,6 +1055,32 @@ components:
           description: Nome dell'utente
 
     # Aziende responses and requests schemas
+    AziendaLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se il login è stato effettuato con successo
+        message:
+          type: string
+          description: Messaggio di risposta
+        token:
+          type: string
+          description: Token di autenticazione
+        self:
+          type: string
+          description: Link all'azienda
+        email:
+          type: string
+          format: email
+          description: Email dell'azienda
+        userId:
+          type: string
+          description: ID dell'azienda
+        name:
+          type: string
+          description: Nome dell'azienda
+
     AziendeGetResponse:
       type: object
       properties:
@@ -1103,7 +1161,6 @@ components:
               items:
                 $ref: "#/components/schemas/Buono"
          
-
     BuonoGetResponse:
       type: object
       properties:
@@ -1303,6 +1360,7 @@ components:
         - costo_punti
         - validitaBuono
         - idAzienda
+    
     Buono:
       type: object
       properties:
@@ -1388,8 +1446,6 @@ components:
       required:
         - password
         - email
-        - nome
-        - p_iva
 
     PostSuccessfulResponse:
       type: object
