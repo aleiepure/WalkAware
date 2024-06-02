@@ -67,8 +67,6 @@ router.post('/', async (req, res) => {
 		});
 });
 
-
-
 /**  
  * Web user login
  * 
@@ -162,7 +160,7 @@ router.put('/:id', async (req, res) =>{
 	utenteWebModel.findById(req.params.id)
 		.then((result) => {
 
-			// Update azienda
+			// Update utente web
 			result.email = req.body.email;
 			result.nome = req.body.nome;
 			if (req.body.password){
@@ -175,7 +173,6 @@ router.put('/:id', async (req, res) =>{
 				} else {
 					result.password = req.body.password
 				}
-					
 			}
 			result.save();
 			return res.status(200).send({ success: true });

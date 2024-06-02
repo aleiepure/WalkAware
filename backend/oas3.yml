@@ -512,7 +512,7 @@ paths:
 
     put:
       summary: Aggiorna informazioni di un'azienda.
-      description: "Endpoint per aggiornare informazioni di un'azienda. Campi aggiornabili: email, partita iva e password."
+      description: "Endpoint per aggiornare informazioni di un'azienda. Campi aggiornabili: email e password."
       tags:
         - Aziende
       security:
