@@ -1,16 +1,29 @@
 const app = require('../app');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
-
 require('dotenv').config();
+
 const { utenteMobileModel, buonoUtenteMobileModel } = require('../models/utente_mobile.js');
 const premioModel = require('../models/premio.js');
 const buonoModel = require("../models/buono");
 
 
+// Create a valid token
+const token_secret = process.env.SUPER_SECRET || "supersecret";
+token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
+    token_secret, { expiresIn: "1y" });
 
-// Mock utenteMobile
 
+// mock save
+let mockUtenteMobileSave = jest.fn()
+    .mockResolvedValueOnce(true);
+utenteMobileModel.prototype.save = mockUtenteMobileSave;
+
+let mockBuonoModel = jest.fn()
+    .mockResolvedValueOnce(true);
+buonoModel.prototype.save = mockBuonoModel;
+
+// mock mockUtenteMobileFindOne
 let mockUtenteMobileFindOne = jest.fn()
     .mockResolvedValueOnce(false) //registrazione valida
     .mockResolvedValueOnce(new utenteMobileModel({ //registrazione utente esiste già
@@ -40,14 +53,8 @@ let mockUtenteMobileFindOne = jest.fn()
     }));
 utenteMobileModel.findOne = mockUtenteMobileFindOne;
 
-let mockUtenteMobileSave = jest.fn()
-    .mockResolvedValueOnce(true);
-utenteMobileModel.prototype.save = mockUtenteMobileSave;
 
-let mockBuonoModel = jest.fn()
-    .mockResolvedValueOnce(true);
-buonoModel.prototype.save = mockBuonoModel;
-
+// mock mockUtenteMobileFindById
 let mockUtenteMobileFindById = jest.fn()
     .mockResolvedValueOnce(new utenteMobileModel({ //get punti valida
         nome: "Luigi Bianchi",
@@ -171,8 +178,7 @@ let mockUtenteMobileFindById = jest.fn()
         buoni: [],
         segnalazioni: [],
     }))
-    .mockRejectedValueOnce(new Error('Utente not found'));  // modifica utente, utente non trovato
-    .mockResolvedValueOnce() // premio not found
+    .mockRejectedValueOnce(new Error('Utente not found'))  // modifica utente, utente non trovato
     .mockResolvedValueOnce(new utenteMobileModel({ // get buoni utente trovato
         eta: 44,
         email: "mobile@test.com",
@@ -193,8 +199,7 @@ let mockUtenteMobileFindById = jest.fn()
     .mockRejectedValueOnce();   // get buoni utente non trovato
 utenteMobileModel.findById = mockUtenteMobileFindById;
 
-// mock premio model
-const premioModel = require('../models/premio.js');
+// mock mockPremioFindById
 let mockPremioFindById = jest.fn()
     .mockResolvedValueOnce(new premioModel({ //richiesta valida riscattaBuono
         nome: "premioNome",
@@ -217,12 +222,6 @@ let mockPremioFindById = jest.fn()
     .mockResolvedValueOnce()// utente not found riscattaBuono
     .mockRejectedValueOnce();// premio not found riscattaBuono
 premioModel.findById = mockPremioFindById;
-
-// Create a valid token
-const token_secret = process.env.SUPER_SECRET || "supersecret";
-token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
-    token_secret, { expiresIn: "1y" });
-
 
 afterAll(() => {
     jest.restoreAllMocks();
@@ -433,7 +432,7 @@ describe('PUT /api/v1/utente/mobile/:id/punti: Aggiornamento dei punti di un ute
     });
 });
 
-describe("GET /api/v1/utente/mobile/:id: Ottiene un utente", () => {
+describe("GET /api/v1/utente/mobile/{id}", () => {
     test('Richiesta valida', async () => {
         return request(app)
             .get(`/api/v1/utente/mobile/12345`)
@@ -464,7 +463,7 @@ describe("GET /api/v1/utente/mobile/:id: Ottiene un utente", () => {
 
 });
 
-describe("POST api/v1/utente/mobile/{id}/riscattaBuono: Riscatta un premio", () => {
+describe("POST api/v1/utente/mobile/{id}/riscattaBuono", () => {
     test("Richiesta valida", async () => {
         return request(app)
             .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
@@ -505,6 +504,144 @@ describe("POST api/v1/utente/mobile/{id}/riscattaBuono: Riscatta un premio", () 
             .set('Accept', 'application/json')
             .set('x-access-token', token)
             .expect(400, { success: false, error: "The 'premioId' query parameter must be a non-empty string." });
+    });
+});
+
+describe("PUT /api/v1/utente/mobile/:id: Modifica dei dati dell'utente", () => {
+    test("Richiesta valida", async () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123"
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("nome");
+                expect(res.body).toHaveProperty("email");
+                expect(res.body).toHaveProperty("passwordChanged");
+                expect(res.body).toHaveProperty('id');
+                expect(res.body.nome).toBe("Luigi Verdi");
+                expect(res.body.email).toBe("newemail@test.com");
+                expect(res.body.passwordChanged).toBe(true);
+                expect(res.body.id).toBeDefined();
+            });
+    });
+
+    test("Nome non fornito come stringa", () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: 12,
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123"
+            })
+            .expect(400, { success: false, error: "The 'nome' field must be a non-empty string." });
+    });
+
+    test('Nome uguale a quello attuale', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Mario Rossi",
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'nome' must be different from the last 'nome'." });
+    });
+
+    test('Email non fornita nel formato valido', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemailtest.com",
+                password: "password456",
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+    });
+
+    test('Email uguale a quella attuale', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "mobile@test.com",
+                password: "password456",
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'email' must be different from the last 'email'." });
+    });
+
+    test('Nuova Password non fornita come stringa', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: 123,
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+    });
+
+    test('Password uguale a quella attuale', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: 'password123',
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'password' must be different from the last 'password'." });
+    });
+
+    test('Password vecchia non fornita', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: 'password456'
+            })
+            .expect(400, { success: false, error: "You must provide the correct old password in order to change it" });
+    });
+
+    test('Utente non trovato', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123"
+            })
+            .expect(404, { success: false, error: 'Utente not found' });
     });
 });
 
