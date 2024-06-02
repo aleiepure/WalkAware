@@ -68,6 +68,7 @@ router.post('/', async (req, res) => {
 });
 
 
+
 /**  
  * Web user login
  * 
@@ -114,7 +115,7 @@ router.post('/login', async (req, res) => {
 				self: `/api/v1/utente/web/${user._id}`,
 				email: user.email,
 				userId: user._id,
-				name: user.nome,
+				nome: user.nome,
 				supporto_tecnico: user.supporto_tecnico
 			});
 		})
@@ -123,6 +124,68 @@ router.post('/login', async (req, res) => {
 			return res.status(500).json({ success: false, error: 'Internal server error.' });
 		});
 });
+
+/**
+ * Get web
+ * 
+ * GET /api/v1/utente/web/{id}
+ */
+router.get('/:id', async (req, res) => {
+	// User not found
+	utenteWebModel.findById(req.params.id)
+		.then((result) => {
+			return res.send({ success: true, id: result.id, email: result.email, nome: result.nome, supporto_tecnico: result.supporto_tecnico});
+		})
+		.catch((error) => {
+			console.error('User not found with the specified ID.');
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+});
+
+/**
+ * mofica web
+ * 
+ * PUT /api/v1/utente/web/{id}
+ */
+
+router.put('/:id', async (req, res) =>{
+	// Validate fields
+	if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) || _isEmptyString(req.body.email)) {
+		console.error("The 'email' field must be a non-empty string in email format.");
+		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
+	}
+	if (typeof req.body.nome !== 'string' || _isEmptyString(req.body.nome)) {
+		console.error("The 'nome' field must be a non-empty string.");
+		return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
+	}
+
+	utenteWebModel.findById(req.params.id)
+		.then((result) => {
+
+			// Update azienda
+			result.email = req.body.email;
+			result.nome = req.body.nome;
+			if (req.body.password){
+				if(req.body.old_password !== result.password){
+					console.error('Incorrect old password');
+					return res.status(400).json({ success: false, error: 'Incorrect old password' });
+				} else if (req.body.password !== req.body.password_again){
+					console.error('The two passwords do not match');
+					return res.status(400).json({ success: false,  error: 'The two passwords do not match' });
+				} else {
+					result.password = req.body.password
+				}
+					
+			}
+			result.save();
+			return res.status(200).send({ success: true });
+		})
+		.catch((error) => {
+			console.error('Utente web not found');
+			return res.status(404).json({ success: false, error: 'Utente web not found' });
+		});
+})
+
 
 // Function to check email format
 function _isValidEmail(email) {

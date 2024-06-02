@@ -1,0 +1,74 @@
+<%- include('partials/header', { currentPage: currentPage, nome: nome, email: email , id_web: id_web }) %>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h2><i class="fa-solid fa-pencil me-2"></i></i>Modifica dati azienda</h2>
+      </div>
+      <div class="card-body">
+        <form action="/aziende/<%= azienda._id %>?_method=PUT" method="POST">
+          <div class="mb-3">
+
+            <div class="form-group">
+              <label for="p_iva">P. IVA</label>
+              <input type="text" class="form-control bg-light" id="p_iva" placeholder="P. IVA" name="p_iva"
+                value="<%= azienda.p_iva %>" readonly disabled>
+            </div>
+            <div class="form-group">
+              <label for="nome">Email</label>
+              <input type="text" class="form-control" id="email" placeholder="Inserire email" name="email"
+                value="<%= azienda.email %>">
+            </div>
+
+            <!-- password accordion -->
+            <div class="accordion mt-4" id="passwordAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header" id="headingPassword">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapsePassword" aria-expanded="false" aria-controls="collapsePassword">
+                    Cambia Password
+                  </button>
+                </h2>
+                <div id="collapsePassword" class="accordion-collapse collapse" aria-labelledby="headingPassword"
+                  data-bs-parent="#passwordAccordion">
+                  <div class="accordion-body">
+                    <div class="form-group">
+                      <label for="old_password">Vecchia password</label>
+                      <input type="password" class="form-control" id="old_password"
+                        placeholder="Inserire Vecchia Password" name="old_password">
+                    </div>
+                    <div class="form-group">
+                      <label for="new_password">Nuova password</label>
+                      <input type="password" class="form-control" id="new_password"
+                        placeholder="Inserire Nuova Password" name="password">
+                    </div>
+                    <div class="form-group">
+                      <label for="password_again">Ripetere Nuova password</label>
+                      <input type="password" class="form-control" id="password_again"
+                        placeholder="Ripetere Nuova Password" name="password_again">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+          <div class="row mb-3">
+            <% if (typeof errorMessage !=='undefined' ) { %>
+              <small id="emailHelp" class="form-text text-danger"><%- errorMessage %></small>
+              <% } %>
+                <% if (typeof successMessage !=='undefined' ) { %>
+                  <small id="emailHelp" class="form-text text-success"><%- successMessage %></small>
+                  <% } %>
+          </div>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
+            Salva</button>
+          <button type="button" class="btn btn-secondary" onclick="window.location.href='/aziende'">
+            <i class="fa-solid fa-times me-2"></i> Annulla
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <%- include('partials/footer') %>
