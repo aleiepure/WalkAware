@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 
 const buonoSchema = new mongoose.Schema({
+    id_utente: {type: String, required:true},
+    id_buono: {type: String, required:true},
     nome: { type: String, required: true },
     valore: { type: Number, required: true },
     tipo: { type: String, enum: ["percentuale", "contante", "omaggio", "quantita"] },

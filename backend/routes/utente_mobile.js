@@ -304,7 +304,8 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 					user.save();
 
 					let buono = new buonoModel({
-						id: buonoUtenteMobile._id,
+						id_utente: user._id,
+						id_buono: buonoUtenteMobile._id,
 						nome: premio.nome,
 						valore: premio.valore,
 						tipo: premio.tipo,
