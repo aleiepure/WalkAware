@@ -365,7 +365,7 @@ describe("POST /api/v1/aziende/:id/premi: Aggiunta di un premio a un'azienda", (
                 validitaBuono: 30
             })
             .expect('Content-Type', 'application/json; charset=utf-8')
-            .expect(400, { success: false, error: "The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantità'." });
+            .expect(400, { success: false, error: "The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantita'." });
     });
 
     test("Campo descrizione non fornito", () => {
