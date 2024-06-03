@@ -63,7 +63,7 @@ router.get("/", async (req, res) => {
       }
     }));
 
-    res.render('segnalazioni', { currentPage: 'segnalazioni', segnalazioni: segnalazioniData.segnalazioni, isSupportoTecnico: req.cookies.supporto_tecnico });
+    res.render('segnalazioni', { currentPage: 'segnalazioni', segnalazioni: segnalazioniData.segnalazioni, isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
   } catch (error) {
     console.error("Errore generale:", error);
     res.status(500).send("Errore generale nella gestione delle segnalazioni");

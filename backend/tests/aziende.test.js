@@ -474,18 +474,6 @@ describe("PUT /api/v1/aziende/{id}: modifica dati azienda", () => {
             })
             .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
     });
-    test("P.IVA non valida", () => {
-        return request(app)
-            .put(`/api/v1/aziende/7890`)
-            .set('x-access-token', token)
-            .set('Accept', 'application/json')
-            .send({
-                email: "newAziendaEmail@test.com",
-                p_iva: 1234567
-            })
-            .expect(400, { success: false, error: "The 'p_iva' field must be a non-empty string." });
-    });
-
 });
 
 describe("POST /api/v1/aziende/login: Login di una azinda", () => {

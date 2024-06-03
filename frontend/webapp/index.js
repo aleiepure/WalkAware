@@ -51,15 +51,15 @@ app.use(tokenChecker);
 // Route for the login pag
 app.get('/', (req, res) => {
     if (verifyToken(req.cookies)) {
-        res.redirect('/segnalazioni', { currentPage: 'segnalazioni', isSupportoTecnico: req.cookies.supporto_tecnico });
+        res.redirect('/segnalazioni');
     } else {
-        res.render('login', { currentPage: 'login', isSupportoTecnico: req.cookies.supporto_tecnico });
+        res.render('login', { currentPage: 'login', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
     }
 });
 
 // Route page not found
 app.get('*', (req, res) => {
-    res.render('404', { currentPage: '404', isSupportoTecnico: req.cookies.supporto_tecnico });
+    res.render('404', { currentPage: '404', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
 
 });
 

@@ -221,19 +221,25 @@ router.put("/:id", async (req, res) => {
 		console.error("The 'email' field must be a non-empty string in email format.");
 		return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
 	}
-	if (typeof req.body.p_iva !== 'string' || _isEmptyString(req.body.p_iva)) {
-		console.error("The 'p_iva' field must be a non-empty string.");
-		return res.status(400).json({ success: false, error: "The 'p_iva' field must be a non-empty string." });
-	}
+
 
 	aziendaModel.findById(req.params.id)
 		.then((result) => {
 
 			// Update azienda
 			result.email = req.body.email;
-			result.p_iva = req.body.p_iva;
+
 			if (req.body.password){
-				result.password = req.body.password;
+				if(req.body.old_password !== result.password){
+					console.error('Incorrect old password');
+					return res.status(400).json({ success: false, error: 'Incorrect old password' });
+				} else if (req.body.password !== req.body.password_again){
+					console.error('The two passwords do not match');
+					return res.status(400).json({ success: false,  error: 'The two passwords do not match' });
+				} else {
+					result.password = req.body.password
+				}
+					
 			}
 
 			result.save();

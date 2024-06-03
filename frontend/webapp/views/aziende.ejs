@@ -1,4 +1,4 @@
-  <%- include('partials/header', { currentPage: currentPage, isSupportoTecnico: isSupportoTecnico }) %>
+  <%- include('partials/header', { currentPage: currentPage, isSupportoTecnico: isSupportoTecnico, nome: nome, email: email, id_web:id_web }) %>
 
     <!-- Titolo pagina -->
     <div class="d-inline d-md-flex justify-content-between pb-2">
@@ -29,8 +29,7 @@
               <div>
                 <div class="d-inline d-md-flex">
                   <h4>Dettagli</h4>
-                  <a type="button" class="ms-2" data-bs-toggle="modal" data-bs-target="#<%=element._id%>-modifica">
-                    <i class="fa-solid fa-pencil"></i>
+                    <a href="/aziende/modifica?id=<%= element._id %>" class="ms-2"><i class="fa-solid fa-pencil"></i></a>
                   </a>
                 </div>
                 <div>
@@ -176,7 +175,7 @@
         <!-- Fine modal per aggiungere premi -->
 
         <!-- Modal per modificare i dati -->
-        <div class="modal fade" id="<%=element._id%>-modifica" data-bs-backdrop="static" data-bs-keyboard="false"
+        <!-- <div class="modal fade" id="<%=element._id%>-modifica" data-bs-backdrop="static" data-bs-keyboard="false"
           tabindex="-1" aria-labelledby="<%=element._id%>Label-modifica" aria-hidden="true">
           <div class="modal-dialog">
             <div class="modal-content">
@@ -210,7 +209,7 @@
               </form>
             </div>
           </div>
-        </div>
+        </div> -->
         <!-- Fine modal per aggiungere premi -->
 
         <% }); %>

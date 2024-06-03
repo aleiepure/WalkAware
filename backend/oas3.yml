@@ -392,6 +392,76 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthError"
 
+  /utente/web/{id}:
+    get:
+      summary: Restituisce un utente web
+      description: Endpoint per ottenere un utente web
+      tags:
+        - UtenteWeb
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente web
+      responses:
+        "200":
+          description: OK. Utente trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteWebGetResponse"
+        "404":
+          description: User not found with the specified ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Aggiorna informazioni di un utente web.
+      description: "Endpoint per aggiornare informazioni di un utente web. Campi aggiornabili: email, nome, e password."
+      tags:
+        - UtenteWeb
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente web
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UtenteWebModificaRequest"
+      responses:
+        "200":
+          description: OK. Azienda aggiornata con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostSuccessfulResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Not Found. Utente web con l'id specificato non trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+
+
   /aziende:
     get:
       summary: Cerca tutte le aziende convenzionate
@@ -514,7 +584,7 @@ paths:
 
     put:
       summary: Aggiorna informazioni di un'azienda.
-      description: "Endpoint per aggiornare informazioni di un'azienda. Campi aggiornabili: email, partita iva e password."
+      description: "Endpoint per aggiornare informazioni di un'azienda. Campi aggiornabili: email e password."
       tags:
         - Aziende
       security:
@@ -1111,13 +1181,40 @@ components:
           description: Nuova email dell'azienda
         password:
           type: string
-          description: Nuova password dell'azienda
-        p_iva:
+          description: Nuova password 
+        password_again:
           type: string
-          description: Nuova partita IVA dell'azienda
+          description: Nuova password per conferma
+        old_password:
+          type: string
+          description: Vecchia password per autenticazione
       required:
         - email
-        - p_iva
+
+
+    UtenteWebModificaRequest:
+        type: object
+        properties:
+          nome:
+            type: string
+            description: Nuovo nome
+          email:
+            type: string
+            format: email
+            description: Nuova email 
+          password:
+            type: string
+            description: Nuova password 
+          password_again:
+            type: string
+            description: Nuova password per conferma
+          old_password:
+            type: string
+            description: Vecchia password per autenticazione
+        required:
+          - email
+          - nome
+
 
     # Segnalazioni responses and requests schemas
     SegnalazioniResponse:
@@ -1180,6 +1277,31 @@ components:
           type: boolean
           description: indica che il buono è stato usato
           default: true
+
+    UtenteWebGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        UtenteMobile:
+          type: object
+          description: utente web specifico
+          properties:
+            id:
+              type: string
+              description: id dell'utente
+            nome:
+              type: string
+              description: nome utente mobile
+            email:
+              type: string
+              description: email dell'utente
+              format: email
+            supporto_tecnico::
+              type: boolean
+              description: se l'utente è supporto tecnico
+               
 
     # Database models schemas
     Segnalazione:
