@@ -163,9 +163,9 @@ router.post("/:id/premi", async (req, res) => {
 		console.error("The 'valore' field must be a positive number.");
 		return res.status(400).json({ success: false, error: "The 'valore' field must be a positive number." });
 	}
-	if (typeof req.body.tipo !== 'string' || !["percentuale", "contante", "omaggio", "quantità"].includes(req.body.tipo)) {
-		console.error("The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantità'.");
-		return res.status(400).json({ success: false, error: "The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantità'." });
+	if (typeof req.body.tipo !== 'string' || !["percentuale", "contante", "omaggio", "quantita"].includes(req.body.tipo)) {
+		console.error("The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantita'.");
+		return res.status(400).json({ success: false, error: "The 'tipo' field must be either 'percentuale', 'contante', 'omaggio' or 'quantita'." });
 	}
 	if (typeof req.body.descrizione !== 'string' || _isEmptyString(req.body.descrizione)) {
 		console.error("The 'descrizione' field must be a non-empty string.");

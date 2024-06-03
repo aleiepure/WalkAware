@@ -24,7 +24,7 @@ router.post("/", async (req, res) => {
     hashed_password = sha512.hmac("", req.body.password);
   }
 
-  fetch(path.join(baseUrl, "/api/v1/aziende"), {
+  await fetch(path.join(baseUrl, "/api/v1/aziende"), {
     method: "POST",
     headers: { "x-access-token": req.cookies.token, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -125,8 +125,8 @@ router.put("/:id", async (req, res) => {
     });
 });
 
-router.post("/:id/premi", (req, res) => {
-  fetch(path.join(baseUrl, "/api/v1/aziende/" + req.params.id + "/premi"), {
+router.post("/:id/premi", async (req, res) => {
+  await fetch(path.join(baseUrl, "/api/v1/aziende/" + req.params.id + "/premi"), {
     method: "POST",
     headers: { "x-access-token": req.cookies.token, "Content-Type": "application/json" },
     body: JSON.stringify({

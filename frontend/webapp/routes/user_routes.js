@@ -105,6 +105,7 @@ router.get('/logout', async (req, res) => {
 	res.clearCookie('token', { httpOnly: true });
 	res.clearCookie('email', { httpOnly: true });
 	res.clearCookie('userId', { httpOnly: true });
+	res.clearCookie('nome', { httpOnly: true });
 	res.clearCookie('supporto_tecnico', { httpOnly: true });
 
 	res.redirect('/');
@@ -153,8 +154,8 @@ router.put("/:id", async (req, res) => {
 					if (response.ok) {
 						res.cookie('nome', req.body.nome, { httpOnly: true });
 						res.cookie('email', req.body.email, { httpOnly: true });
-						//res.render('utente', { successMessage: "Utente modificato correttamente", currentPage: 'utente', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
-						res.redirect("back");
+						res.render('utente', { successMessage: "Utente modificato correttamente", currentPage: 'utente', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
+						//res.redirect("segnalazioni");
 
 					}
 					else {
