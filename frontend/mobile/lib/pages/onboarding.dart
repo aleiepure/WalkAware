@@ -143,7 +143,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
       pages: [
         PageViewModel(
           title: "Ciao!",
-          body: "Benvenuto in WalkAware Trento, l'app che ti premia quando sei in giro per la città di Trento.",
+          body: "Benvenuto/a in WalkAware Trento, l'app che ti premia quando sei in giro per la città di Trento.",
           decoration: pageDecoration,
           image: const Icon(Icons.waving_hand, size: 200),
         ),
@@ -164,7 +164,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
         PageViewModel(
           title: "Tieni gli occhi aperti",
           body:
-              "Se noti qualcosa malfunzionante o pericoloso lungo il tuo percorso, segnalalo. Aiuterai il Comune di Trento a sistemarlo più in fretta e guadagnerai 1 punto extra!",
+              "Se noti qualcosa malfunzionante o pericoloso lungo il tuo percorso, segnalalo. Aiuterai il Comune di Trento a sistemarlo più in fretta.",
           decoration: pageDecoration,
           image: const Icon(Icons.report, size: 200),
         ),

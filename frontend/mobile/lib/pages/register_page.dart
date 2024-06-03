@@ -48,7 +48,7 @@ class _RegisterPageState extends State<RegisterPage> {
         icon: Icon(Icons.alternate_email, size: 48, color: Theme.of(context).colorScheme.secondary),
         title: const Text('Conferma la tua email'),
         content:
-            const Text('Dobbiamo essere sicuri che sei proprio tu. Segui le istruzioni nella mail che hai ricevuto per confermare il tuo account.'),
+            const Text('Dobbiamo essere sicuri che sei proprio tu. Segui le istruzioni nella mail che hai ricevuto per confermare il tuo account. (Email non implementata.)'),
         actions: <Widget>[
           TextButton(
             onPressed: _onShowEmailConfirmationDialogButtonPressed,
@@ -64,16 +64,16 @@ class _RegisterPageState extends State<RegisterPage> {
   /// The method will close the bottom sheet, open the email app and navigate to the login page.
   void _onShowEmailConfirmationDialogButtonPressed() {
     // Open the email app
-    if (Platform.isAndroid) {
-      AndroidIntent intent = const AndroidIntent(
-        action: 'android.intent.action.MAIN',
-        category: 'android.intent.category.APP_EMAIL',
-        flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
-      );
-      intent.launch();
-    } else if (Platform.isIOS) {
-      launchUrl(Uri.parse('message://'));
-    }
+    // if (Platform.isAndroid) {
+    //   AndroidIntent intent = const AndroidIntent(
+    //     action: 'android.intent.action.MAIN',
+    //     category: 'android.intent.category.APP_EMAIL',
+    //     flags: [Flag.FLAG_ACTIVITY_NEW_TASK],
+    //   );
+    //   intent.launch();
+    // } else if (Platform.isIOS) {
+    //   launchUrl(Uri.parse('message://'));
+    // }
 
     // Close the dialog
     Navigator.of(context).pop();
@@ -143,7 +143,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Errore durante la registrazione'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
+          backgroundColor: Theme.of(context).colorScheme.error,
         ),
       );
     }
