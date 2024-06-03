@@ -1,9 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
-const { utenteMobileModel, segnalazioneUtenteMobileModel } = require('../models/utente_mobile.js');
+const { utenteMobileModel, segnalazioneUtenteMobileModel, buonoUtenteMobileModel} = require('../models/utente_mobile.js');
 const segnalazioneModel = require('../models/segnalazione.js');
 const premioModel = require('../models/premio.js');
+const buonoModel = require('../models/buono.js');
 
 require('dotenv').config();
 
@@ -289,7 +290,7 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 					}
 
 					// Create new buono
-					let buono = {
+					let buonoUtenteMobile = new buonoUtenteMobileModel({
 						nome: premio.nome,
 						valore: premio.valore,
 						tipo: premio.tipo,
@@ -297,22 +298,114 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 						costo_punti: premio.costo_punti,
 						idAzienda: premio.idAzienda,
 						validitaBuono: premio.validitaBuono
-					};
-					user.buoni.push(buono);
+					});
+					user.buoni.push(buonoUtenteMobile);
 					user.punti -= premio.costo_punti;
 					user.save();
+
+					let buono = new buonoModel({
+						id: buonoUtenteMobile._id,
+						nome: premio.nome,
+						valore: premio.valore,
+						tipo: premio.tipo,
+						descrizione: premio.descrizione,
+						costo_punti: premio.costo_punti,
+						idAzienda: premio.idAzienda,
+						validitaBuono: premio.validitaBuono
+					})
+					buono.save()
 
 					// Response
 					return res.status(201).location(`/api/v1/utente/mobile/${user._id}/buoni/${buono._id}`).send({ success: true });
 				})
 				.catch((error) => {
-					console.error('Prize not found with the specified ID.');
+					console.error(error);
 					return res.status(404).json({ success: false, error: 'Prize not found with the specified ID.' });
 				});
 		})
 		.catch((error) => {
+			console.error(error);
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+});
+
+/**
+ * Get buono
+ * 
+ * GET /api/v1/utente/mobile/{id}/buoni
+ */
+
+router.get("/:id/buoni", async (req, res) => {
+	utenteMobileModel.findById(req.params.id)
+		.then((result) => {
+			return res.json({ success: true, buoni: result.buoni });
+		})
+		.catch((error) => {
 			console.error('User not found with the specified ID.');
 			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+});
+
+/**
+ * Modifica dati utente mobile
+ * 
+ * GET /api/v1/utente/mobile/{id}
+ */
+
+router.put('/:id', async (req, res) => {
+	utenteMobileModel.findById(req.params.id)
+		.then((result) => {
+			var changedPassword = false;
+
+			// Update utente
+			if (req.body.nome) {
+				if (typeof req.body.nome !== 'string') {
+					console.error("The 'nome' field must be a non-empty string.");
+					return res.status(400).json({ success: false, error: "The 'nome' field must be a non-empty string." });
+				} else if (req.body.nome === result.nome) {
+					console.error("The 'nome' must be different from the last 'nome'.");
+					return res.status(400).json({ success: false, error: "The 'nome' must be different from the last 'nome'." });
+				} else {
+					result.nome = req.body.nome;
+				}
+			}
+
+			if (req.body.email) {
+				if (typeof req.body.email !== 'string' || !_isValidEmail(req.body.email) ) {
+					console.error("The 'email' field must be a non-empty string in email format.");
+					return res.status(400).json({ success: false, error: "The 'email' field must be a non-empty string in email format." });
+				} else if (req.body.email === result.email) {
+					console.error("The 'email' must be different from the last 'email'.");
+					return res.status(400).json({ success: false, error: "The 'email' must be different from the last 'email'." });
+				} else {
+					result.email = req.body.email;
+				}
+			}
+
+			if (req.body.password) {
+				if (typeof req.body.password !== 'string') {
+					console.error("The 'password' field must be a non-empty string.");
+					return res.status(400).json({ success: false, error: "The 'password' field must be a non-empty string." });
+				} else if (req.body.password === result.password) {
+					console.error("The 'password' must be different from the last 'password'.");
+					return res.status(400).json({ success: false, error: "The 'password' must be different from the last 'password'." });
+				}  else if (req.body.old_password !== result.password || !req.body.old_password) {
+					console.error("You must provide the correct old password in order to change it");
+					return res.status(400).json({ success: false, error: "You must provide the correct old password in order to change it" });
+				}
+				else {
+					result.password = req.body.password;
+					changedPassword = true;
+				}
+			}
+
+			result.save();
+
+			return res.status(200).send({ success: true, nome: result.nome, email: result.email, passwordChanged: changedPassword, id: result._id});
+		})
+		.catch((error) => {
+			console.error('Utente not found ', error);
+			return res.status(404).json({ success: false, error: 'Utente not found' });
 		});
 });
 

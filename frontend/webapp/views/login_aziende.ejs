@@ -1,0 +1,46 @@
+<%- include('partials/header') %>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h2><i class="fa-solid fa-user me-2"></i>Azienda Login</h2>
+            </div>
+            <div class="card-body">
+                <form action="/valida_buono/login" method="POST" onsubmit="handleSubmit(event)">
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" hint="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="row mb-3">
+                        <% if (typeof errorMessage !=='undefined' ) { %>
+                            <small id="emailHelp" class="form-text text-danger"><%- errorMessage %></small>
+                            <% } %>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i
+                            class="fa-solid fa-right-to-bracket me-2"></i>Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function handleSubmit(event) {
+            event.preventDefault(); // Previeni il comportamento predefinito del submit del form
+            const form = event.target;
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const buonoValue = urlParams.get("buono");
+            const currentAction = form.getAttribute('action');
+
+            const newAction = `${currentAction}?buono=${buonoValue}`;
+            form.setAttribute('action', newAction);
+            form.submit();
+        }
+    </script>
+
+
+    <%- include('partials/footer') %>

@@ -100,6 +100,46 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+    put:
+      summary: Aggiorna i dati dell'utente mobile
+      description: Endpoint per aggiornare i dati di un utente mobile
+      tags:
+        - UtenteMobile
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UtenteMobileModificaRequest"
+      responses:
+        "200":
+          description: OK. Utente aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UtenteMobileModificaResponse"
+        "404":
+          description: Utente con l'id specificato non trovato.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"    
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error" 
+
   /utente/mobile/{id}/segnalazioni:
     get:
       summary: Restituisce tutte le segnalazioni di un utente.
@@ -480,6 +520,38 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  
+  /aziende/login:
+    post:
+      summary: Login aziende
+      description: Endpoint per il login di una azienda.
+      tags:
+        - Aziende
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: OK. Login con successo.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AziendaLoginResponse"
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Not Authorized. Credenziali non valide.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
 
   /aziende/{id}:
     get:
@@ -808,9 +880,72 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
+  /buoni/{id}:
+    get: 
+      summary: Restituisce ii buono specificato
+      description: Endpoint per restituire il buono specificato
+      tags:
+        - Buoni
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del buono
+      responses:
+        "200":
+          description: OK. Buono trovato.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BuonoGetResponse"
+        "404":
+          description: Not Found. Buono con l'id specificato non trovato
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"      
+  
+  /buoni/{id}/valida:
+    put:
+      summary: Aggiorna lo stato del buono utilizzato
+      description: Endpoint per aggiornare lo stato del buono 
+      tags:
+        - Buoni
+      security:
+        - apiKeyAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID dell'utente mobile
+      responses:
+        "200":
+          description: OK. Buono utilizzato con successo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidaBuonoResponse"
+        "404":
+          description: Buono con l'id specificato non trovato.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"    
+        "400":
+          description: Bad Request. Richiesta errata, vedi errore nel corpo della risposta.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
 
-
+  
 components:
   # Security schemas
   securitySchemes:
@@ -926,6 +1061,41 @@ components:
         punti:
           type: number
           description: Nuovo punteggio
+    
+    UtenteMobileModificaRequest:
+      type: object
+      properties:
+        nome:
+          type: string
+          description: Nuovo nome
+        email: 
+          type: string
+          format: email
+          description: Nuova email
+        password:
+          type: string
+          description: Nuova password
+        old_password:
+          type: string 
+          description: Vecchia password
+
+    UtenteMobileModificaResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: indica se la richiesta è andata a buon fine
+        id: 
+          type: string
+          description: Id dell'utente
+        nome:
+          type: string
+          description: Nuovo nome
+        email: 
+          type: string
+          format: email
+          description: Nuova email
+
 
     # Utente web responses and requests
     UtenteWebLoginResponse:
@@ -955,6 +1125,32 @@ components:
           description: Nome dell'utente
 
     # Aziende responses and requests schemas
+    AziendaLoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se il login è stato effettuato con successo
+        message:
+          type: string
+          description: Messaggio di risposta
+        token:
+          type: string
+          description: Token di autenticazione
+        self:
+          type: string
+          description: Link all'azienda
+        email:
+          type: string
+          format: email
+          description: Email dell'azienda
+        userId:
+          type: string
+          description: ID dell'azienda
+        name:
+          type: string
+          description: Nome dell'azienda
+
     AziendeGetResponse:
       type: object
       properties:
@@ -972,7 +1168,7 @@ components:
       properties:
         success:
           type: boolean
-          description: Ritorna l'azienda con l'ID indiacto
+          description: Ritorna l'azienda con l'ID indicato
         aziende:
           $ref: "#/components/schemas/Azienda"
 
@@ -1044,6 +1240,43 @@ components:
           description: lista di premi
           items:
             $ref: "#/components/schemas/Premio"
+
+    #Premi responses and requests schemas
+    UtenteMobileBuoniGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        UtenteMobile:
+          type: object
+          description: buoni di un utente mobile specifico
+          properties:
+            buoni: 
+              type: array
+              description: lista di buoni 
+              items:
+                $ref: "#/components/schemas/Buono"
+         
+    BuonoGetResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine
+        buono: 
+          $ref: "#/components/schemas/Buono"
+
+    ValidaBuonoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Indica se la richiesta è andata a buon fine o no
+        usato:
+          type: boolean
+          description: indica che il buono è stato usato
+          default: true
 
     UtenteWebGetResponse:
       type: object
@@ -1249,6 +1482,54 @@ components:
         - costo_punti
         - validitaBuono
         - idAzienda
+    
+    Buono:
+      type: object
+      properties:
+        nome: 
+          type: string
+          description: nome del buono
+        valore:
+          type: number
+          description: valore del buono
+        tipo:
+          type: string
+          description: tipo di buono
+          format: enum
+          enum:
+          - percentuale
+          - contante
+          - omaggio
+          - quantita
+        descrizione:
+          type: string
+          description: descrizione del buono
+        costo_punti:
+          type: number
+          description: punti necessari per il riscatto del buono
+        idAzienda:
+          type: string
+          description: id dell'azienda
+        validitaBuono: 
+          type: number
+          description: giorni di validità del buono
+        data_riscatto: 
+          type: string
+          format: date-time
+          description: data riscatto del buono
+        usato: 
+          type: boolean
+          description: se il buono è stato usato 
+          default: false              
+      required:
+        - nome
+        - valore
+        - tipo 
+        - descrizione
+        - costo_punti
+        - idAzienda
+        - validitaBuono   
+
 
     # Errors schemas
     Error:
@@ -1287,8 +1568,6 @@ components:
       required:
         - password
         - email
-        - nome
-        - p_iva
 
     PostSuccessfulResponse:
       type: object

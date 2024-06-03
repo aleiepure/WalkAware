@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import './providers/user_provider.dart';
 import './pages/onboarding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'pages/home_page.dart';
+import './pages/home_page.dart';
 
 void main() {
   runApp(
@@ -53,17 +53,22 @@ class _AppState extends State<App> {
       future: Provider.of<UserProvider>(context, listen: false).fetchUserFromBackend(userId: userId, authToken: userToken),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(
-              child: Column(
-                children: [
-                  FlutterLogo(),
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: CircularProgressIndicator(),
-                  ),
-                ],
-              ),
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.cloud_download_outlined,
+                  size: 150,
+                ),
+                Text('Caricamento dei tuoi dati',
+                style: Theme.of(context).textTheme.titleLarge,),
+                const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(),
+                ),
+              ],
             ),
           );
         } else if (snapshot.hasError) {
@@ -83,18 +88,18 @@ class _AppState extends State<App> {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightGreen),
         useMaterial3: true,
       ),
-      home: FutureBuilder(
-        future: _mainPage(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            return snapshot.data!;
-          }
-          return const Scaffold(
-            body: Center(
+      home: Scaffold(
+        body: FutureBuilder(
+          future: _mainPage(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.done) {
+              return snapshot.data!;
+            }
+            return const Center(
               child: CircularProgressIndicator(),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

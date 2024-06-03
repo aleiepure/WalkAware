@@ -9,8 +9,8 @@ require('dotenv').config();
 const userRoutes = require("./routes/user_routes.js");
 const aziendeRoutes = require('./routes/aziende.js');
 const segnalazioniRoutes = require('./routes/segnalazioni.js');
+const validaBuonoRoutes = require("./routes/valida_buono.js");
 const { tokenChecker, verifyToken } = require("./auth/tokenChecker.js");
-
 
 // creating app 
 var app = express();
@@ -21,7 +21,6 @@ app.use(express.urlencoded({ extended: true }));
 
 //method override
 app.use(methodOverride('_method'));
-
 
 // cookie parser
 app.use(cookieParser());
@@ -40,11 +39,11 @@ app.use(express.static(staticDir));
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 
-
 // Routes
 app.use('/utente', userRoutes);
 app.use("/aziende", aziendeRoutes);
 app.use("/segnalazioni", segnalazioniRoutes);
+app.use("/valida_buono", validaBuonoRoutes);
 
 // tokenchecker for auth
 app.use(tokenChecker);
@@ -56,12 +55,6 @@ app.get('/', (req, res) => {
     } else {
         res.render('login', { currentPage: 'login', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
     }
-});
-
-
-// Route register web user
-app.get('/registrazione', (req, res) => {
-    res.render('registrazione', { currentPage: 'registrazione', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
 });
 
 // Route page not found

@@ -1,14 +1,29 @@
 const app = require('../app');
 const jwt = require('jsonwebtoken');
-const mongoose = require("mongoose");
 const request = require('supertest');
 require('dotenv').config();
-const { utenteMobileModel } = require('../models/utente_mobile.js');
+
+const { utenteMobileModel, buonoUtenteMobileModel } = require('../models/utente_mobile.js');
 const premioModel = require('../models/premio.js');
+const buonoModel = require("../models/buono");
 
 
-// Mock utenteMobile
+// Create a valid token
+const token_secret = process.env.SUPER_SECRET || "supersecret";
+token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
+    token_secret, { expiresIn: "1y" });
 
+
+// mock save
+let mockUtenteMobileSave = jest.fn()
+    .mockResolvedValueOnce(true);
+utenteMobileModel.prototype.save = mockUtenteMobileSave;
+
+let mockBuonoModel = jest.fn()
+    .mockResolvedValueOnce(true);
+buonoModel.prototype.save = mockBuonoModel;
+
+// mock mockUtenteMobileFindOne
 let mockUtenteMobileFindOne = jest.fn()
     .mockResolvedValueOnce(false) //registrazione valida
     .mockResolvedValueOnce(new utenteMobileModel({ //registrazione utente esiste già
@@ -38,10 +53,8 @@ let mockUtenteMobileFindOne = jest.fn()
     }));
 utenteMobileModel.findOne = mockUtenteMobileFindOne;
 
-let mockUtenteMobileSave = jest.fn()
-    .mockResolvedValueOnce(true);
-utenteMobileModel.prototype.save = mockUtenteMobileSave;
 
+// mock mockUtenteMobileFindById
 let mockUtenteMobileFindById = jest.fn()
     .mockResolvedValueOnce(new utenteMobileModel({ //get punti valida
         nome: "Luigi Bianchi",
@@ -83,6 +96,7 @@ let mockUtenteMobileFindById = jest.fn()
         segnalazioni: [],
     }))
     .mockResolvedValueOnce(new utenteMobileModel({ //not enough punti
+        nome: "Mario Rossi",
         eta: 44,
         email: "mobile@test.com",
         password: "password123",
@@ -92,9 +106,100 @@ let mockUtenteMobileFindById = jest.fn()
     }))
     .mockRejectedValueOnce() // utente not found riscattaBuono
     .mockResolvedValueOnce() //premio not found
-    
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente valida
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente nome non stringa
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente nome uguale a quello attuale
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente email non valida
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente email uguale a quella attuale
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente password non valida
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente password uguale a quella attuale
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockResolvedValueOnce(new utenteMobileModel({ //modifica utente password vecchia non fornita
+        nome: "Mario Rossi",
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [],
+        segnalazioni: [],
+    }))
+    .mockRejectedValueOnce(new Error('Utente not found'))  // modifica utente, utente non trovato
+    .mockResolvedValueOnce(new utenteMobileModel({ // get buoni utente trovato
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [
+            new buonoUtenteMobileModel({
+                nome: "buonoNome",
+                valore: 23,
+                tipo: "percentuale",
+                descrizione: "buonoDescrizione",
+                validitaBuono: 50,
+                costo_punti: 10,
+            }),
+        ],
+        segnalazioni: [],
+    }))
+    .mockRejectedValueOnce();   // get buoni utente non trovato
 utenteMobileModel.findById = mockUtenteMobileFindById;
 
+// mock mockPremioFindById
 let mockPremioFindById = jest.fn()
     .mockResolvedValueOnce(new premioModel({ //richiesta valida riscattaBuono
         nome: "premioNome",
@@ -115,17 +220,10 @@ let mockPremioFindById = jest.fn()
         validitaBuono: 50
     }))
     .mockResolvedValueOnce()// utente not found riscattaBuono
-    .mockRejectedValueOnce()// premio not found riscattaBuono
-    
+    .mockRejectedValueOnce();// premio not found riscattaBuono
 premioModel.findById = mockPremioFindById;
 
-// Create a valid token
-const token_secret = process.env.SUPER_SECRET || "supersecret";
-token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
-    token_secret, { expiresIn: "1y" });
-
-
-afterAll(async () => {
+afterAll(() => {
     jest.restoreAllMocks();
 });
 
@@ -261,7 +359,6 @@ describe("POST api/v1/utente/mobile/login: Login utente mobile", () => {
     });
 });
 
-
 describe('GET /api/v1/utente/mobile/:id/punti: Ottenere i punti di un utente', () => {
     test('Richiesta valida', async () => {
         return request(app)
@@ -285,7 +382,6 @@ describe('GET /api/v1/utente/mobile/:id/punti: Ottenere i punti di un utente', (
             .expect(404, { success: false, error: 'User not found with the specified ID.' });
     });
 });
-
 
 describe('PUT /api/v1/utente/mobile/:id/punti: Aggiornamento dei punti di un utente', () => {
     test('Richiesta valida', async () => {
@@ -352,8 +448,8 @@ describe("GET /api/v1/utente/mobile/{id}", () => {
                 expect(res.body).toHaveProperty("punti");
                 expect(res.body.nome).toBeDefined();
                 expect(res.body.email).toBeDefined();
-                expect(res.body.eta).toBeDefined()
-                expect(res.body.punti).toBeDefined()
+                expect(res.body.eta).toBeDefined();
+                expect(res.body.punti).toBeDefined();
             });
     });
     test('Utente non trovato', async () => {
@@ -380,35 +476,196 @@ describe("POST api/v1/utente/mobile/{id}/riscattaBuono", () => {
                 expect(res.headers.location).toBeDefined();
             });
     });
-    test("not enough punti", async () =>{
+    test("not enough punti", async () => {
         return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(400, { success: false, error: 'Not enough points to redeem the prize.' })
-    
-    }) 
-    test("utente not found", async () =>{
-        return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(404, { success: false, error: 'User not found with the specified ID.' })
-    })
-    test("premio not found", async () =>{
-        return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(404, { success: false, error: 'Prize not found with the specified ID.' })
-    })
-    test("empty query parameter", async () =>{
-        return request(app)
-        .post("/api/v1/utente/mobile/12345/riscattaBuono")
-        .set('Accept', 'application/json')
-        .set('x-access-token', token)
-        .expect(400, { success: false, error: "The 'premioId' query parameter must be a non-empty string." })
-    })
-    
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(400, { success: false, error: 'Not enough points to redeem the prize.' });
 
+    });
+    test("utente not found", async () => {
+        return request(app)
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(404, { success: false, error: 'User not found with the specified ID.' });
+    });
+    test("premio not found", async () => {
+        return request(app)
+            .post("/api/v1/utente/mobile/12345/riscattaBuono?premioId=12345")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(404, { success: false, error: 'Prize not found with the specified ID.' });
+    });
+    test("empty query parameter", async () => {
+        return request(app)
+            .post("/api/v1/utente/mobile/12345/riscattaBuono")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .expect(400, { success: false, error: "The 'premioId' query parameter must be a non-empty string." });
+    });
+});
+
+describe("PUT /api/v1/utente/mobile/:id: Modifica dei dati dell'utente", () => {
+    test("Richiesta valida", async () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123"
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("nome");
+                expect(res.body).toHaveProperty("email");
+                expect(res.body).toHaveProperty("passwordChanged");
+                expect(res.body).toHaveProperty('id');
+                expect(res.body.nome).toBe("Luigi Verdi");
+                expect(res.body.email).toBe("newemail@test.com");
+                expect(res.body.passwordChanged).toBe(true);
+                expect(res.body.id).toBeDefined();
+            });
+    });
+
+    test("Nome non fornito come stringa", () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: 12,
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123"
+            })
+            .expect(400, { success: false, error: "The 'nome' field must be a non-empty string." });
+    });
+
+    test('Nome uguale a quello attuale', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Mario Rossi",
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'nome' must be different from the last 'nome'." });
+    });
+
+    test('Email non fornita nel formato valido', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemailtest.com",
+                password: "password456",
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+    });
+
+    test('Email uguale a quella attuale', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "mobile@test.com",
+                password: "password456",
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'email' must be different from the last 'email'." });
+    });
+
+    test('Nuova Password non fornita come stringa', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: 123,
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+    });
+
+    test('Password uguale a quella attuale', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: 'password123',
+                old_password: "password123",
+            })
+            .expect(400, { success: false, error: "The 'password' must be different from the last 'password'." });
+    });
+
+    test('Password vecchia non fornita', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: 'password456'
+            })
+            .expect(400, { success: false, error: "You must provide the correct old password in order to change it" });
+    });
+
+    test('Utente non trovato', () => {
+        return request(app)
+            .put("/api/v1/utente/mobile/12345")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .send({
+                nome: "Luigi Verdi",
+                email: "newemail@test.com",
+                password: "password456",
+                old_password: "password123"
+            })
+            .expect(404, { success: false, error: 'Utente not found' });
+    });
+});
+
+describe("GET api/v1/utente/mobile/:id/buoni: Ottieni tutti i buoni dell'utente", () => {
+    test("Utente trovato", () => {
+        return request(app)
+            .get("/api/v1/utente/mobile/12345/buoni")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("buoni");
+                expect(res.body.buoni).toBeDefined();
+                expect(Array.isArray(res.body.buoni)).toBe(true);
+            });
+    });
+
+    test("Utente non trovato", () => {
+        return request(app)
+            .get("/api/v1/utente/mobile/12345/buoni")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(404, { success: false, error: 'User not found with the specified ID.' });
+    });
 });

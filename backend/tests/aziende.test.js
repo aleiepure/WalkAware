@@ -20,7 +20,20 @@ let mockAziendaFindOne = jest.fn()
         email: "azienda1@test.com",
         password: "passwordAzienda"
     }))
-    .mockRejectedValueOnce(new Error('Problem retrieving aziende'));
+    .mockRejectedValueOnce(new Error('Problem retrieving aziende'))
+    .mockResolvedValueOnce(new AziendaModel({ // Login azienda
+        nome: "azienda2",
+        p_iva: "azienda2_p_iva",
+        email: "azienda2@test.com",
+        password: "passwordAzienda2"
+    }))
+    .mockResolvedValueOnce(null)   // Login email sbagliata
+    .mockResolvedValueOnce(new AziendaModel({ // Login password sbagliata
+        nome: "azienda2",
+        p_iva: "azienda2_p_iva",
+        email: "azienda2@test.com",
+        password: "passwordAzienda2"
+    }))
 AziendaModel.findOne = mockAziendaFindOne;
 
 let mockAziendaFind = jest.fn()
@@ -65,14 +78,14 @@ let mockAziendaFindById = jest.fn()
         email: "azienda@test.com",
         password: "passwordAzienda",
         _id: "1234"
-    })) 
-    .mockRejectedValueOnce() //modifica azienda: azienda non trovata
+    }))
+    .mockRejectedValueOnce(); //modifica azienda: azienda non trovata
 AziendaModel.findById = mockAziendaFindById;
 
 let mockAziendaSave = jest.fn()
     .mockResolvedValueOnce(true)
     .mockResolvedValueOnce(true)
-    .mockResolvedValueOnce(true)
+    .mockResolvedValueOnce(true);
 AziendaModel.prototype.save = mockAziendaSave;
 
 // Mock premioModel
@@ -424,8 +437,8 @@ describe("POST /api/v1/aziende/:id/premi: Aggiunta di un premio a un'azienda", (
 
 //test modifica dati azienda
 
-describe("PUT /api/v1/aziende/{id}: modifica dati azienda", ()=>{
-    test("Richiesta valida", ()=>{
+describe("PUT /api/v1/aziende/{id}: modifica dati azienda", () => {
+    test("Richiesta valida", () => {
         return request(app)
             .put(`/api/v1/aziende/12345`)
             .set('x-access-token', token)
@@ -436,10 +449,10 @@ describe("PUT /api/v1/aziende/{id}: modifica dati azienda", ()=>{
             })
             .expect(200)
             .expect((res) => {
-                expect(res.body.success).toBe(true)
+                expect(res.body.success).toBe(true);
             });
-    })
-    test("Azienda non trovata", ()=>{
+    });
+    test("Azienda non trovata", () => {
         return request(app)
             .put(`/api/v1/aziende/7890`)
             .set('x-access-token', token)
@@ -448,9 +461,9 @@ describe("PUT /api/v1/aziende/{id}: modifica dati azienda", ()=>{
                 email: "newAziendaEmail@test.com",
                 p_iva: "987654321"
             })
-            .expect(404, { success: false, error: 'Azienda not found' })
-    })
-    test("Email non valida", ()=>{
+            .expect(404, { success: false, error: 'Azienda not found' });
+    });
+    test("Email non valida", () => {
         return request(app)
             .put(`/api/v1/aziende/7890`)
             .set('x-access-token', token)
@@ -459,7 +472,91 @@ describe("PUT /api/v1/aziende/{id}: modifica dati azienda", ()=>{
                 email: "",
                 p_iva: "987654321"
             })
-            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." })
-    })
-    
-})
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+    });
+});
+
+describe("POST /api/v1/aziende/login: Login di una azinda", () => {
+    test("Login valido", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "azienda2@test.com",
+                password: "passwordAzienda2"
+            })
+            .expect(200)
+            .expect((res) => {
+                expect(res.body.success).toBe(true);
+                expect(res.body.token).toBeDefined();
+            });
+    });
+    test("Email sbagliata", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "emailSbagliata@test.com",
+                password: "passwordAzienda2"
+            })
+            .expect(401, { success: false, error: 'Authentication failed. User not found.' });
+    });
+    test("Campo email vuoto", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "",
+                password: "passwordAzienda2",
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+    });
+    test("Campo email contenente qualcosa di diverso da una stringa", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: 12,
+                password: "passwordAzienda2",
+            })
+            .expect(400, { success: false, error: "The 'email' field must be a non-empty string in email format." });
+    });
+    test("Password sbagliata", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "azienda2@test.com",
+                password: "PasswordSbagliata"
+            })
+            .expect(401, { success: false, error: 'Authentication failed. Incorrect password.' });
+    });
+    test("Campo password contenente qualcosa di diverso da una stringa", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "azienda2@test.com",
+                password: 23,
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+    });
+    test("Campo password vuoto", () => {
+        return request(app)
+            .post("/api/v1/aziende/login")
+            .set('Accept', 'application/json')
+            .set('x-access-token', token)
+            .send({
+                email: "azienda2@test.com",
+                password: "",
+            })
+            .expect(400, { success: false, error: "The 'password' field must be a non-empty string." });
+    });
+
+});
