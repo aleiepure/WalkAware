@@ -16,7 +16,7 @@
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
             <a class="navbar-brand" href="/">WalkAware</a>
-            <% if (currentPage !=='login' ) { %>
+            <% if (currentPage !=='login' && currentPage !=='login_aziende' && currentPage !=='valida_buono' ) { %>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -31,7 +31,7 @@
                             <a class="nav-link <%= currentPage === 'aziende' ? 'active' : '' %>"
                                 href="/aziende">Aziende</a>
                         </li>
-                        <% if(isSupportoTecnico==='true'){%>
+                        <% if(typeof isSupportoTecnico !== 'undefined' && isSupportoTecnico === 'true'){%>
                         <li class="nav-item">
                             <a class="nav-link <%= currentPage === 'registrazione' ? 'active' : '' %>"
                                 href="/registrazione">Aggiungi Utente</a>

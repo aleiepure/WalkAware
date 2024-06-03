@@ -23,7 +23,7 @@ jobs:
 
       - name: Run backend tests
         working-directory: ./backend
-        run: npm run seqtest
+        run: npm test
 
       # Mobile
       - name: Setup java
@@ -62,7 +62,7 @@ jobs:
         env:
           MAPBOX_ACCESS_TOKEN: ${{ secrets.MAPBOX_ACCESS_TOKEN }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-        run: flutter build apk --dart-define PUBLIC_ACCESS_TOKEN="$MAPBOX_ACCESS_TOKEN" --dart-define BACKEND_BASE_URL=https://walkaware.onrender.com --dart-define JWT_SECRET="$JWT_SECRET"
+        run: flutter build apk --dart-define PUBLIC_ACCESS_TOKEN="$MAPBOX_ACCESS_TOKEN" --dart-define BACKEND_BASE_URL=https://walkaware.onrender.com --dart-define JWT_SECRET="$JWT_SECRET" --dart-define FRONTEND_BASE_URL=https://walkaware-frontend.onrender.com
 
       - name: Archive build result
         uses: actions/upload-artifact@v4

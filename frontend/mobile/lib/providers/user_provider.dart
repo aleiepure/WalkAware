@@ -49,6 +49,7 @@ class UserProvider with ChangeNotifier {
       return _user!.points;
     }).catchError((error) {
       debugPrint(error.toString());
+      return _user!.points;
     });
     return _user!.points;
   }

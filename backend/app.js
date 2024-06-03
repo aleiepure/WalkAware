@@ -13,6 +13,7 @@ const utenteWeb = require('./routes/utente_web.js');
 const segnalazioni = require('./routes/segnalazioni.js');
 const aziende = require('./routes/aziende.js');
 const premi = require('./routes/premi.js');
+const buoni = require('./routes/buoni.js');
 
 // Express settings
 var app = express();
@@ -33,9 +34,9 @@ app.use(tokenChecker);
 // Routes
 app.use('/api/v1/utente/mobile', utenteMobile);
 app.use('/api/v1/utente/web', utenteWeb);
-app.use('/api/v1/segnalazioni', segnalazioni)
+app.use('/api/v1/segnalazioni', segnalazioni);
 app.use('/api/v1/aziende', aziende);
 app.use('/api/v1/premi', premi);
-
+app.use('/api/v1/buoni', buoni);
 
 module.exports = app;

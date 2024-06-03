@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+
+    <div class="container d-flex justify-content-center align-items-center">
+        <% if (typeof errorMessage !=='undefined' || typeof successMessage !=='undefined' ) { %>
+            <div class="alert <% if (typeof errorMessage !== 'undefined') { %>alert-danger<% } else { %>alert-success<% } %>"
+                role="alert">
+                <% if (typeof errorMessage !=='undefined' ) { %>
+                    <%= errorMessage %>
+                        <% } else { %>
+                            <%= successMessage %>
+                                <% } %>
+            </div>
+            <% } else { 
+                const redemptionDate=new Date(buono.data_riscatto); 
+                const validityEndDate=new Date(redemptionDate);
+                validityEndDate.setDate(validityEndDate.getDate() + buono.validitaBuono);
+                const isExpired=new Date()> validityEndDate;
+                %>
+                <div class="card w-100" style="max-width: 400px;">
+                    <div class="card-header text-center">
+                        <%= buono.nome %>
+                    </div>
+                    <div class="card-body">
+                        <span class="card-text"><strong>Valore:</strong>
+                            <%= buono.valore %>
+                                <%= buono.tipo %><br>
+                        </span>
+                        <span class="card-text"><strong>Descrizione:</strong>
+                            <%= buono.descrizione %><br>
+                        </span>
+                        <span class="card-text"><strong>Costo in Punti:</strong>
+                            <%= buono.costo_punti %><br>
+                        </span>
+                        <span class="card-text"><strong>Azienda:</strong>
+                            <%= buono.idAzienda %><br>
+                        </span>
+                        <span class="card-text <%= isExpired ? 'text-danger' : '' %>"><strong>Validità del
+                                Buono:</strong>
+                            <%= buono.validitaBuono %> giorni <br>
+                        </span>
+                        <span class="card-text <%= isExpired ? 'text-danger' : '' %>"><strong>Data di Riscatto:</strong>
+                            <%= redemptionDate.toLocaleDateString() %> <br>
+                        </span>
+                        <span class="card-text <%= buono.usato ? 'text-danger' : '' %>"><strong>Usato:</strong>
+                            <%= buono.usato ? 'Sì' : 'No' %><br>
+                        </span>
+                    </div>
+                    <div class="card-footer text-center bg-white">
+                        <form action="/valida_buono/conferma?buono=<%= buono._id %>" method="POST">
+                            <button type="submit" class="btn btn-success w-100" <%=buono.usato || isExpired ? 'disabled'
+                                : '' %>>Conferma</button>
+                        </form>
+                    </div>
+                </div>
+                <% } %>
+    </div>
+    <%- include('partials/footer') %>

@@ -1,11 +1,29 @@
 const app = require('../app');
 const jwt = require('jsonwebtoken');
 const request = require('supertest');
-
 require('dotenv').config();
 
-// Mock utenteMobile
-const { utenteMobileModel } = require('../models/utente_mobile.js');
+const { utenteMobileModel, buonoUtenteMobileModel } = require('../models/utente_mobile.js');
+const premioModel = require('../models/premio.js');
+const buonoModel = require("../models/buono");
+
+
+// Create a valid token
+const token_secret = process.env.SUPER_SECRET || "supersecret";
+token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
+    token_secret, { expiresIn: "1y" });
+
+
+// mock save
+let mockUtenteMobileSave = jest.fn()
+    .mockResolvedValueOnce(true);
+utenteMobileModel.prototype.save = mockUtenteMobileSave;
+
+let mockBuonoModel = jest.fn()
+    .mockResolvedValueOnce(true);
+buonoModel.prototype.save = mockBuonoModel;
+
+// mock mockUtenteMobileFindOne
 let mockUtenteMobileFindOne = jest.fn()
     .mockResolvedValueOnce(false) //registrazione valida
     .mockResolvedValueOnce(new utenteMobileModel({ //registrazione utente esiste già
@@ -35,10 +53,8 @@ let mockUtenteMobileFindOne = jest.fn()
     }));
 utenteMobileModel.findOne = mockUtenteMobileFindOne;
 
-let mockUtenteMobileSave = jest.fn()
-    .mockResolvedValueOnce(true);
-utenteMobileModel.prototype.save = mockUtenteMobileSave;
 
+// mock mockUtenteMobileFindById
 let mockUtenteMobileFindById = jest.fn()
     .mockResolvedValueOnce(new utenteMobileModel({ //get punti valida
         nome: "Luigi Bianchi",
@@ -162,11 +178,28 @@ let mockUtenteMobileFindById = jest.fn()
         buoni: [],
         segnalazioni: [],
     }))
-    .mockRejectedValueOnce(new Error('Utente not found'));  // modifica utente, utente non trovato
+    .mockRejectedValueOnce(new Error('Utente not found'))  // modifica utente, utente non trovato
+    .mockResolvedValueOnce(new utenteMobileModel({ // get buoni utente trovato
+        eta: 44,
+        email: "mobile@test.com",
+        password: "password123",
+        punti: 1,
+        buoni: [
+            new buonoUtenteMobileModel({
+                nome: "buonoNome",
+                valore: 23,
+                tipo: "percentuale",
+                descrizione: "buonoDescrizione",
+                validitaBuono: 50,
+                costo_punti: 10,
+            }),
+        ],
+        segnalazioni: [],
+    }))
+    .mockRejectedValueOnce();   // get buoni utente non trovato
 utenteMobileModel.findById = mockUtenteMobileFindById;
 
-// mock premio model
-const premioModel = require('../models/premio.js');
+// mock mockPremioFindById
 let mockPremioFindById = jest.fn()
     .mockResolvedValueOnce(new premioModel({ //richiesta valida riscattaBuono
         nome: "premioNome",
@@ -189,12 +222,6 @@ let mockPremioFindById = jest.fn()
     .mockResolvedValueOnce()// utente not found riscattaBuono
     .mockRejectedValueOnce();// premio not found riscattaBuono
 premioModel.findById = mockPremioFindById;
-
-// Create a valid token
-const token_secret = process.env.SUPER_SECRET || "supersecret";
-token = jwt.sign({ email: 'web@gmail.com', id: "663f3d024fe06d9a59e95d30" },
-    token_secret, { expiresIn: "1y" });
-
 
 afterAll(() => {
     jest.restoreAllMocks();
@@ -615,5 +642,30 @@ describe("PUT /api/v1/utente/mobile/:id: Modifica dei dati dell'utente", () => {
                 old_password: "password123"
             })
             .expect(404, { success: false, error: 'Utente not found' });
+    });
+});
+
+describe("GET api/v1/utente/mobile/:id/buoni: Ottieni tutti i buoni dell'utente", () => {
+    test("Utente trovato", () => {
+        return request(app)
+            .get("/api/v1/utente/mobile/12345/buoni")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(200)
+            .expect((res) => {
+                expect(res.body).toHaveProperty("success");
+                expect(res.body.success).toBe(true);
+                expect(res.body).toHaveProperty("buoni");
+                expect(res.body.buoni).toBeDefined();
+                expect(Array.isArray(res.body.buoni)).toBe(true);
+            });
+    });
+
+    test("Utente non trovato", () => {
+        return request(app)
+            .get("/api/v1/utente/mobile/12345/buoni")
+            .set('x-access-token', token)
+            .set('Accept', 'application/json')
+            .expect(404, { success: false, error: 'User not found with the specified ID.' });
     });
 });

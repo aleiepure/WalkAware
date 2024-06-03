@@ -4,7 +4,7 @@ require('dotenv').config();
 
 const tokenChecker = function(req, res, next) {
   // avoid infinite loop
-  if (req.path === '/') {
+  if (req.path === '/' ) {
     return next();
   }
 

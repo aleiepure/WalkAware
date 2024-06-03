@@ -1,9 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 
-const { utenteMobileModel, segnalazioneUtenteMobileModel } = require('../models/utente_mobile.js');
+const { utenteMobileModel, segnalazioneUtenteMobileModel, buonoUtenteMobileModel} = require('../models/utente_mobile.js');
 const segnalazioneModel = require('../models/segnalazione.js');
 const premioModel = require('../models/premio.js');
+const buonoModel = require('../models/buono.js');
 
 require('dotenv').config();
 
@@ -289,7 +290,7 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 					}
 
 					// Create new buono
-					let buono = {
+					let buonoUtenteMobile = new buonoUtenteMobileModel({
 						nome: premio.nome,
 						valore: premio.valore,
 						tipo: premio.tipo,
@@ -297,18 +298,47 @@ router.post('/:id/riscattaBuono', async (req, res) => {
 						costo_punti: premio.costo_punti,
 						idAzienda: premio.idAzienda,
 						validitaBuono: premio.validitaBuono
-					};
-					user.buoni.push(buono);
+					});
+					user.buoni.push(buonoUtenteMobile);
 					user.punti -= premio.costo_punti;
 					user.save();
+
+					let buono = new buonoModel({
+						id: buonoUtenteMobile._id,
+						nome: premio.nome,
+						valore: premio.valore,
+						tipo: premio.tipo,
+						descrizione: premio.descrizione,
+						costo_punti: premio.costo_punti,
+						idAzienda: premio.idAzienda,
+						validitaBuono: premio.validitaBuono
+					})
+					buono.save()
 
 					// Response
 					return res.status(201).location(`/api/v1/utente/mobile/${user._id}/buoni/${buono._id}`).send({ success: true });
 				})
 				.catch((error) => {
-					console.error('Prize not found with the specified ID.');
+					console.error(error);
 					return res.status(404).json({ success: false, error: 'Prize not found with the specified ID.' });
 				});
+		})
+		.catch((error) => {
+			console.error(error);
+			return res.status(404).json({ success: false, error: 'User not found with the specified ID.' });
+		});
+});
+
+/**
+ * Get buono
+ * 
+ * GET /api/v1/utente/mobile/{id}/buoni
+ */
+
+router.get("/:id/buoni", async (req, res) => {
+	utenteMobileModel.findById(req.params.id)
+		.then((result) => {
+			return res.json({ success: true, buoni: result.buoni });
 		})
 		.catch((error) => {
 			console.error('User not found with the specified ID.');

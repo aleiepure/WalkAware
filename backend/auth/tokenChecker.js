@@ -4,6 +4,7 @@ const tokenChecker = function (req, res, next) {
 	if (req.path === '/api/v1/utente/mobile' ||
 		req.path === '/api/v1/utente/mobile/login' ||
 		req.path === "/api/v1/utente/web/login" ||
+		req.path === "/api/v1/aziende/login" ||
 		req.path === "/api-docs") {
 		return next();
 	}
