@@ -92,7 +92,7 @@ class CouponDetailsPage extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: QrImageView(
-                        data: '$_frontendBaseUrl/valida?premioId=${coupon.id}',
+                        data: '$_frontendBaseUrl/valida_buono?buono=${coupon.id}',
                         version: QrVersions.auto,
                         size: 192,
                       ),
