@@ -10,6 +10,11 @@ const router = express.Router();
 
 const baseUrl = process.env.BACKEND_BASE_URL || "http://localhost:8080";
 
+// Route register web user
+router.get('/', (req, res) => {
+	return res.render('registrazione', { currentPage: 'registrazione', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
+});
+
 // Route to create a new web user NOT WORKING
 router.post('/', async (req, res) => {
 	// Make API request
@@ -62,7 +67,7 @@ router.post('/login', async (req, res) => {
 		hashedPassword = sha512.hmac("", req.body.password);
 	}
 	// Make API request
-	
+
 	fetch(path.join(baseUrl, '/api/v1/utente/web/login'), {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -106,19 +111,19 @@ router.get('/logout', async (req, res) => {
 });
 
 
-router.get('/modifica', function(req, res) {
-	res.render('utente', {currentPage: 'utente', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
-  });
+router.get('/modifica', function (req, res) {
+	res.render('utente', { currentPage: 'utente', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
+});
 
 
 router.put("/:id", async (req, res) => {
 	let hashed_password = '';
-	let hashed_password_again = ""
-	let hashed_password_old = ""
+	let hashed_password_again = "";
+	let hashed_password_old = "";
 
-	console.log("password: " + req.body.password)
-	console.log("password again: " + req.body.password_again)
-	console.log("password old: " + req.body.old_password)
+	console.log("password: " + req.body.password);
+	console.log("password again: " + req.body.password_again);
+	console.log("password old: " + req.body.old_password);
 
 	if (req.body.password) {
 		hashed_password = sha512.hmac("", req.body.password);
@@ -149,7 +154,7 @@ router.put("/:id", async (req, res) => {
 						res.cookie('nome', req.body.nome, { httpOnly: true });
 						res.cookie('email', req.body.email, { httpOnly: true });
 						//res.render('utente', { successMessage: "Utente modificato correttamente", currentPage: 'utente', isSupportoTecnico: req.cookies.supporto_tecnico, nome: req.cookies.nome, email: req.cookies.email, id_web: req.cookies.userId });
-						res.redirect("/segnalazioni")
+						res.redirect("back");
 
 					}
 					else {

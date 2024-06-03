@@ -4,7 +4,7 @@
   <div class="col-md-6">
     <div class="card">
       <div class="card-header">
-        <h2><i class="fa-solid fa-pencil me-2"></i></i>Modifica dati utente</h2>
+        <h2><i class="fa-solid fa-pencil me-2"></i>Modifica dati utente</h2>
       </div>
       <div class="card-body">
         <form action="/utente/<%= id_web %>?_method=PUT" method="POST">
@@ -60,8 +60,8 @@
           </div>
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>
             Salva</button>
-          <button type="button" class="btn btn-secondary" onclick="window.location.href='/segnalazioni'">
-            <i class="fa-solid fa-times me-2"></i> Annulla
+          <button type="button" class="btn btn-secondary" onclick="history.back();">
+            Annulla</button>
         </form>
       </div>
     </div>
