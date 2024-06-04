@@ -207,10 +207,6 @@ class _SegnalazioneDetailsPageState extends State<SegnalazioneDetailsPage> {
               ],
             ),
           ),
-          const Spacer(),
-          Center(
-            child: Text(widget.segnalazione.id),
-          )
         ],
       ),
     );
