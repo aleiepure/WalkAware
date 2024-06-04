@@ -98,7 +98,7 @@ router.put("/:id", (req, res) => {
 
 // Return base64 image of the position
 async function getImageDataUrl(coordinates) {
-  const zoom = 15;
+  const zoom = 16;
   const size = '400x400';
   const marker = `color:red|label:L|${coordinates}`;
   const mapUrl = `https://maps.googleapis.com/maps/api/staticmap?center=${coordinates}&zoom=${zoom}&size=${size}&markers=${marker}&key=${process.env.GOOGLE_API_KEY}`;

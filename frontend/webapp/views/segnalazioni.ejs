@@ -36,16 +36,19 @@
                   data-bs-target="#imageModal" onclick="openImage('<%= segnalazione.map_img %>')"></i>
                 <span class="iconText_segnalazioni" data-bs-toggle="modal" data-bs-target="#imageModal"
                   onclick="openImage('<%= segnalazione.map_img %>')">Posizione</span>
-
-                <i class="fa-solid fa-image icon_segnalazioni" data-bs-toggle="modal" data-bs-target="#imageModal"
-                  onclick="openImage('<%= segnalazione.foto %>')"></i>
-                <span class="iconText_segnalazioni" data-bs-toggle="modal" data-bs-target="#imageModal"
-                  onclick="openImage('<%= segnalazione.foto %>')">Foto</span>
+                <% if(segnalazione.foto !=="" ){%>
+                  <i class="fa-solid fa-image icon_segnalazioni" data-bs-toggle="modal" data-bs-target="#imageModal"
+                    onclick="openImage('<%= segnalazione.foto %>')"></i>
+                  <span class="iconText_segnalazioni" data-bs-toggle="modal" data-bs-target="#imageModal"
+                    onclick="openImage('<%= segnalazione.foto %>')">Foto</span>
               </p>
+              <% }; %>
+
               <p class="card-text ">
                 <button type="button" class="btn btn-primary" onclick="openStatusModal('<%= segnalazione._id %>')">
                   <i class="fa-solid fa-pencil me-2"></i> Cambia Status
                 </button>
+              </p>
             </div>
           </div>
         </div>
@@ -61,7 +64,8 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel"> <i class="fa-solid fa-pencil me-2"></i> Cambia Stato</h1>
+              <h1 class="modal-title fs-5" id="exampleModalLabel"> <i class="fa-solid fa-pencil me-2"></i> Cambia Stato
+              </h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
