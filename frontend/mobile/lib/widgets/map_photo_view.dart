@@ -35,7 +35,8 @@ class _MapPhotoViewState extends State<MapPhotoView> {
     int height = (MediaQuery.of(context).size.height * 0.4).toInt();
     int width = MediaQuery.of(context).size.width.toInt();
 
-    return "https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+ff2600($lon,$lat)/auto/${width}x$height@2x?access_token=$api";
+    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+ff2600($lon,$lat)/$lon,$lat,17,0/${width}x$height@2x?access_token=$api';
+    // return "https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/pin-l+ff2600($lon,$lat)/auto/${width}x$height@2x?access_token=$api";
   }
 
   Future<String> _getImageURL() async {

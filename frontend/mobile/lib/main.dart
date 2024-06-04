@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:mapbox_search/mapbox_search.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './pages/home_page.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
   runApp(
     ChangeNotifierProvider(
       create: (context) => UserProvider(),
@@ -62,8 +67,10 @@ class _AppState extends State<App> {
                   Icons.cloud_download_outlined,
                   size: 150,
                 ),
-                Text('Caricamento dei tuoi dati',
-                style: Theme.of(context).textTheme.titleLarge,),
+                Text(
+                  'Caricamento dei tuoi dati',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 const Padding(
                   padding: EdgeInsets.all(20.0),
                   child: CircularProgressIndicator(),

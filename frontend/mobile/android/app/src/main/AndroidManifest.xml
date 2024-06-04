@@ -10,7 +10,8 @@
     <application
         android:label="WalkAware Trento"
         android:name="${applicationName}"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/launcher_icon"
+        android:screenOrientation="portrait">
         <activity
             android:name=".MainActivity"
             android:exported="true"
