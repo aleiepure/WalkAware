@@ -277,7 +277,7 @@ describe("PUT /api/v1/utente/web/{id}: Modifica dati utente web", () => {
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
-                email: "newAziendaEmail@test.com",
+                email: "newEmail@test.com",
                 nome: "newNome",
                 old_password: "password456",
                 password: "newPassword",
@@ -294,7 +294,7 @@ describe("PUT /api/v1/utente/web/{id}: Modifica dati utente web", () => {
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
-                email: "newAziendaEmail@test.com",
+                email: "newEmail@test.com",
                 nome: "newNome",
                 old_password: "password456",
                 password: "newPassword",
@@ -322,7 +322,7 @@ describe("PUT /api/v1/utente/web/{id}: Modifica dati utente web", () => {
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
-                email: "newAziendaEmail@test.com",
+                email: "newEmail@test.com",
                 nome: "",
                 old_password: "password456",
                 password: "newPassword",
@@ -337,7 +337,7 @@ describe("PUT /api/v1/utente/web/{id}: Modifica dati utente web", () => {
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
-                email: "newAziendaEmail@test.com",
+                email: "newEmail@test.com",
                 nome: "newNome",
                 old_password: "wrongOldPassword",
                 password: "newPassword",
@@ -352,7 +352,7 @@ describe("PUT /api/v1/utente/web/{id}: Modifica dati utente web", () => {
             .set('x-access-token', token)
             .set('Accept', 'application/json')
             .send({
-                email: "newAziendaEmail@test.com",
+                email: "newEmail@test.com",
                 nome: "newNome",
                 old_password: "password456",
                 password: "newPassword",
