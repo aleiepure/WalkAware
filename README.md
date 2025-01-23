@@ -8,9 +8,24 @@
   <a href="https://github.com/aleiepure/WalkAware/actions/workflows/deploy.yaml" title="Deploy to Render status">
     <img src="https://github.com/aleiepure/WalkAware/actions/workflows/deploy.yaml/badge.svg"></img>
   </a>
+  <br />
+  <a href="https://github.com/carlottacazzolli">Carlotta Cazzolli</a> | 
+  <a href="https://github.com/aleiepure">Alessandro Iepure</a> | 
+  <a href="https://github.com/rikirandon">Riccardo Randon</a>
+  <br />
+  <br />
+  Progetto per il corso di Ingegneria del software, prof. Sandro Fiore - Università degli studi di Trento.
 </div>
 
-Progetto per il corso di Ingegneria del software, prof. Sandro Fiore - Università degli studi di Trento.
+## Riconoscimenti
+
+Sviluppato all'interno del progetto "100 progetti software per la Città di Trento" promosso dal Comune di Trento in collaborazione con l'Università di Trento.
+
+WalkAware si è classificato al [primo posto](https://www.comune.trento.it/Aree-tematiche/Smart-city/News/Quattro-App-per-la-citta-premiati-gli-studenti-dell-Universita-di-Trento) nell'edizione per l'anno accademico 2023/2024 per il corso di Ingegneria Informatica.
+
+#### Video di presentazione
+
+[![YouTube](http://i.ytimg.com/vi/15pz0sOdiNw/hqdefault.jpg)](https://www.youtube.com/watch?v=15pz0sOdiNw)
 
 ## Descrizione
 
